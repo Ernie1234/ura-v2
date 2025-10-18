@@ -5,6 +5,7 @@ export const AUTH_ROUTES = {
   SIGN_UP: "/auth/register",
   GOOGLE_OAUTH_CALLBACK: "/google/oauth/callback",
   VERIFY_EMAIL: "/auth/verify-email",
+  FORGET_PASSWORD: "/auth/forget-password",
 } 
 
 export const PROTECTED_ROUTES = {

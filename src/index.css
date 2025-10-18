@@ -118,3 +118,17 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Tailwind-compatible hover animation class */
+.hover\:spin-slow:hover {
+  animation: spin-slow 2s linear infinite;
+}
