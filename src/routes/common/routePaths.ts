@@ -9,7 +9,7 @@ export const AUTH_ROUTES = {
 } 
 
 export const PROTECTED_ROUTES = {
-    DASHBOARD:'/dashboard'
+  DASHBOARD:'/dashboard'
 } 
 
 export const BASE_ROUTE = {
