@@ -1,16 +1,39 @@
-
 import Logo from '@/components/shared/Logo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Link } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { useLogin } from '@/hooks/api/use-auth-mutations'
 
+const loginSchema = z.object({
+    email: z.string().email('Please enter a valid email address'),
+    password: z.string().min(6, 'Password must be at least 6 characters'),
+})
+
+type LoginFormData = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
+    const { mutate: login, isPending } = useLogin()
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<LoginFormData>({
+        resolver: zodResolver(loginSchema),
+    })
+
+    const onSubmit = (data: LoginFormData) => {
+        login(data)
+    }
+
     return (
         <section className="flex min-h-screen bg-zinc-50 px-4 py-16 md:py-32 dark:bg-transparent">
             <form
-                action=""
+                onSubmit={handleSubmit(onSubmit)}
                 className="bg-muted m-auto h-fit w-full max-w-sm overflow-hidden rounded-[calc(var(--radius)+.125rem)] border shadow-md shadow-zinc-950/5 dark:[--color-muted:var(--color-zinc-900)]">
                 <div className="bg-card -m-px rounded-[calc(var(--radius)+.125rem)] border p-8 pb-6">
                     <div className="text-center">
@@ -29,20 +52,23 @@ export default function LoginPage() {
                             <Label
                                 htmlFor="email"
                                 className="block text-sm">
-                                Username
+                                Email
                             </Label>
                             <Input
                                 type="email"
-                                required
-                                name="email"
                                 id="email"
+                                {...register('email')}
+                                disabled={isPending}
                             />
+                            {errors.email && (
+                                <p className="text-sm text-red-500">{errors.email.message}</p>
+                            )}
                         </div>
 
                         <div className="space-y-0.5">
                             <div className="flex items-center justify-between">
                                 <Label
-                                    htmlFor="pwd"
+                                    htmlFor="password"
                                     className="text-sm">
                                     Password
                                 </Label>
@@ -59,14 +85,18 @@ export default function LoginPage() {
                             </div>
                             <Input
                                 type="password"
-                                required
-                                name="pwd"
-                                id="pwd"
-                                className="input sz-md variant-mixed"
+                                id="password"
+                                {...register('password')}
+                                disabled={isPending}
                             />
+                            {errors.password && (
+                                <p className="text-sm text-red-500">{errors.password.message}</p>
+                            )}
                         </div>
 
-                        <Button className="w-full">Sign In</Button>
+                        <Button className="w-full" type="submit" disabled={isPending}>
+                            {isPending ? 'Signing In...' : 'Sign In'}
+                        </Button>
                     </div>
 
                     <div className="my-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3">

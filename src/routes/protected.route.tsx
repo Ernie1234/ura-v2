@@ -1,16 +1,20 @@
 import useAuth from "@/hooks/api/use-auth";
 import { Navigate, Outlet } from "react-router-dom";
-
 import { DashboardSkeleton } from "@/components/skeleton/DashboardSkeleton";
 
 const ProtectedRoute = () => {
-  const { data: authData, isLoading } = useAuth();
-  const user = authData?.user;
+  const { user, isAuthenticated, isLoading, error } = useAuth();
 
   if (isLoading) {
     return <DashboardSkeleton />;
   }
-  return user ? <Outlet /> : <Navigate to="/" replace />;
+
+  // If there's an error or user is not authenticated, redirect to login
+  if (error || !isAuthenticated || !user) {
+    return <Navigate to="/auth/login" replace />;
+  }
+
+  return <Outlet />;
 };
 
 export default ProtectedRoute;

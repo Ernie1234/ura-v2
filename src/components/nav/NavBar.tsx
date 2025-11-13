@@ -1,15 +1,12 @@
-import { Menu, X, Home, Info, Phone } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import React from "react";
 import Logo from "../shared/Logo";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { menuItems } from "@/lib/data";
 
-const menuItems = [
-  { name: "Home", to: "/", icon: Home },
-  { name: "About", to: "/about", icon: Info },
-  { name: "Contact", to: "/contact", icon: Phone },
-];
+
 
 export const NavBar = () => {
   const [menuState, setMenuState] = React.useState(false);

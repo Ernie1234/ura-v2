@@ -19,10 +19,18 @@ export const verifyEmailMutationFn = async ({
   token: string;
 }) => await API.post("/auth/verify-email", { email, token });
 
-export const logoutMutationFn = async () => await API.post("/auth/logout");
+export const logoutMutationFn = async (refreshToken?: string) => 
+  await API.post("/auth/logout", refreshToken ? { refreshToken } : {});
 
 export const getCurrentUserQueryFn =
   async (): Promise<CurrentUserResponseType> => {
     const response = await API.get(`/user/current`);
     return response.data;
   };
+
+export const updateProfileMutationFn = async (
+  data: Partial<{ firstName: string; lastName: string; profilePicture: string; businessName: string }>
+) => {
+  const response = await API.patch(`/user/profile`, data);
+  return response.data;
+};

@@ -1,47 +1,84 @@
 
 export type loginType = { email: string; password: string };
+
 export type LoginResponseType = {
-  status: boolean;
+  success: boolean;
   message: string;
   data: {
-    _id: string;
-    name: string;
-    email: string;
-    profilePicture: string | null;
-    isActive: boolean;
-    lastLogin: string | null;
-    createdAt: string;
-    updatedAt: string;
-    __v: number;
-    currentWorkspace: string;
+    accessToken: string;
+    refreshToken: string;
+    user: {
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      businessName?: string;
+    };
   };
 };
 
 export type registerType = {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
 };
 
-// USER TYPE
+// USER TYPE - matches backend IUser model
 export type UserType = {
   _id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  profilePicture: string | null;
-  isActive: true;
-  lastLogin: null;
+  profilePicture?: string;
+  businessName?: string;
+  emailVerified?: boolean;
+  twoFactorEnabled?: boolean;
+  lastLoginAt?: Date;
+  bookmarkedBusinesses: string[];
+  bookmarkedPosts: string[];
+  savedEvents: string[];
+  followingUsers: string[];
+  followingBusinesses: string[];
+  followers: string[];
+  businesses: string[];
   createdAt: Date;
   updatedAt: Date;
-  currentWorkspace: {
+};
+
+export type RelatedData = {
+  businesses: Array<{
     _id: string;
+    businessName: string;
+    profileImage?: string;
+    coverImage?: string;
+    followers?: string[];
+    likes?: string[];
+    category?: string;
+  }>;
+  recentPosts: Array<{
+    _id: string;
+    business: string;
     name: string;
-    owner: string;
-    inviteCode: string;
+    description: string;
+    itemNumber?: string;
+    price: number;
+    media?: string[];
+    tags?: string[];
+    likes?: string[];
+    createdAt: string;
+    updatedAt: string;
+  }>;
+  counts: {
+    posts: number;
+    followers: number;
+    following: number;
   };
 };
 
 export type CurrentUserResponseType = {
+  success: boolean;
   message: string;
   user: UserType;
+  related?: RelatedData;
 };

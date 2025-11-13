@@ -1,16 +1,41 @@
-
 import Logo from '@/components/shared/Logo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Link } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { useRegister } from '@/hooks/api/use-auth-mutations'
 
+const registerSchema = z.object({
+    firstName: z.string().min(2, 'First name must be at least 2 characters'),
+    lastName: z.string().min(2, 'Last name must be at least 2 characters'),
+    email: z.string().email('Please enter a valid email address'),
+    password: z.string().min(6, 'Password must be at least 6 characters'),
+})
+
+type RegisterFormData = z.infer<typeof registerSchema>
 
 export default function RegisterPage() {
+    const { mutate: register, isPending } = useRegister()
+
+    const {
+        register: registerField,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<RegisterFormData>({
+        resolver: zodResolver(registerSchema),
+    })
+
+    const onSubmit = (data: RegisterFormData) => {
+        register(data)
+    }
+
     return (
         <section className="flex min-h-screen bg-zinc-50 px-4 py-16 md:py-32 dark:bg-transparent">
             <form
-                action=""
+                onSubmit={handleSubmit(onSubmit)}
                 className="bg-muted m-auto h-fit w-full max-w-sm overflow-hidden rounded-[calc(var(--radius)+.125rem)] border shadow-md shadow-zinc-950/5 dark:[--color-muted:var(--color-zinc-900)]">
                 <div className="bg-card -m-px rounded-[calc(var(--radius)+.125rem)] border p-8 pb-6">
                     <div className="text-center">
@@ -28,29 +53,35 @@ export default function RegisterPage() {
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-2">
                                 <Label
-                                    htmlFor="firstname"
+                                    htmlFor="firstName"
                                     className="block text-sm">
-                                    Firstname
+                                    First Name
                                 </Label>
                                 <Input
                                     type="text"
-                                    required
-                                    name="firstname"
-                                    id="firstname"
+                                    id="firstName"
+                                    {...registerField('firstName')}
+                                    disabled={isPending}
                                 />
+                                {errors.firstName && (
+                                    <p className="text-sm text-red-500">{errors.firstName.message}</p>
+                                )}
                             </div>
                             <div className="space-y-2">
                                 <Label
-                                    htmlFor="lastname"
+                                    htmlFor="lastName"
                                     className="block text-sm">
-                                    Lastname
+                                    Last Name
                                 </Label>
                                 <Input
                                     type="text"
-                                    required
-                                    name="lastname"
-                                    id="lastname"
+                                    id="lastName"
+                                    {...registerField('lastName')}
+                                    disabled={isPending}
                                 />
+                                {errors.lastName && (
+                                    <p className="text-sm text-red-500">{errors.lastName.message}</p>
+                                )}
                             </div>
                         </div>
 
@@ -58,44 +89,39 @@ export default function RegisterPage() {
                             <Label
                                 htmlFor="email"
                                 className="block text-sm">
-                                Username
+                                Email
                             </Label>
                             <Input
                                 type="email"
-                                required
-                                name="email"
                                 id="email"
+                                {...registerField('email')}
+                                disabled={isPending}
                             />
+                            {errors.email && (
+                                <p className="text-sm text-red-500">{errors.email.message}</p>
+                            )}
                         </div>
 
                         <div className="space-y-0.5">
-                            <div className="flex items-center justify-between">
-                                <Label
-                                    htmlFor="pwd"
-                                    className="text-sm">
-                                    Password
-                                </Label>
-                                <Button
-                                    asChild
-                                    variant="link"
-                                    size="sm">
-                                    <Link
-                                        to="/auth/forget-password"
-                                        className="link intent-info variant-ghost text-sm">
-                                        Forgot your Password ?
-                                    </Link>
-                                </Button>
-                            </div>
+                            <Label
+                                htmlFor="password"
+                                className="text-sm">
+                                Password
+                            </Label>
                             <Input
                                 type="password"
-                                required
-                                name="pwd"
-                                id="pwd"
-                                className="input sz-md variant-mixed"
+                                id="password"
+                                {...registerField('password')}
+                                disabled={isPending}
                             />
+                            {errors.password && (
+                                <p className="text-sm text-red-500">{errors.password.message}</p>
+                            )}
                         </div>
 
-                        <Button className="w-full">Sign In</Button>
+                        <Button className="w-full" type="submit" disabled={isPending}>
+                            {isPending ? 'Creating Account...' : 'Create Account'}
+                        </Button>
                     </div>
 
                     <div className="my-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3">

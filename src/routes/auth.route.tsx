@@ -1,22 +1,22 @@
-
 import useAuth from "@/hooks/api/use-auth";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { DashboardSkeleton } from "@/components/skeleton/DashboardSkeleton";
 import { isAuthRoute } from "./common/routes";
 
-
 const AuthRoute = () => {
   const location = useLocation();
-  const { data: authData, isLoading } = useAuth();
-  const user = authData?.user;
+  const { user, isAuthenticated, isLoading } = useAuth();
 
   const _isAuthRoute = isAuthRoute(location.pathname);
 
   if (isLoading && !_isAuthRoute) return <DashboardSkeleton />;
 
-  if (!user) return <Outlet />;
+  // If user is authenticated, redirect to dashboard
+  if (isAuthenticated && user) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
-  return <Navigate to={`dashboard`} replace />;
+  return <Outlet />;
 };
 
 export default AuthRoute;

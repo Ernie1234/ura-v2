@@ -3,10 +3,12 @@ import { AUTH_ROUTES, BASE_ROUTE, PROTECTED_ROUTES } from "./routePaths";
 import Home from "@/pages/public/Home";
 import GoogleOAuthFailure from "@/pages/auth/GoogleOAuthFailure";
 import Dashboard from "@/pages/dashboard/Dashboard";
+import Settings from "@/pages/dashboard/Settings.tsx";
 import About from "@/pages/public/About";
 import ForgotPasswordPage from "@/pages/auth/ForgetPassword";
 import LoginPage from "@/pages/auth/SignIn";
 import RegisterPage from "@/pages/auth/SignUp";
+import { Profile } from "@/pages/dashboard/Profile";
 
 // --- Auth Routes ---
 export const authenticationRoutePaths = [
@@ -19,6 +21,8 @@ export const authenticationRoutePaths = [
 // --- Protected Routes ---
 export const protectedRoutePaths = [
   { path: PROTECTED_ROUTES.DASHBOARD, element: <Dashboard /> },
+  { path: PROTECTED_ROUTES.SETTINGS, element: <Settings /> },
+  { path: PROTECTED_ROUTES.PROFILE, element: <Profile /> },
 ];
 
 // --- Public/Base Routes ---
