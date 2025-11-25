@@ -1,12 +1,12 @@
-import { useAuthContext } from "@/context/auth-provider";
+import { useAuthContext } from '@/context/auth-provider';
 
 /**
  * Hook to get the current authenticated user and related auth state
- * 
+ *
  * @example
  * ```tsx
  * const { user, isAuthenticated, logout } = useCurrentUser();
- * 
+ *
  * if (user) {
  *   console.log(user.name, user.email);
  * }
@@ -14,7 +14,7 @@ import { useAuthContext } from "@/context/auth-provider";
  */
 export const useCurrentUser = () => {
   const context = useAuthContext();
-  
+
   return {
     user: context.user,
     related: context.related,

@@ -1,12 +1,11 @@
 // src/components/dashboard/PostFeed.tsx
 
-import PostCard from "./PostCard";
-
+import PostCard from './PostCard';
 
 const PostFeed = () => {
   const posts = [
-    { id: 1, images: ["/images/dress1.jpg", "/images/dress2.jpg", "/images/dress3.jpg"] },
-    { id: 2, images: ["/images/dress1.jpg", "/images/dress2.jpg"] },
+    { id: 1, images: ['/images/dress1.jpg', '/images/dress2.jpg', '/images/dress3.jpg'] },
+    { id: 2, images: ['/images/dress1.jpg', '/images/dress2.jpg'] },
   ];
 
   return (

@@ -1,15 +1,10 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Heart, Share2, Bookmark, MapPin, ChartNoAxesCombined, Star } from "lucide-react";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Heart, Share2, Bookmark, MapPin, ChartNoAxesCombined, Star } from 'lucide-react';
 
 // Small utility types
 type Stat = {
@@ -70,9 +65,7 @@ export const CategoryTabs: React.FC<{
               key={c}
               onClick={() => onSelect?.(c)}
               className={`min-w-[140px] px-4 py-2 rounded-lg border ${
-                isActive
-                  ? "bg-[#FDEEE4] border-[#F2B9A3]"
-                  : "bg-white border-[#F4C9B4]"
+                isActive ? 'bg-[#FDEEE4] border-[#F2B9A3]' : 'bg-white border-[#F4C9B4]'
               } text-sm font-medium shadow-sm`}
             >
               {c}
@@ -121,9 +114,7 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
             <div className="text-sm text-gray-400">{post.category}</div>
           </div>
 
-          {post.description && (
-            <p className="mt-3 text-sm text-gray-700">{post.description}</p>
-          )}
+          {post.description && <p className="mt-3 text-sm text-gray-700">{post.description}</p>}
         </div>
       </CardHeader>
 
@@ -134,12 +125,12 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
             return (
               <div
                 key={i}
-                className={`h-48 sm:h-40 rounded overflow-hidden border ${i === 0 ? "sm:col-span-1" : ""}`}
+                className={`h-48 sm:h-40 rounded overflow-hidden border ${i === 0 ? 'sm:col-span-1' : ''}`}
               >
                 {src ? (
                   <img
                     src={src}
-                    alt={`${post.title ?? "item"} ${i + 1}`}
+                    alt={`${post.title ?? 'item'} ${i + 1}`}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -181,41 +172,40 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
 
 // ---------- Feed (composed) ----------
 const sampleStats: Stat[] = [
-  { label: "Businesses", value: "50K", icon: <ChartNoAxesCombined className="w-6 h-6" /> },
-  { label: "Transactions", value: "10K", icon: <Star className="w-6 h-6" /> },
-  { label: "State", value: "36", icon: <MapPin className="w-6 h-6" /> },
+  { label: 'Businesses', value: '50K', icon: <ChartNoAxesCombined className="w-6 h-6" /> },
+  { label: 'Transactions', value: '10K', icon: <Star className="w-6 h-6" /> },
+  { label: 'State', value: '36', icon: <MapPin className="w-6 h-6" /> },
 ];
 
 const sampleCategories = [
-  "Fashion & Beauty",
-  "Food & Drinks",
-  "Home and Garden",
-  "Health & Wellness",
+  'Fashion & Beauty',
+  'Food & Drinks',
+  'Home and Garden',
+  'Health & Wellness',
 ];
 
 const samplePosts: Post[] = [
   {
-    id: "p1",
-    author: { name: "Jane Doe", handle: "jane", isVerified: true },
-    timeAgo: "2h ago",
-    description:
-      "This is how we make our newest line. Visit our shop for curated pieces.",
-    images: ["/images/sample1.jpg", "/images/sample2.jpg", "/images/sample3.jpg"],
+    id: 'p1',
+    author: { name: 'Jane Doe', handle: 'jane', isVerified: true },
+    timeAgo: '2h ago',
+    description: 'This is how we make our newest line. Visit our shop for curated pieces.',
+    images: ['/images/sample1.jpg', '/images/sample2.jpg', '/images/sample3.jpg'],
     likes: 120,
     comments: 19,
     saves: 8,
-    category: "Fashion & Beauty",
+    category: 'Fashion & Beauty',
   },
   {
-    id: "p2",
-    author: { name: "Ken's Fashion Hub", handle: "kens", isVerified: false },
-    timeAgo: "1d ago",
-    description: "Fresh knitwear just landed! Exclusive hoodies and joggers.",
-    images: ["/images/sample4.jpg", "/images/sample5.jpg", "/images/sample6.jpg"],
+    id: 'p2',
+    author: { name: "Ken's Fashion Hub", handle: 'kens', isVerified: false },
+    timeAgo: '1d ago',
+    description: 'Fresh knitwear just landed! Exclusive hoodies and joggers.',
+    images: ['/images/sample4.jpg', '/images/sample5.jpg', '/images/sample6.jpg'],
     likes: 48,
     comments: 5,
     saves: 4,
-    category: "Fashion & Beauty",
+    category: 'Fashion & Beauty',
   },
 ];
 
@@ -231,10 +221,7 @@ const MarketplaceFeed: React.FC = () => {
       </div>
 
       <div className="mb-8">
-        <CategoryTabs
-          categories={sampleCategories}
-          active={sampleCategories[0]}
-        />
+        <CategoryTabs categories={sampleCategories} active={sampleCategories[0]} />
       </div>
 
       <div className="space-y-8">

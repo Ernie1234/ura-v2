@@ -1,4 +1,4 @@
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -6,22 +6,22 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Link, useLocation } from "react-router-dom";
-import { Separator } from "../ui/separator";
+} from '@/components/ui/breadcrumb';
+import { Link, useLocation } from 'react-router-dom';
+import { Separator } from '../ui/separator';
 
 const Header = () => {
   const location = useLocation();
-  const workspaceId =234
+  const workspaceId = 234;
 
   const pathname = location.pathname;
 
   const getPageLabel = (pathname: string) => {
-    if (pathname.includes("/project/")) return "Project";
-    if (pathname.includes("/settings")) return "Settings";
-    if (pathname.includes("/tasks")) return "Tasks";
-    if (pathname.includes("/notifications")) return "Notifications";
-    if (pathname.includes("/members")) return "Members";
+    if (pathname.includes('/project/')) return 'Project';
+    if (pathname.includes('/settings')) return 'Settings';
+    if (pathname.includes('/tasks')) return 'Tasks';
+    if (pathname.includes('/notifications')) return 'Notifications';
+    if (pathname.includes('/members')) return 'Members';
     return null;
   };
 
@@ -39,9 +39,7 @@ const Header = () => {
                   <Link to={`/workspace/${workspaceId}`}>Dashboard</Link>
                 </BreadcrumbLink>
               ) : (
-                <BreadcrumbPage className="line-clamp-1 ">
-                  Dashboard
-                </BreadcrumbPage>
+                <BreadcrumbPage className="line-clamp-1 ">Dashboard</BreadcrumbPage>
               )}
             </BreadcrumbItem>
 
@@ -49,9 +47,7 @@ const Header = () => {
               <>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem className="text-[15px]">
-                  <BreadcrumbPage className="line-clamp-1">
-                    {pageHeading}
-                  </BreadcrumbPage>
+                  <BreadcrumbPage className="line-clamp-1">{pageHeading}</BreadcrumbPage>
                 </BreadcrumbItem>
               </>
             )}

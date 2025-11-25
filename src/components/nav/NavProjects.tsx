@@ -1,7 +1,3 @@
-
-
 export const NavProjects = () => {
-  return (
-    <div>NavProjects</div>
-  )
-}
+  return <div>NavProjects</div>;
+};

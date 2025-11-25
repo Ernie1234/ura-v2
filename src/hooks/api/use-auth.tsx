@@ -1,13 +1,13 @@
-import { AxiosError } from "axios";
-import { getCurrentUserQueryFn } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
-import { tokenStorage } from "@/lib/token-storage";
+import { AxiosError } from 'axios';
+import { getCurrentUserQueryFn } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
+import { tokenStorage } from '@/lib/token-storage';
 
 const useAuth = () => {
   const hasToken = tokenStorage.hasToken();
 
   const query = useQuery({
-    queryKey: ["authUser"],
+    queryKey: ['authUser'],
     queryFn: getCurrentUserQueryFn,
     staleTime: 1000 * 60 * 5,
     enabled: hasToken,

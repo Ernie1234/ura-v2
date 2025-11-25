@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createContext, useContext } from "react";
-import useAuth from "@/hooks/api/use-auth";
-import { useLogout } from "@/hooks/api/use-auth-mutations";
-import type { UserType, RelatedData } from "@/types/api.types";
+import { createContext, useContext } from 'react';
+import useAuth from '@/hooks/api/use-auth';
+import { useLogout } from '@/hooks/api/use-auth-mutations';
+import type { UserType, RelatedData } from '@/types/api.types';
 
 // Define the context shape
 type AuthContextType = {
@@ -19,9 +19,7 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const {
     user,
     related,
@@ -61,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 export const useAuthContext = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useCurrentUserContext must be used within a AuthProvider");
+    throw new Error('useCurrentUserContext must be used within a AuthProvider');
   }
   return context;
 };

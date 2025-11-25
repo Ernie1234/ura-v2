@@ -1,25 +1,25 @@
-import React, { useState } from "react";
-import { MessageCircle, Send, X, RefreshCw } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils"; // optional helper if you use it
+import React, { useState } from 'react';
+import { MessageCircle, Send, X, RefreshCw } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils'; // optional helper if you use it
 
 const ChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
-      from: "bot",
-      text: "Hello! I am Ura assistant. How can I help you today?",
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      from: 'bot',
+      text: 'Hello! I am Ura assistant. How can I help you today?',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
 
   const quickReplies = [
-    "How do I create an account?",
-    "Payment Issues",
-    "Business Verification",
-    "Technical Support",
-    "Contact human agent",
+    'How do I create an account?',
+    'Payment Issues',
+    'Business Verification',
+    'Technical Support',
+    'Contact human agent',
   ];
 
   const sendMessage = (text?: string) => {
@@ -27,13 +27,13 @@ const ChatBot: React.FC = () => {
     if (!messageText) return;
 
     const newMessage = {
-      from: "user",
+      from: 'user',
       text: messageText,
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
     setMessages((prev) => [...prev, newMessage]);
-    setInput("");
+    setInput('');
     // You could hook up a backend API or AI response here
   };
 
@@ -82,13 +82,11 @@ const ChatBot: React.FC = () => {
       {/* Body */}
       <div className="p-4 space-y-4 h-80 overflow-y-auto bg-gray-50">
         {messages.map((msg, i) => (
-          <div key={i} className={cn("flex flex-col", msg.from === "user" && "items-end")}>
+          <div key={i} className={cn('flex flex-col', msg.from === 'user' && 'items-end')}>
             <div
               className={cn(
-                "px-4 py-2 rounded-lg text-sm max-w-[80%]",
-                msg.from === "bot"
-                  ? "bg-gray-200 text-gray-800"
-                  : "bg-orange-500 text-white"
+                'px-4 py-2 rounded-lg text-sm max-w-[80%]',
+                msg.from === 'bot' ? 'bg-gray-200 text-gray-800' : 'bg-orange-500 text-white',
               )}
             >
               {msg.text}

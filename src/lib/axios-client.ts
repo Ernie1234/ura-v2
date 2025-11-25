@@ -1,6 +1,6 @@
-import type { CustomError } from "@/types/custom-error.type";
-import axios, { type InternalAxiosRequestConfig } from "axios";
-import { tokenStorage } from "./token-storage";
+import type { CustomError } from '@/types/custom-error.type';
+import axios, { type InternalAxiosRequestConfig } from 'axios';
+import { tokenStorage } from './token-storage';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -18,10 +18,7 @@ let failedQueue: Array<{
   reject: (reason?: unknown) => void;
 }> = [];
 
-const processQueue = (
-  error: unknown,
-  token: string | null = null
-): void => {
+const processQueue = (error: unknown, token: string | null = null): void => {
   failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
@@ -42,7 +39,7 @@ API.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Response interceptor for error handling and token refresh
@@ -55,7 +52,7 @@ API.interceptors.response.use(
     if (!error.response) {
       return Promise.reject({
         ...error,
-        errorCode: "NETWORK_ERROR",
+        errorCode: 'NETWORK_ERROR',
       });
     }
 
@@ -85,7 +82,7 @@ API.interceptors.response.use(
       if (!refreshToken) {
         // No refresh token, clear storage and redirect
         tokenStorage.clearTokens();
-        window.location.href = "/auth/login";
+        window.location.href = '/auth/login';
         return Promise.reject(error);
       }
 
@@ -94,7 +91,7 @@ API.interceptors.response.use(
         const response = await axios.post(
           `${baseURL}/auth/refresh`,
           { refreshToken },
-          { withCredentials: true }
+          { withCredentials: true },
         );
 
         // Handle nested data structure from backend
@@ -115,7 +112,7 @@ API.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         tokenStorage.clearTokens();
-        window.location.href = "/auth/login";
+        window.location.href = '/auth/login';
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -125,11 +122,11 @@ API.interceptors.response.use(
     // Handle other errors
     const customError: CustomError = {
       ...error,
-      errorCode: data?.errorCode || "UNKNOWN_ERROR",
+      errorCode: data?.errorCode || 'UNKNOWN_ERROR',
     };
 
     return Promise.reject(customError);
-  }
+  },
 );
 
 export default API;

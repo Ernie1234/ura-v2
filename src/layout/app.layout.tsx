@@ -1,14 +1,13 @@
-import { Outlet } from "react-router-dom";
+import { Outlet } from 'react-router-dom';
 
-import { AuthProvider } from "@/context/auth-provider";
-import DashboardNav from "@/components/nav/DashboardNav";
-
+import { AuthProvider } from '@/context/auth-provider';
+import DashboardNav from '@/components/nav/DashboardNav';
 
 const AppLayout = () => {
   return (
     <AuthProvider>
       <DashboardNav />
-                <Outlet />
+      <Outlet />
       {/* <SidebarProvider>
         <AppSideBar />
         <SidebarInset className="overflow-x-hidden">

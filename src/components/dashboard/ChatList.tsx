@@ -1,8 +1,8 @@
 // src/components/dashboard/ChatList.tsx
 const chats = [
-  { name: "Janet Doe", message: "I want to place a reservation", date: "Aug 14, 2025" },
-  { name: "Janet Doe", message: "I want to place a reservation", date: "Aug 14, 2025" },
-  { name: "Janet Doe", message: "I want to place a reservation", date: "Aug 14, 2025" },
+  { name: 'Janet Doe', message: 'I want to place a reservation', date: 'Aug 14, 2025' },
+  { name: 'Janet Doe', message: 'I want to place a reservation', date: 'Aug 14, 2025' },
+  { name: 'Janet Doe', message: 'I want to place a reservation', date: 'Aug 14, 2025' },
 ];
 
 const ChatList = () => {

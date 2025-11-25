@@ -1,15 +1,15 @@
-import { useParams } from "react-router-dom";
+import { useParams } from 'react-router-dom';
 
 export const Profile = () => {
-    const { userId } = useParams<{ userId: string }>();
+  const { userId } = useParams<{ userId: string }>();
 
-     // Use userId to fetch profile data
+  // Use userId to fetch profile data
   console.log('Profile userId:', userId);
-  
+
   return (
-   <div>
+    <div>
       <h1>Profile Page for user: {userId}</h1>
       {/* Your profile content */}
     </div>
-  )
-}
+  );
+};

@@ -6,9 +6,13 @@ interface Bookmark {
 }
 
 const bookmarks: Bookmark[] = [
-  { name: "Frank Smith", description: "Business update message", avatar: "/images/avatar-male.png" },
-  { name: "Tom Royal", description: "Access my source code", avatar: "/images/avatar-male.png" },
-  { name: "Jane Cloe", description: "Preview next project", avatar: "/images/avatar-female.png" },
+  {
+    name: 'Frank Smith',
+    description: 'Business update message',
+    avatar: '/images/avatar-male.png',
+  },
+  { name: 'Tom Royal', description: 'Access my source code', avatar: '/images/avatar-male.png' },
+  { name: 'Jane Cloe', description: 'Preview next project', avatar: '/images/avatar-female.png' },
 ];
 
 const BookmarkList = () => {

@@ -1,8 +1,8 @@
-import { ImageIcon, Video, Tag, Globe, SendHorizonal } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { AvatarCard } from "../shared/AvatarCard";
-import { useAuthContext } from "@/context/auth-provider";
+import { ImageIcon, Video, Tag, Globe, SendHorizonal } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { AvatarCard } from '../shared/AvatarCard';
+import { useAuthContext } from '@/context/auth-provider';
 
 const ShareBox = () => {
   const { isLoading, user } = useAuthContext();
@@ -11,7 +11,7 @@ const ShareBox = () => {
     return <div className="p-4 text-gray-400 text-sm">Loading...</div>;
   }
 
-  const initials = `${user.firstName?.[0] ?? "U"}${user.lastName?.[0] ?? ""}`;
+  const initials = `${user.firstName?.[0] ?? 'U'}${user.lastName?.[0] ?? ''}`;
 
   return (
     <div className="rounded-xl bg-white p-4 shadow-md">
@@ -45,10 +45,7 @@ const ShareBox = () => {
               </button>
             </div>
 
-            <Button
-              size="icon"
-              className="rounded-full bg-orange-500 hover:bg-orange-600"
-            >
+            <Button size="icon" className="rounded-full bg-orange-500 hover:bg-orange-600">
               <SendHorizonal size={16} />
             </Button>
           </div>

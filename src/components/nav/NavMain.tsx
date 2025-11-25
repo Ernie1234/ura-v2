@@ -1,18 +1,12 @@
-import {
-  Settings,
-  LayoutDashboard,
-  Bell,
-  MessageCircle,
-  type LucideIcon,
-} from "lucide-react";
+import { Settings, LayoutDashboard, Bell, MessageCircle, type LucideIcon } from 'lucide-react';
 import {
   SidebarGroup,
   SidebarMenu,
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { Link, useLocation } from "react-router-dom";
+} from '@/components/ui/sidebar';
+import { Link, useLocation } from 'react-router-dom';
 
 type ItemType = {
   title: string;
@@ -22,29 +16,28 @@ type ItemType = {
 };
 
 export function NavMain() {
-
   const location = useLocation();
 
   const pathname = location.pathname;
 
-  const unreadNotificationsCount = 3
-   const canManageSettings = true
+  const unreadNotificationsCount = 3;
+  const canManageSettings = true;
 
   const items: ItemType[] = [
     {
-      title: "Dashboard",
+      title: 'Dashboard',
       url: `/dashboard`,
       icon: LayoutDashboard,
       showBadge: false,
     },
     {
-      title: "Chat",
+      title: 'Chat',
       url: `/dashboard/chat`,
       icon: MessageCircle,
       showBadge: false,
     },
     {
-      title: "Notifications",
+      title: 'Notifications',
       url: `/dashboard/notifications`,
       icon: Bell,
       showBadge: true,
@@ -53,7 +46,7 @@ export function NavMain() {
     ...(canManageSettings
       ? [
           {
-            title: "Settings",
+            title: 'Settings',
             url: `/dashboard/settings`,
             icon: Settings,
             showBadge: false,

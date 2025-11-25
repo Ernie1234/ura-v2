@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { EllipsisIcon, Loader, LogOut } from "lucide-react";
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { EllipsisIcon, Loader, LogOut } from 'lucide-react';
 import {
   Sidebar,
   SidebarHeader,
@@ -13,7 +13,7 @@ import {
   SidebarFooter,
   SidebarRail,
   useSidebar,
-} from "@/components/ui/sidebar";
+} from '@/components/ui/sidebar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,15 +21,15 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-import { Separator } from "../ui/separator";
-import { useAuthContext } from "@/context/auth-provider";
-import Logo from "./Logo";
-import LogoutDialog from "./LogoutDialog";
-import { NavMain } from "../nav/NavMain";
-import { NavProjects } from "../nav/NavProjects";
+import { Separator } from '../ui/separator';
+import { useAuthContext } from '@/context/auth-provider';
+import Logo from './Logo';
+import LogoutDialog from './LogoutDialog';
+import { NavMain } from '../nav/NavMain';
+import { NavProjects } from '../nav/NavProjects';
 
 const AppSideBar = () => {
   const { isLoading, user } = useAuthContext();
@@ -68,10 +68,7 @@ const AppSideBar = () => {
           <SidebarMenu>
             <SidebarMenuItem>
               {isLoading ? (
-                <Loader
-                  size="24px"
-                  className="place-self-center self-center animate-spin"
-                />
+                <Loader size="24px" className="place-self-center self-center animate-spin" />
               ) : (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -80,7 +77,7 @@ const AppSideBar = () => {
                       className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                     >
                       <Avatar className="h-8 w-8 rounded-full">
-                        <AvatarImage src={user?.profilePicture || ""} />
+                        <AvatarImage src={user?.profilePicture || ''} />
                         <AvatarFallback className="rounded-full border border-gray-500">
                           {user?.firstName?.charAt(0)}
                           {user?.lastName?.charAt(0)}
@@ -97,12 +94,11 @@ const AppSideBar = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-                    side={"bottom"}
+                    side={'bottom'}
                     align="start"
                     sideOffset={4}
                   >
-                    <DropdownMenuGroup>
-                    </DropdownMenuGroup>
+                    <DropdownMenuGroup></DropdownMenuGroup>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => setIsOpen(true)}>
                       <LogOut className="mr-2 h-4 w-4" />

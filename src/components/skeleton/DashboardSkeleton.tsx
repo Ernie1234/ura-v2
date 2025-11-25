@@ -1,5 +1,5 @@
-import { Skeleton } from "@/components/ui/skeleton";
-import { Loader } from "lucide-react";
+import { Skeleton } from '@/components/ui/skeleton';
+import { Loader } from 'lucide-react';
 
 export function DashboardSkeleton() {
   return (

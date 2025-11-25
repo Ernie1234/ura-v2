@@ -1,12 +1,11 @@
 // src/pages/Dashboard.tsx
 
-import ActivityPanel from "@/components/dashboard/ActivityPanel";
-import BookmarkList from "@/components/dashboard/BookmarkList";
-import ChatList from "@/components/dashboard/ChatList";
-import PostFeed from "@/components/dashboard/PostFeed";
-import ProfileCard from "@/components/dashboard/ProfileCard";
-import ShareBox from "@/components/dashboard/ShareBox";
-
+import ActivityPanel from '@/components/dashboard/ActivityPanel';
+import BookmarkList from '@/components/dashboard/BookmarkList';
+import ChatList from '@/components/dashboard/ChatList';
+import PostFeed from '@/components/dashboard/PostFeed';
+import ProfileCard from '@/components/dashboard/ProfileCard';
+import ShareBox from '@/components/dashboard/ShareBox';
 
 const Dashboard = () => {
   return (
