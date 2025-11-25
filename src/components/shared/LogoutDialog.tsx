@@ -1,3 +1,6 @@
+import { useCallback } from 'react';
+import { Loader } from 'lucide-react';
+
 import {
   Dialog,
   DialogContent,
@@ -7,43 +10,34 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useCallback } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { logoutMutationFn } from '@/lib/api';
-import { useNavigate } from 'react-router-dom';
-import { Loader } from 'lucide-react';
-import { toast } from 'sonner';
+import { useLogout } from '@/hooks/api/use-auth-mutations';
 
 const LogoutDialog = (props: {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const { isOpen, setIsOpen } = props;
-  const navigate = useNavigate();
 
-  const queryClient = useQueryClient();
+  const { mutate, isPending } = useLogout();
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: logoutMutationFn,
-    onSuccess: () => {
-      queryClient.resetQueries({
-        queryKey: ['authUser'],
-      });
-      navigate('/');
-      setIsOpen(false);
-    },
-    onError: (error) => {
-      toast.error('Error', {
-        description: error.message,
-      });
-    },
-  });
-
-  // Handle logout action
   const handleLogout = useCallback(() => {
-    if (isPending) return;
-    mutate();
-  }, [isPending, mutate]);
+if (isPending) return;
+    // The useLogout hook is configured to handle tokens,
+    // so we can call mutate() with no arguments here.
+    // However, the onSuccess/onError logic of useLogout redirects
+    // to /auth/login and shows a toast.
+ mutate(undefined, {
+      onSuccess: () => {
+        // We still need to close the dialog locally
+        setIsOpen(false);
+        // The useLogout hook handles navigation and toast for success
+      },
+      onError: () => {
+        // The useLogout hook handles navigation and toast for error
+        setIsOpen(false);
+      }
+    });
+ }, [isPending, mutate, setIsOpen]);
 
   return (
     <>
