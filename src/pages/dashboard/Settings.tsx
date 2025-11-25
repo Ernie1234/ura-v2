@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateProfileMutationFn } from "@/lib/api";
 import { toast } from "sonner";
+import type { AxiosError } from "axios";
 
 const schema = z.object({
   businessName: z.string().trim().max(100, "Max 100 characters").optional(),
@@ -25,16 +26,17 @@ export default function Settings() {
     values: { businessName: user?.businessName || "" },
   });
 
-  const { mutateAsync } = useMutation({
-    mutationFn: updateProfileMutationFn,
-    onSuccess: () => {
-      toast.success("Profile updated");
-      queryClient.invalidateQueries({ queryKey: ["authUser"] });
-    },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Update failed");
-    }
-  });
+ const { mutateAsync } = useMutation({
+  mutationFn: updateProfileMutationFn,
+  onSuccess: () => {
+    toast.success("Profile updated");
+    queryClient.invalidateQueries({ queryKey: ["authUser"] });
+  },
+  onError: (error: AxiosError) => {
+    const msg = (error.response?.data as { message?: string })?.message;
+    toast.error(msg || "Update failed");
+  }
+});
 
   const onSubmit = async (values: FormValues) => {
     await mutateAsync({ businessName: values.businessName });

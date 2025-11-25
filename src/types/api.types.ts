@@ -17,6 +17,11 @@ export type LoginResponseType = {
   };
 };
 
+export type RegisterResponseType = {
+  success: boolean;
+  message: string;
+};
+
 export type registerType = {
   firstName: string;
   lastName: string;
