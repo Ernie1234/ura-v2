@@ -38,9 +38,9 @@ export default function LoginPage() {
       >
         <div className="bg-card -m-px rounded-[calc(var(--radius)+.125rem)] border p-8 pb-6">
           <div className="text-center">
-            <Link to="/" aria-label="go home" className="mx-auto block w-fit">
-              <Logo />
-            </Link>
+            <div aria-label="go home" className="mx-auto block w-fit">
+              <Logo url="/" />
+            </div>
             <h1 className="mb-1 mt-4 text-xl font-semibold">Sign In to Ura</h1>
             <p className="text-sm">Welcome back! Sign in to continue</p>
           </div>

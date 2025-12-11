@@ -1,0 +1,81 @@
+[
+  {
+    "_id": "post_001",
+    "name": "Elegant Ankara Dress",
+    "description": "Beautifully tailored Ankara gown perfect for weddings, birthdays and evening outings. Available in multiple sizes.",
+    "price": 25000,
+    "tags": ["ankara", "fashion", "dress"],
+    "media": [
+      "https://picsum.photos/800"
+    ],
+    "business": {
+      "_id": "biz_101",
+      "businessName": "Binta Couture",
+      "profileImage": "https://picsum.photos/800",
+      "username": "bintacouture",
+      "rating": 4
+    }
+  },
+  {
+    "_id": "post_002",
+    "name": "Custom Men’s Kaftan",
+    "description": "Premium men's kaftan made with high-quality fabric. Perfect fit guaranteed.",
+    "price": 45000,
+    "tags": ["kaftan", "menswear"],
+    "media": [
+        "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800",
+        "https://images.unsplash.com/photo-1551537482-f2075a1d41f2?w=800",
+        "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800",
+        "https://images.unsplash.com/photo-1593032457860-531d55d7db33?w=800"
+
+    ],
+    "business": {
+      "_id": "biz_102",
+      "businessName": "Elite Tailors",
+      "profileImage": "https://picsum.photos/800",
+      "username": "elitetailors",
+      "rating": 5
+    }
+  },
+  {
+    "_id": "post_003",
+    "name": "Hair Styling Package",
+    "description": "Complete makeover including braids, retouching, and luxury hair treatment.",
+    "price": 12000,
+    "tags": ["hair", "beauty", "salon"],
+    "media": [
+        "https://images.unsplash.com/photo-1535632787350-4e68ef0ac584?w=800",
+        "https://picsum.photos/800"
+
+    ],
+    "business": {
+      "_id": "biz_103",
+      "businessName": "Glow Studio",
+      "profileImage": "https://picsum.photos/800",
+      "username": "glowstudio",
+      "rating": 4
+    }
+  },
+  {
+    "_id": "post_004",
+    "name": "Brainer Bootique",
+    "description": "Complete makeover including braids, retouching, and luxury hair treatment.",
+    "price": 12000,
+    "tags": ["cloth", "fashion", "salon"],
+    "media": [
+        "https://images.unsplash.com/photo-1535632787350-4e68ef0ac584?w=800",
+        "https://picsum.photos/800",
+        "https://picsum.photos/800",
+        "https://picsum.photos/800",
+        "https://picsum.photos/800"
+
+    ],
+    "business": {
+      "_id": "biz_104",
+      "businessName": "Clow Style",
+      "profileImage": "https://picsum.photos/800",
+      "username": "clowatyle",
+      "rating": 4
+    }
+  }
+]

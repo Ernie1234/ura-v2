@@ -3,15 +3,15 @@ import Logo from '../shared/Logo';
 import { menuItems } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { DashboardAvatar } from '../dashboard/DashboardAvatar';
-import { Settings } from 'lucide-react';
+import { Divide, Settings } from 'lucide-react';
 
 const DashboardNav = () => {
   return (
     <header className="sticky top-0 z-20 w-full bg-white shadow-md">
       <div className="container mx-auto flex items-center justify-between px-12 lg:px-16 py-4">
-        <Link to="/dashboard" aria-label="home" className="flex items-center space-x-2">
-          <Logo />
-        </Link>
+        <div aria-label="home" className="flex items-center space-x-2">
+          <Logo url='/dashboard' />
+        </div>
 
         {/* Desktop Nav */}
         <div className="absolute inset-0 m-auto hidden size-fit lg:block">

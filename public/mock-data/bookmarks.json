@@ -1,0 +1,39 @@
+{
+  "bookmarks": [
+    {
+      "name": "Frank Smith",
+      "description": "Business update message",
+      "avatar": "https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?w=64"
+    },
+    {
+      "name": "Tom Royal",
+      "description": "Access my source code",
+      "avatar": "https://images.unsplash.com/photo-1502767089025-6572583495fe?w=64"
+    },
+    {
+      "name": "Jane Cloe",
+      "description": "Preview next project",
+      "avatar": "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=64"
+    },
+    {
+      "name": "Jane Cloe",
+      "description": "Preview next project",
+      "avatar": "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=64"
+    },
+    {
+      "name": "Jane Cloe",
+      "description": "Preview next project",
+      "avatar": "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=64"
+    },
+    {
+      "name": "Jane Cloe",
+      "description": "Preview next project",
+      "avatar": "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=64"
+    },
+    {
+      "name": "Jane Cloe",
+      "description": "Preview next project",
+      "avatar": "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=64"
+    }
+  ]
+}

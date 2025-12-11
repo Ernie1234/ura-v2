@@ -35,6 +35,7 @@ export type UserType = {
   lastName: string;
   email: string;
   profilePicture?: string;
+  coverPicture?: string;
   businessName?: string;
   emailVerified?: boolean;
   twoFactorEnabled?: boolean;

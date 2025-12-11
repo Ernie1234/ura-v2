@@ -4,14 +4,15 @@ import { DashboardSkeleton } from '@/components/skeleton/DashboardSkeleton';
 
 const ProtectedRoute = () => {
   const { user, isAuthenticated, isLoading, error } = useAuth();
-
   if (isLoading) {
     return <DashboardSkeleton />;
   }
 
   // If there's an error or user is not authenticated, redirect to login
   if (error || !isAuthenticated || !user) {
+    
     return <Navigate to="/auth/login" replace />;
+    // console.log("user not logged in");
   }
 
   return <Outlet />;
