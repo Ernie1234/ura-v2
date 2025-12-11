@@ -42,7 +42,7 @@ export default function PostCard({ post, onRequireAuth }: PostCardProps) {
       className="
         bg-white rounded-2xl shadow-md border
         overflow-hidden transition-all duration-300
-        hover:shadow-lg hover:scale-[1.01] animate-fadeIn
+        hover:shadow-lg animate-fadeIn
       "
     >
       {/* HEADER */}
@@ -91,7 +91,7 @@ export default function PostCard({ post, onRequireAuth }: PostCardProps) {
     {/* First image (always present) */}
     <img
       src={post.media[0]}
-      className={`rounded-xl w-full object-cover transition hover:scale-105 ${
+      className={`rounded-xl w-full object-cover transition ${
         post.media.length === 1 ? 'h-[260px]' : 'h-[260px]'
       }`}
     />
@@ -103,7 +103,7 @@ export default function PostCard({ post, onRequireAuth }: PostCardProps) {
           <img
             key={index}
             src={img}
-            className={`rounded-xl w-full object-cover transition hover:scale-105 ${
+            className={`rounded-xl w-full object-cover transition ${
               post.media.length === 2 ? 'h-[260px]' : 'h-[125px]'
             }`}
           />

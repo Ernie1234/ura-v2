@@ -1,0 +1,60 @@
+{
+  "success": true,
+  "message": "User profile fetched",
+  "user": {
+    "_id": "user_002",
+    "firstName": "Binta",
+    "lastName": "Couture",
+    "email": "binta@couture.com",
+    "profilePicture": "https://picsum.photos/id/64/400",
+    "coverPicture": "https://picsum.photos/id/29/1200",
+    "businessName": "Binta Couture",
+    "emailVerified": true,
+    "followers": ["user_003", "679ac12ef9123ab457cd89ef"],
+    "followingUsers": ["user_003"],
+    "bookmarkedPosts": [],
+    "createdAt": "2024-11-01T10:00:00Z",
+    "updatedAt": "2025-01-10T10:00:00Z"
+  },
+
+"related": {
+  "businesses":
+    {
+      "_id": "6732abcd1290bb8d19f3b002",
+      "businessName": "Glow Beauty Studio",
+      "profileImage": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800",
+      "coverImage": "https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=800",
+      "followers": ["user1111", "user2222", "user3333"],
+      "likes": ["user5555", "user6666"],
+      "category": "Beauty & Wellness",
+      "address": "15 Admiralty Road, Ikoyi, Lagos",
+      "phone": "+234 803 456 1122",
+      "website": "https://glowstudio.ng",
+      "openingTime": "09:00 AM",
+      "closingTime": "07:00 PM"
+    },
+
+  "recentPosts": [
+    {
+      "_id": "9742abcd1290bb8d19f3c210",
+      "business": "6732abcd1290bb8d19f3b001",
+      "name": "New Robotics Kit",
+      "description": "Introducing our latest robotics starter kit.",
+      "itemNumber": "RBX-100",
+      "price": 129.99,
+      "media": ["https://source.unsplash.com/featured/?fashion"],
+      "tags": ["robotics", "innovation"],
+      "likes": ["user3333"],
+      "createdAt": "2025-01-12T09:00:00Z",
+      "updatedAt": "2025-01-12T10:00:00Z"
+    }
+  ],
+
+  "counts": {
+    "posts": 2,
+    "followers": 3,
+    "following": 4
+  }
+}
+
+}

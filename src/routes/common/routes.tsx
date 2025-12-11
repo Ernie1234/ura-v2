@@ -8,7 +8,7 @@ import About from '@/pages/public/About';
 import ForgotPasswordPage from '@/pages/auth/ForgetPassword';
 import LoginPage from '@/pages/auth/SignIn';
 import RegisterPage from '@/pages/auth/SignUp';
-import { Profile } from '@/pages/dashboard/Profile';
+import UserProfilePage from '@/pages/dashboard/Profile';
 
 // --- Auth Routes ---
 export const authenticationRoutePaths = [
@@ -22,7 +22,7 @@ export const authenticationRoutePaths = [
 export const protectedRoutePaths = [
   { path: PROTECTED_ROUTES.DASHBOARD, element: <Dashboard /> },
   { path: PROTECTED_ROUTES.SETTINGS, element: <Settings /> },
-  { path: PROTECTED_ROUTES.PROFILE, element: <Profile /> },
+  { path: PROTECTED_ROUTES.PROFILE, element: <UserProfilePage /> },
 ];
 
 // --- Public/Base Routes ---

@@ -1,0 +1,58 @@
+{
+  "success": true,
+  "message": "User profile fetched",
+  "user": {
+    "_id": "user_003",
+    "firstName": "Zara",
+    "lastName": "Styles",
+    "email": "zara@styles.com",
+    "profilePicture": "https://picsum.photos/id/1025/400",
+    "coverPicture": "https://picsum.photos/id/1015/1200",
+    "businessName": "Zara Styles",
+    "followers": [],
+    "followingUsers": ["user_002"],
+    "createdAt": "2024-10-01T08:00:00Z",
+    "updatedAt": "2025-01-01T08:00:00Z"
+  },
+
+"related": {
+  "businesses":
+    {
+      "_id": "6732abcd1290bb8d19f3b001",
+      "businessName": "Doe Ventures",
+      "profileImage": "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=800",
+      "coverImage": "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=800",
+      "followers": ["user4444", "user5555"],
+      "likes": ["user7777"],
+      "category": "Technology",
+      "address": "23 Admiralty Way, Lekki, Lagos",
+      "phone": "+234 812 345 6789",
+      "website": "https://janetdoe.com",
+      "openingTime": "08:00 AM",
+      "closingTime": "06:00 PM"
+    },
+
+  "recentPosts": [
+    {
+      "_id": "9742abcd1290bb8d19f3c210",
+      "business": "6732abcd1290bb8d19f3b001",
+      "name": "New Robotics Kit",
+      "description": "Introducing our latest robotics starter kit.",
+      "itemNumber": "RBX-100",
+      "price": 129.99,
+      "media": ["https://source.unsplash.com/featured/?fashion"],
+      "tags": ["robotics", "innovation"],
+      "likes": ["user3333"],
+      "createdAt": "2025-01-12T09:00:00Z",
+      "updatedAt": "2025-01-12T10:00:00Z"
+    }
+  ],
+
+  "counts": {
+    "posts": 2,
+    "followers": 3,
+    "following": 4
+  }
+}
+
+}
