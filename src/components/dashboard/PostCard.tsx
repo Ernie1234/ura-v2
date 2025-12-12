@@ -104,7 +104,7 @@ export default function PostCard({ post, onRequireAuth }: PostCardProps) {
             key={index}
             src={img}
             className={`rounded-xl w-full object-cover transition ${
-              post.media.length === 2 ? 'h-[260px]' : 'h-[125px]'
+              post?.media?.length === 2 ? 'h-[260px]' : 'h-[125px]'
             }`}
           />
         ))}

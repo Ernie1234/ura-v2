@@ -1,0 +1,74 @@
+[
+  {
+    "id": "prod_001",
+    "name": "Elegant Ankara Dress",
+    "description": "Beautifully tailored Ankara gown perfect for weddings, birthdays, and evening outings. Available in multiple sizes.",
+    "price": 25000,
+    "category": "Fashion",
+    "stock": 12,
+    "imageUrl": "https://picsum.photos/id/1011/800/600"
+  },
+  {
+    "id": "prod_002",
+    "name": "Custom Men’s Kaftan",
+    "description": "Premium men's kaftan made with high-quality fabric. Perfect fit guaranteed, suitable for both casual and formal events.",
+    "price": 45000,
+    "category": "Fashion",
+    "stock": 7,
+    "imageUrl": "https://picsum.photos/id/1012/800/600"
+  },
+  {
+    "id": "prod_003",
+    "name": "Hair Styling Package",
+    "description": "Complete makeover including braids, retouching, and luxury hair treatment for all hair types.",
+    "price": 12000,
+    "category": "Beauty",
+    "stock": 5,
+    "imageUrl": "https://picsum.photos/id/1013/800/600"
+  },
+  {
+    "id": "prod_004",
+    "name": "Luxury Spa Package",
+    "description": "Relax and rejuvenate with our exclusive spa services, including massage, facial, and body treatments.",
+    "price": 18000,
+    "category": "Beauty",
+    "stock": 3,
+    "imageUrl": "https://picsum.photos/id/1014/800/600"
+  },
+  {
+    "id": "prod_005",
+    "name": "Kids Party Dress",
+    "description": "Cute and colorful dresses for your little ones, perfect for parties and family gatherings.",
+    "price": 12000,
+    "category": "Fashion",
+    "stock": 8,
+    "imageUrl": "https://picsum.photos/id/1015/800/600"
+  },
+  {
+    "id": "prod_006",
+    "name": "Premium Hair Serum",
+    "description": "Nourish and protect your hair with our top-quality hair serum, suitable for all hair types.",
+    "price": 8000,
+    "category": "Beauty",
+    "stock": 15,
+    "imageUrl": "https://picsum.photos/id/1016/800/600"
+  },
+  {
+    "id": "prod_007",
+    "name": "Men’s Casual Shirt",
+    "description": "Stylish and comfortable casual shirt, ideal for office and weekend wear.",
+    "price": 18000,
+    "category": "Fashion",
+    "stock": 10,
+    "imageUrl": "https://picsum.photos/id/1017/800/600"
+  },
+  {
+    "id": "prod_008",
+    "name": "Organic Face Mask",
+    "description": "Rejuvenate your skin with our all-natural organic face mask, suitable for daily use.",
+    "price": 6000,
+    "category": "Beauty",
+    "stock": 20,
+    "imageUrl": "https://picsum.photos/id/1018/800/600"
+  }
+]

@@ -175,6 +175,11 @@ const ProfileInfo: React.FC<Props> = ({ profile }) => {
                     )}
                 </div>
 
+                {/* About user business */}
+                <div className="mt-4 p-4 space-y-3 hidden lg:block border-b border-t">
+                    <h3 className="font-semibold text-lg">About {fullName}</h3>
+                    <p className="text-gray-700 leading-relaxed">{profile.user?.bussinessDescription}</p>
+                </div>
                 {/* Tabs */}
                 <div className="mt-3 p-4 space-y-3 hidden lg:block border-b">
                     {/* Address */}

@@ -9,6 +9,7 @@
     "profilePicture": "https://picsum.photos/id/64/400",
     "coverPicture": "https://picsum.photos/id/29/1200",
     "businessName": "Binta Couture",
+    "bussinessDescription": "Glow Beauty Studio is a premier salon offering professional hair, skincare, and beauty services tailored to your style. We focus on delivering a relaxing and luxurious experience to every client.",
     "emailVerified": true,
     "followers": ["user_003", "679ac12ef9123ab457cd89ef"],
     "followingUsers": ["user_003"],

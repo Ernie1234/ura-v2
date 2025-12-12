@@ -1,0 +1,45 @@
+{
+  "summary": {
+    "averageRating": 4.2,
+    "totalReviews": 128,
+    "distribution": {
+      "5": 70,
+      "4": 30, 
+      "3": 15, 
+      "2": 8,  
+      "1": 5   
+    }
+  },
+  "reviews": [
+    {
+      "id": 101,
+      "user": "Janet Doe",
+      "rating": 5,
+      "timeAgo": "3 Days Ago",
+      "comment": "The jollof rice was smoky and rich, and the suya had just the right kick. Oluwale Cuisine is a treasure!",
+      "likes": 45,
+      "dislikes": 8,
+      "avatarUrl": "https://i.pravatar.cc/150?img=1" 
+    },
+    {
+      "id": 102,
+      "user": "David Bliss",
+      "rating": 4,
+      "timeAgo": "1 Week Ago",
+      "comment": "The atmosphere was cozy and inviting, making it perfect for a night out with friends. I highly recommend.",
+      "likes": 45,
+      "dislikes": 8,
+      "avatarUrl": "https://i.pravatar.cc/150?img=10"
+    },
+    {
+      "id": 103,
+      "user": "Emeka O.",
+      "rating": 5,
+      "timeAgo": "2 Months Ago",
+      "comment": "I loved the traditional Nigerian dishes, especially the egusi soup. Over all a great dining experience.",
+      "likes": 45,
+      "dislikes": 8,
+      "avatarUrl": "https://i.pravatar.cc/150?img=12"
+    }
+  ]
+}

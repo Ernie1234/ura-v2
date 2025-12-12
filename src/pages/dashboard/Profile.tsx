@@ -9,6 +9,8 @@ import ProfileTabs from "@/components/profile/ProfileTabs";
 import ProfileAbout from "@/components/profile/ProfileAbout";
 import ProfilePostsFeed from "@/components/profile/ProfilePostsFeed";
 import ProfileInfo from "@/components/profile/ProfileInfo";
+import ProductsSection from "@/components/profile/ProductsSection";
+import ReviewsSection from "@/components/profile/ReviewSection";
 
 const UserProfilePage: React.FC = () => {
   const { user: currentUser } = useAuthContext();
@@ -42,14 +44,16 @@ const UserProfilePage: React.FC = () => {
         <main className="lg:col-span-2 space-y-6">
           <ProfileTabs active={activeTab} onChange={setActiveTab} />
 
-          <div className="space-y-6 lg:col-span-2 flex flex-col max-h-[calc(100vh-4rem)] overflow-y-auto">
+          <div className="space-y-6 lg:col-span-2 flex flex-col max-h-[132vh] overflow-y-auto">
             {activeTab === "All Posts" && <ProfilePostsFeed profile={profile} />}
+            <div className="lg:hidden">
             {activeTab === "About" && <ProfileAbout profile={profile} />}
+            </div>
             {activeTab === "Products" && (
-              <div className="bg-white rounded-xl p-6 shadow-sm">Products section (mock)</div>
+              <div className="bg-white rounded-xl px-4 shadow-sm"><ProductsSection /></div>
             )}
             {activeTab === "Reviews" && (
-              <div className="bg-white rounded-xl p-6 shadow-sm">Reviews section (mock)</div>
+              <div className="bg-white rounded-xl p-6 shadow-sm"><ReviewsSection /></div>
             )}
           </div>
         </main>

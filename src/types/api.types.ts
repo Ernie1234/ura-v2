@@ -87,3 +87,4 @@ export type CurrentUserResponseType = {
   user: UserType;
   related?: RelatedData;
 };
+
