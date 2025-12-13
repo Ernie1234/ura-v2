@@ -1,0 +1,50 @@
+
+{
+  "results": [
+    {
+      "id": "r1",
+      "name": "Olawale Cuisine",
+      "rating": 4.2,
+      "reviewCount": 180,
+      "address": "27A Taiwo Road Lekki Lagos",
+      "snippet": "Come hungry, leave enchanted. Olawale Cuisine's Olawale Restaurant brings the heart of Nigerian cuisine to Lagos. With a blend of tradition and innovation, it's a go-to spot for food lovers seeking bold flavors and warm hospitality.",
+      "profileImageUrl": "https://picsum.photos/id/243/60/60"
+    },
+    {
+      "id": "r2",
+      "name": "Ibeji Grills",
+      "rating": 4.0,
+      "reviewCount": 80,
+      "address": "7 Street Wuse Zone 4 Abuja",
+      "snippet": "Twice the taste, one fiery bite. Restaurant brings the heart of Nigerian cuisine to Lagos. With a blend of tradition and innovation, it's a go-to spot for food lovers seeking bold flavors and warm hospitality.",
+      "profileImageUrl": "https://picsum.photos/id/1080/60/60"
+    },
+    {
+      "id": "r3",
+      "name": "Fries & Chops",
+      "rating": 5.0,
+      "reviewCount": 500,
+      "address": "G & M Park Gwaripa Abuja 27A",
+      "snippet": "Twice the taste, one fiery bite. Restaurant brings the heart of Nigerian cuisine to Lagos. With a blend of tradition and innovation, it's a go-to spot for food lovers seeking bold flavors and warm hospitality.",
+      "profileImageUrl": "https://picsum.photos/id/400/60/60"
+    },
+    {
+      "id": "r4",
+      "name": "Chops & Chill Bistro",
+      "rating": 3.0,
+      "reviewCount": 70,
+      "address": "Wuse 2 Abuja 27A",
+      "snippet": "A playful, Afro-urban eatery. Restaurant brings the heart of Nigerian cuisine to Lagos. With a blend of tradition and innovation, it's a go-to spot for food lovers seeking bold flavors and warm hospitality.",
+      "profileImageUrl": "https://picsum.photos/id/450/60/60"
+    },
+    {
+      "id": "r5",
+      "name": "Lagos Lush",
+      "rating": 4.3,
+      "reviewCount": 80,
+      "address": "G & M Park Gwaripa Abuja",
+      "snippet": "leave your taste buds with an epiphany. Restaurant brings the heart of Nigerian cuisine to Lagos. With a blend of tradition and innovation, it's a go-to spot for food lovers seeking bold flavors and warm hospitality.",
+      "profileImageUrl": "https://picsum.photos/id/500/60/60"
+    }
+  ]
+}
