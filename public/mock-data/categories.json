@@ -1,0 +1,12 @@
+[
+  { "id": "fashion", "name": "Fashion & Beauty" },
+  { "id": "food", "name": "Food & Drinks" },
+  { "id": "health", "name": "Health & Wellness" },
+  { "id": "electronics", "name": "Electronics" },
+  { "id": "clothing", "name": "Clothing" },
+  { "id": "home-garden", "name": "Home & Garden" },
+  { "id": "sports", "name": "Sports & Outdoors" },
+  { "id": "toys", "name": "Toys & Hobbies" },
+  { "id": "automotive", "name": "Automotive" },
+  { "id": "books", "name": "Books & Media" }
+]

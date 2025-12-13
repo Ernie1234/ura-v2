@@ -9,7 +9,10 @@ export const AUTH_ROUTES = {
 export const PROTECTED_ROUTES = {
   DASHBOARD: '/dashboard',
   SETTINGS: '/dashboard/settings',
+  BOOKMARK: '/dashboard/bookmark',
   PROFILE: '/dashboard/profile/:userId',
+  CREATE_PRODUCT: '/product/add',
+  PRODUCT_DETAIL: '/product/:productId',
 };
 
 export const BASE_ROUTE = {

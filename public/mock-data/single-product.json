@@ -1,0 +1,17 @@
+
+{
+  "id": 1,
+  "name": "Black Vintage Shirt",
+  "imageUrl": "https://source.unsplash.com/600x600/?black+t-shirt,vintage+hoodie",
+  "description": "Made from soft, breathable fabric, it pairs perfectly with jeans or layered under a jacket for a bold, minimalist look.",
+  "price": 5000,
+  "availableStocks": 100,
+  "size": "XL",
+  "currencySymbol": "₦",
+  "seller": {
+    "name": "Urban Threads Co.",
+    "profileImageUrl": "https://i.pravatar.cc/150?img=48",
+    "followers": "4.5K",
+    "rating": 4.8
+  }
+}

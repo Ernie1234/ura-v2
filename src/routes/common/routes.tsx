@@ -9,6 +9,9 @@ import ForgotPasswordPage from '@/pages/auth/ForgetPassword';
 import LoginPage from '@/pages/auth/SignIn';
 import RegisterPage from '@/pages/auth/SignUp';
 import UserProfilePage from '@/pages/dashboard/Profile';
+import ProductDetails from '@/pages/ProductDetails';
+import CreateProduct from '@/pages/dashboard/CreateProduct';
+import Bookmark from '@/pages/dashboard/Bookmark';
 
 // --- Auth Routes ---
 export const authenticationRoutePaths = [
@@ -23,6 +26,9 @@ export const protectedRoutePaths = [
   { path: PROTECTED_ROUTES.DASHBOARD, element: <Dashboard /> },
   { path: PROTECTED_ROUTES.SETTINGS, element: <Settings /> },
   { path: PROTECTED_ROUTES.PROFILE, element: <UserProfilePage /> },
+  { path: PROTECTED_ROUTES.PRODUCT_DETAIL, element: <ProductDetails /> },
+  { path: PROTECTED_ROUTES.BOOKMARK, element: <Bookmark /> },
+  { path: PROTECTED_ROUTES.CREATE_PRODUCT, element: <CreateProduct /> },
 ];
 
 // --- Public/Base Routes ---
