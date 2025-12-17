@@ -49,7 +49,6 @@ const AppSideBar = () => {
                 to={`/dashboard`}
                 className="hidden md:flex ml-2 items-center gap-2 self-center font-medium"
               >
-                Url
               </Link>
             )}
           </div>

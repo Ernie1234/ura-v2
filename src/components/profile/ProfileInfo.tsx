@@ -1,255 +1,112 @@
-// src/components/profile/ProfileHeader.tsx
 import React from "react";
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { useAuthContext } from "@/context/auth-provider";
-import {
-    MessageCircle,
-    Send,
-    UserPlus,
-    UserMinus,
-    Bookmark,
-    BookmarkCheck,
-    Pencil,
-    MapPin,
-    Star,
-    Phone,
-    Globe,
-    Clock
-} from "lucide-react";
-
+import { MapPin, Phone, Globe, Pencil, UserPlus, MessageCircle, Briefcase, Share2 } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import type { UserType, BusinessType } from "@/types/api.types";
 
 type Props = {
-    profile: any;
+  user: UserType;
+  business: BusinessType | null;
+  related: any;
+  isMe: boolean;
 };
 
-const ProfileInfo: React.FC<Props> = ({ profile }) => {
-    const { user: currentUser, isAuthenticated } = useAuthContext();
+const ProfileInfo: React.FC<Props> = ({ user, business, related, isMe }) => {
+  const location = useLocation();
+  const isBusinessRoute = location.pathname.includes("/business/");
 
-    const isMe = currentUser?._id === profile?.user?._id;
+  const btnBase = "w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all text-sm";
+  const btnPrimary = `${btnBase} bg-orange-500 text-white hover:bg-orange-600 shadow-sm`;
+  const btnOutline = `${btnBase} border border-gray-200 text-gray-700 hover:bg-gray-50`;
 
-    // mock states (later replaced with backend response)
-    const [isFollowing, setIsFollowing] = useState(false);
-    const [isSaved, setIsSaved] = useState(false);
+  const title = isBusinessRoute && business ? business.businessName : `${user.firstName} ${user.lastName}`;
+  const subTitle = isBusinessRoute && business ? business.category : `@${user.username}`;
+  const bio = isBusinessRoute && business ? business.about : (user as any).bio;
 
-    const fullName = `${profile?.user?.firstName ?? ""} ${profile?.user?.lastName ?? ""}`;
-    const businessName = profile?.user?.businessName;
-    const baseBtn =
-        "flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition whitespace-nowrap";
+  return (
+    <div className="flex flex-col gap-6 bg-white p-2 md:p-0">
+      {/* Identity */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+        <p className="text-orange-600 font-medium text-sm">{subTitle}</p>
+        <p className="mt-4 text-gray-600 leading-relaxed text-sm">
+          {bio || "No description provided."}
+        </p>
+      </div>
 
-    const pillBtn =
-        "rounded-full p-0";
+      {/* Stats Summary */}
+      <div className="flex justify-between items-center py-4 border-y border-gray-100">
+        <StatBlock label="Followers" value={related?.counts?.followers || 0} />
+        <StatBlock label="Following" value={related?.counts?.following || 0} />
+        <StatBlock label="Posts" value={related?.counts?.posts || 0} />
+      </div>
 
+      {/* Actions */}
+      <div className="flex flex-col gap-3">
+        {isMe ? (
+          <Link to="/user/settings/edit" className={btnPrimary}>
+            <Pencil size={18} /> Edit {isBusinessRoute ? "Business" : "Profile"}
+          </Link>
+        ) : (
+          <>
+            <button className={btnPrimary}><UserPlus size={18} /> Follow</button>
+            <button className={btnOutline}><MessageCircle size={18} /> Message</button>
+          </>
+        )}
+        <button className={btnOutline}><Share2 size={18} /> Share Profile</button>
 
-    const filledBtn =
-        "bg-orange-500 text-white hover:bg-orange-600";
+        {/* Dynamic Navigation Switch */}
+        {!isBusinessRoute && user.isBusinessOwner && business && (
+          <Link to={`/business/${business._id}`} className={`${btnOutline} border-orange-200 text-orange-600 bg-orange-50/50 mt-2`}>
+            <Briefcase size={18} /> View Business Page
+          </Link>
+        )}
+        {isBusinessRoute && (
+          <Link to={`/dashboard/profile/${user._id}`} className={`${btnOutline} mt-2`}>
+            <User size={18} /> View Owner Profile
+          </Link>
+        )}
+      </div>
 
-    const outlineBtn =
-        "border border-orange-400 text-orange-500 hover:bg-orange-50";
-
-    return (
-        <>
-            {/* Info */}
-            <div className="md:items-center md:justify-between">
-                <div>
-                    <h1 className="text-2xl font-semibold">{businessName || fullName}</h1>
-                    <p className="text-sm text-gray-600 mt-1">{profile?.user?.bio ?? profile?.user?.businessName ?? ""}</p>
-
-                    <div className="mt-1 text-sm">
-                        <div className="flex flex-wrap items-center gap-3">
-                            {/* Rating stars + value */}
-                            <div className="flex items-center gap-1 text-yellow-500">
-                                {Array.from({ length: 5 }).map((_, i) => (
-                                    <Star
-                                        key={i}
-                                        size={16}
-                                        className={i < Math.round(profile?.rating ?? 4) ? "fill-yellow-500" : ""}
-                                    />
-                                ))}
-
-                                <span className="ml-1 text-sm font-semibold text-gray-800">
-                                    {profile?.rating ?? 4.2}
-                                </span>
-                            </div>
-
-                            {/* Reviews count */}
-                            <span className="text-sm text-gray-500">
-                                ({profile?.reviewsCount ?? 180} reviews)
-                            </span>
-                        </div>
-
-                        <div className="flex gap-5 mt-3">
-                            <div className="text-gray-700">
-                                <span className="block">Followers {profile?.related?.counts?.posts ?? 0}</span>
-                            </div>
-
-                            <div className="text-gray-700">
-                                <span className="block">Following {profile?.related?.counts?.followers ?? 0}</span>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                {/* actions */}
-                <div className="mt-5 flex flex-wrap gap-3 items-center">
-                    {/* EDIT PROFILE (ME) */}
-                    {isMe && (
-                        <Link
-                            to={`/dashboard/profile/${currentUser?._id}/edit`}
-                            className={`${baseBtn} ${filledBtn}`}
-                        >
-                            <Pencil size={16} />
-                            Edit Profile
-                        </Link>
-                    )}
-
-                    {/* OTHER USER ACTIONS */}
-                    {!isMe && (
-                        <>
-                            {/* FOLLOW / UNFOLLOW */}
-                            {isAuthenticated && (
-                                <button
-                                    onClick={() => setIsFollowing((prev) => !prev)}
-                                    className={`${baseBtn} ${isFollowing ? filledBtn : outlineBtn
-                                        }`}
-                                >
-                                    {isFollowing ? (
-                                        <>
-                                            <UserMinus size={16} />
-                                            Following
-                                        </>
-                                    ) : (
-                                        <>
-                                            <UserPlus size={16} />
-                                            Follow
-                                        </>
-                                    )}
-                                </button>
-                            )}
-
-                            {/* MOBILE MESSAGE BUTTON */}
-                            <button
-                                className={`${baseBtn} ${outlineBtn} lg:hidden`}
-                            >
-                                <MessageCircle size={16} />
-
-                                Message
-                            </button>
-                        </>
-                    )}
-
-                    {/* SAVE / UNSAVE */}
-                    <button
-                        onClick={() => setIsSaved((prev) => !prev)}
-                        className={`${baseBtn} ${isSaved ? filledBtn : outlineBtn
-                            }`}
-                    >
-                        {isSaved ? (
-                            <>
-                                <BookmarkCheck size={16} />
-                                Saved
-                            </>
-                        ) : (
-                            <>
-                                <Bookmark size={16} />
-                                Save
-                            </>
-                        )}
-                    </button>
-
-                    {/* SHARE */}
-                    <button className={`${baseBtn} ${outlineBtn}`}>
-                        <Send size={16} />
-                        Share
-                    </button>
-
-                    {/* DESKTOP MESSAGE BUTTON (FULL WIDTH) */}
-                    {!isMe && (
-                        <button
-                            className={`hidden lg:flex w-full justify-center items-center gap-2 mt-2 ${baseBtn} ${pillBtn} ${outlineBtn} pt-1.5 pb-1.5`}
-                        >
-                            <MessageCircle size={18} />
-                            Message
-                        </button>
-                    )}
-                </div>
-
-                {/* About user business */}
-                <div className="mt-4 p-4 space-y-3 hidden lg:block border-b border-t">
-                    <h3 className="font-semibold text-lg">About {fullName}</h3>
-                    <p className="text-gray-700 leading-relaxed">{profile.user?.bussinessDescription}</p>
-                </div>
-                {/* Tabs */}
-                <div className="mt-3 p-4 space-y-3 hidden lg:block border-b">
-                    {/* Address */}
-                    {profile?.related?.businesses?.address && (
-                        <div className="flex items-start gap-3 text-sm text-gray-700">
-                            <MapPin size={18} className="text-orange-500 mt-0.5" />
-                            <span>{profile.related.businesses.address}</span>
-                        </div>
-                    )}
-
-                    {/* Opening hours */}
-                    {(profile.related.businesses.openingTime || profile.related.businesses.closingTime) && (
-                        <div className="flex items-center gap-3 text-sm text-gray-700">
-                            <Clock size={18} className="text-orange-500" />
-                            <span>
-                                {profile.related.businesses.openingTime} – {profile.related.businesses.closingTime}
-                            </span>
-                        </div>
-                    )}
-
-                    {/* Phone */}
-                    {profile.related.businesses.phone && (
-                        <div className="flex items-center gap-3 text-sm text-gray-700">
-                            <Phone size={18} className="text-orange-500" />
-                            <a
-                                href={`tel:${profile.related.businesses.phone}`}
-                                className="hover:underline"
-                            >
-                                {profile.related.businesses.phone}
-                            </a>
-                        </div>
-                    )}
-
-                    {/* Website */}
-                    {profile.related.businesses.website && (
-                        <div className="flex items-center gap-3 text-sm text-gray-700">
-                            <Globe size={18} className="text-orange-500" />
-                            <a
-                                href={profile.related.businesses.website}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="hover:underline truncate"
-                            >
-                                {profile.related.businesses.website}
-                            </a>
-                        </div>
-                    )}
-                </div>
-
-                {/* Google Map Preview */}
-                {profile?.related?.businesses?.address && (
-                    <div className="mt-5 rounded-lg overflow-hidden h-64 hidden lg:flex">
-                        <iframe
-                            width="100%"
-                            height="100%"
-                            className="border-0"
-                            loading="lazy"
-                            allowFullScreen
-                            src={`https://www.google.com/maps?q=${encodeURIComponent(
-                                profile.related.businesses.address
-                            )}&output=embed`}
-                        />
-                    </div>
-                )}
-
-            </div>
-
-
-        </>
-    );
+      {/* Contact Info (Only for Business) */}
+      {isBusinessRoute && business && (
+        <div className="space-y-4 pt-6 border-t border-gray-100">
+          <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Contact & Location</h4>
+          {business.address?.fullAddress && <InfoRow icon={<MapPin size={18}/>} text={business.address.fullAddress} />}
+          {business.contact?.phone && <InfoRow icon={<Phone size={18}/>} text={business.contact.phone} />}
+          {business.contact?.website && (
+            <InfoRow 
+              icon={<Globe size={18}/>} 
+              text={business.contact.website} 
+              link={business.contact.website} 
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
 };
+
+// Internal Helpers
+const StatBlock = ({ label, value }: { label: string; value: number }) => (
+  <div className="text-center">
+    <span className="block text-lg font-bold text-gray-900">{value}</span>
+    <span className="text-[10px] text-gray-400 uppercase font-bold tracking-tight">{label}</span>
+  </div>
+);
+
+const InfoRow = ({ icon, text, link }: { icon: React.ReactNode; text: string; link?: string }) => (
+  <div className="flex items-start gap-3 text-sm text-gray-600">
+    <div className="text-orange-500 shrink-0">{icon}</div>
+    {link ? (
+      <a href={link} target="_blank" className="hover:underline text-orange-600 truncate">{text}</a>
+    ) : (
+      <span className="line-clamp-2">{text}</span>
+    )}
+  </div>
+);
+
+const User = ({ size }: { size: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+);
 
 export default ProfileInfo;

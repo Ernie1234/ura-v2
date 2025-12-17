@@ -1,33 +1,19 @@
-import { useEffect, useState } from "react";
-import { mockApi } from "@/services/mockApi";
 import { formatDistanceToNow } from "date-fns";
+import type { Activity } from '@/types/api.types'; // Import type from the hook file
 
-interface Activity {
-  name: string;
-  action: string;
-  time: string; // ISO string
-  avatar: string;
+interface ActivityPanelProps {
+  activities: Activity[];
+  isError: boolean; // New prop
 }
 
-const ActivityPanel = () => {
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [loading, setLoading] = useState(true);
+const ActivityPanel: React.FC<ActivityPanelProps> = ({ activities, isError }) => {
 
-  useEffect(() => {
-    mockApi.get("activity")
-      .then((data: { activities: Activity[] }) => {
-        setActivities(data.activities ?? []);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to load activities:", err);
-        setActivities([]);
-        setLoading(false);
-      });
-  }, []);
-
-  if (loading) {
-    return <div className="text-center py-4 text-gray-500">Loading activities…</div>;
+  if (isError) {
+    return (
+      <div className="rounded-xl bg-white p-4 shadow-md text-center py-4 text-red-500">
+        Failed to load activity feed.
+      </div>
+    );
   }
 
   return (
@@ -37,22 +23,27 @@ const ActivityPanel = () => {
         <button className="text-sm text-orange-500 hover:underline">See all</button>
       </div>
 
-      <ul className="space-y-4 max-h-64 overflow-y-auto">
-        {activities.map((act, i) => (
-          <li key={i} className="flex items-center gap-3">
-            <img src={act.avatar} alt={act.name} className="w-8 h-8 rounded-full" />
-            <div>
-              <p className="text-sm">
-                <span className="font-medium">{act.name}</span>{" "}
-                <span className="text-gray-600">{act.action}</span>
-              </p>
-              <span className="text-xs text-gray-400">
-                {formatDistanceToNow(new Date(act.time), { addSuffix: true })}
-              </span>
-            </div>
-          </li>
-        ))}
-      </ul>
+      {activities.length === 0 ? (
+        <div className="text-center py-4 text-gray-500 text-sm">No recent activity.</div>
+      ) : (
+        <ul className="space-y-4 max-h-64 overflow-y-auto">
+          {activities.map((act) => (
+            // Using 'id' from the interface definition is better than 'i' for keys
+            <li key={act.id} className="flex items-center gap-3">
+              <img src={act.avatar} alt={act.name} className="w-8 h-8 rounded-full object-cover" />
+              <div>
+                <p className="text-sm">
+                  <span className="font-medium">{act.name}</span>{" "}
+                  <span className="text-gray-600">{act.action}</span>
+                </p>
+                <span className="text-xs text-gray-400">
+                  {formatDistanceToNow(new Date(act.time), { addSuffix: true })}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };

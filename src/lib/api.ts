@@ -4,8 +4,26 @@ import type {
   loginType,
   RegisterResponseType,
   registerType,
+  UsernameCheckResponse
 } from '@/types/api.types';
 import API from './axios-client';
+import type { FeedItem } from '@/types/feed.types';
+import { uploadImageToCloudinary, uploadMediaToCloudinary } from "@/services/cloudinary.service";
+
+
+
+export const checkUsernameAvailability = async (username: string): Promise<UsernameCheckResponse> => {
+    // Only call the API if the username is not empty
+    if (!username) {
+        return { available: true, message: '' };
+    }
+    
+    const response = await API.get(`/auth/check-username`, {
+        params: { username }
+    });
+    return response.data;
+};
+
 
 export const loginMutationFn = async (data: loginType): Promise<LoginResponseType> => {
   const response = await API.post('/auth/login', data);
@@ -25,17 +43,133 @@ export const logoutMutationFn = async (refreshToken?: string) =>
 
 export const getCurrentUserQueryFn = async (): Promise<CurrentUserResponseType> => {
   const response = await API.get(`/user/current`);
+  // console.log("Current user response:", response.data);
   return response.data;
 };
 
-export const updateProfileMutationFn = async (
-  data: Partial<{
-    firstName: string;
-    lastName: string;
-    profilePicture: string;
-    businessName: string;
-  }>,
-) => {
-  const response = await API.patch(`/user/profile`, data);
+// Required userId to prevent accidental fallbacks
+export const getUserQueryFn = async (userId: string): Promise<CurrentUserResponseType> => {
+  if (!userId) {
+    throw new Error("User ID is required to fetch a profile");
+  }
+
+  const response = await API.get(`/user/profile/${userId}`);
   return response.data;
 };
+
+// Update Personal Profile (Handles Multipart/Form-Data for images)
+
+export const updateProfileMutationFn = async (data: {
+  firstName?: string;
+  lastName?: string;
+  bio?: string;
+  profilePicture?: File | string | null;
+  coverPicture?: File | string | null;
+}) => {
+  const payload = { ...data };
+
+  // 1. Upload Profile Picture if it's a new File
+  if (data.profilePicture instanceof File) {
+    payload.profilePicture = await uploadImageToCloudinary(data.profilePicture);
+  }
+
+  // 2. Upload Cover Photo if it's a new File
+  if (data.coverPicture instanceof File) {
+    payload.coverPicture = await uploadImageToCloudinary(data.coverPicture);
+  }
+
+  // 3. Send clean JSON to your backend
+  // Note: We are no longer using multipart/form-data headers here!
+  const response = await API.patch(`/user/profile/update`, payload);
+  return response.data;
+};
+
+
+
+// src/hooks/api/use-user-mutations.ts
+export const updateBusinessMutationFn = async (data: any) => {
+  const payload = { ...data };
+
+  const handleImage = async (field: string, value: any) => {
+    if (value instanceof File) {
+      // User uploaded a new file
+      return await uploadImageToCloudinary(value);
+    } else if (value === "DELETE_IMAGE") {
+      // User explicitly wants to remove the photo
+      return null; 
+    } else {
+      // No change made (value is undefined or the existing URL)
+      return undefined; 
+    }
+  };
+
+  const logo = await handleImage('businessLogo', data.businessLogo);
+  const cover = await handleImage('businessCover', data.businessCover);
+
+  // If the result is undefined, we remove the key so it doesn't overwrite DB
+  if (logo === undefined) delete payload.businessLogo; else payload.businessLogo = logo;
+  if (cover === undefined) delete payload.businessCover; else payload.businessCover = cover;
+
+  const response = await API.patch(`/user/business/update`, payload);
+  return response.data;
+};
+
+
+export const fetchChatList = async () => {
+    const response = await API.get('/chat/conversations/list'); 
+    return response.data.data; // Assuming response.data is { success: true, data: [...] }
+};
+
+export const fetchActivityList = async () => {
+    const response = await API.get('/activity/list'); 
+    return response.data.activities;
+}
+
+export const fetchBookmarkList = async () => {
+    const response = await API.get('/bookmark/list'); 
+    return response.data.bookmarks;
+}
+
+/**
+ * Fetches the unified feed (Social Posts + Products)
+ * Suited for the main Dashboard view
+ */
+export const fetchPostFeedQueryFn = async (): Promise<FeedItem[]> => {
+  const response = await API.get('/post/feed'); 
+  // Note: We use the base API client which already handles the '/api/v1' prefix
+  return response.data.posts;
+};
+
+
+// src/hooks/api/post-mutations.ts
+export const createPostMutationFn = async ({ data, files }: { data: any; files: File[] }) => {
+  // Uploading mixed media (images and videos)
+  const mediaUrls = await Promise.all(
+    files.map((file) => uploadMediaToCloudinary(file))
+  );
+
+  const payload = {
+    ...data,
+    media: mediaUrls,
+  };
+
+  const response = await API.post("/post/create", payload);
+  return response.data;
+};
+//  export const createPostMutationFn = async ({ data, files }: { data: any; files: File[] }) => {
+//   // 1. Upload all media files to Cloudinary in parallel
+//   // This handles multiple images/videos for a single product/post
+//   const mediaUrls = await Promise.all(
+//     files.map((file) => uploadImageToCloudinary(file))
+//   );
+
+//   // 2. Build the final payload with the newly generated URLs
+//   const payload = {
+//     ...data,
+//     media: mediaUrls, // This matches your Mongoose 'media: [String]' field
+//   };
+
+//   // 3. Send the structured JSON to your backend
+//   const response = await API.post("/post/create", payload);
+//   return response.data;
+// };

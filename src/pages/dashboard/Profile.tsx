@@ -1,60 +1,142 @@
-// src/pages/dashboard/profile/[userId].tsx
 import React, { useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Navigate, useParams, useLocation } from "react-router-dom";
 import { useAuthContext } from "@/context/auth-provider";
 import { useUserProfile } from "@/hooks/api/use-user-profile";
 
+// Components
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileTabs from "@/components/profile/ProfileTabs";
 import ProfileAbout from "@/components/profile/ProfileAbout";
-import ProfilePostsFeed from "@/components/profile/ProfilePostsFeed";
+import PostsFeed from "@/components/feed/PostFeed";
 import ProfileInfo from "@/components/profile/ProfileInfo";
-import ProductsSection from "@/components/profile/ProductsSection";
 import ReviewsSection from "@/components/profile/ReviewSection";
+import AllFeed from "@/components/feed/AllFeed";
+import ProductsFeed from "@/components/feed/PostFeed";
+import { DashboardSkeleton } from "@/components/skeleton/DashboardSkeleton";
+
+// Types - Use the central ProfileResponse to avoid assignment conflicts
+import type { ProfileResponse } from "@/types/api.types";
+
+const TABS = {
+  FEEDS: "Feeds",
+  POSTS: "Posts",
+  PRODUCTS: "Products",
+  ABOUT: "About",
+  REVIEWS: "Reviews",
+} as const;
 
 const UserProfilePage: React.FC = () => {
-  const { user: currentUser } = useAuthContext();
   const { userId } = useParams<{ userId: string }>();
+  const { user: currentUser } = useAuthContext();
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState<string>(TABS.POSTS);
 
-  // If userId missing, fallback to current user's id
-  const id = userId ?? currentUser?._id;
+  // 1. Ownership Check
+  const isMe = useMemo(() =>
+    !!(currentUser?._id && userId && currentUser._id === userId),
+    [currentUser?._id, userId]
+  );
 
-  const { data, isLoading } = useUserProfile(id || null);
+  // 2. Data Fetching
+  const { data: profile, isLoading, isError, error } = useUserProfile(userId, true);
 
-  const profile = data ?? null;
+  // 3. Data Normalization - Fixed the 'related' type mismatch by providing default values
+  const userProfile = useMemo(() => {
+    if (profile) return profile as unknown as ProfileResponse;
 
-  const [activeTab, setActiveTab] = useState("All Posts");
+    if (isMe && currentUser) {
+      return {
+        user: currentUser,
+        business: null,
+        related: {
+          counts: { posts: 0, followers: 0, following: 0 },
+          stats: { rating: 0, reviewsCount: 0 }
+        }
+      } as ProfileResponse;
+    }
 
-  // detect ownership
-  const isMe = useMemo(() => {
-    return currentUser && profile && currentUser._id === profile.user?._id;
-  }, [currentUser, profile]);
+    return null;
+  }, [profile, isMe, currentUser]);
 
-  if (isLoading) return <div className="p-6">Loading profile…</div>;
-  if (!profile) return <div className="p-6">Profile not found.</div>;
+  // 4. Early Returns & Guard Clauses
+  if (isLoading && !userProfile) return <DashboardSkeleton />;
+
+  const is404 = (error as any)?.response?.status === 404;
+  if (is404 || (!userProfile && !isLoading)) {
+    return <Navigate to="/404" replace />;
+  }
+
+  if (isError && !userProfile) {
+    return (
+      <div className="p-12 text-center flex flex-col items-center justify-center min-h-[50vh]">
+        <h2 className="text-xl font-bold text-gray-800">Connection Error</h2>
+        <p className="text-gray-500 mb-4">Please check your internet and try again.</p>
+        <button onClick={() => window.location.reload()} className="bg-orange-500 text-white px-6 py-2 rounded-lg">
+          Reload
+        </button>
+      </div>
+    );
+  }
+
+  // 5. Tab Content Logic - Safe narrowing
+  const renderTabContent = () => {
+    if (!userProfile) return null;
+
+    const isOwner = userProfile.user?.isBusinessOwner;
+
+    switch (activeTab) {
+      case TABS.FEEDS: return <AllFeed />;
+      case TABS.POSTS: return (
+        <div className="bg-white rounded-xl p-4 shadow-sm border">
+          <PostsFeed />
+        </div>
+      );
+      case TABS.PRODUCTS: return isOwner ? (
+        <div className="bg-white rounded-xl p-4 shadow-sm border">
+          <ProductsFeed />
+        </div>
+      ) : null;
+      case TABS.ABOUT: return (
+        <div className="lg:hidden">
+          <ProfileAbout profile={userProfile} />
+        </div>
+      );
+      case TABS.REVIEWS: return isOwner ? (
+        <div className="bg-white rounded-xl shadow-sm border">
+          <ReviewsSection />
+        </div>
+      ) : null;
+      default: return null;
+    }
+  };
+
+  // Final Guard for JSX
+  if (!userProfile?.user) return <DashboardSkeleton />;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <ProfileHeader profile={profile} />
+    <div className="max-w-6xl mx-auto px-4 py-6 animate-in fade-in duration-500">
+      <ProfileHeader profile={userProfile} />
 
-      <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Profile Info Column */}
-        <ProfileInfo profile={profile}/>
-        {/* Main column */}
-        <main className="lg:col-span-2 space-y-6">
-          <ProfileTabs active={activeTab} onChange={setActiveTab} />
+      <div className="mt-16 grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <aside className="lg:col-span-1">
+          <div className="sticky top-24">
+            <ProfileInfo
+              user={userProfile.user}
+              business={userProfile.business}
+              related={userProfile.related}
+              isMe={isMe}
+            />
+          </div>
+        </aside>
 
-          <div className="space-y-6 lg:col-span-2 flex flex-col max-h-[132vh] overflow-y-auto">
-            {activeTab === "All Posts" && <ProfilePostsFeed profile={profile} />}
-            <div className="lg:hidden">
-            {activeTab === "About" && <ProfileAbout profile={profile} />}
-            </div>
-            {activeTab === "Products" && (
-              <div className="bg-white rounded-xl px-4 shadow-sm"><ProductsSection /></div>
-            )}
-            {activeTab === "Reviews" && (
-              <div className="bg-white rounded-xl p-6 shadow-sm"><ReviewsSection /></div>
-            )}
+        <main className="lg:col-span-2">
+          <ProfileTabs
+            active={activeTab}
+            onChange={setActiveTab}
+            isBusiness={userProfile.user.isBusinessOwner}
+          />
+          <div className="mt-6">
+            {renderTabContent()}
           </div>
         </main>
       </div>

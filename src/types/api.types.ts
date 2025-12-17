@@ -1,3 +1,5 @@
+import type { FeedItem } from "./feed.types";
+
 export type loginType = { email: string; password: string };
 
 export type LoginResponseType = {
@@ -24,6 +26,7 @@ export type RegisterResponseType = {
 export type registerType = {
   firstName: string;
   lastName: string;
+  username: string;
   email: string;
   password: string;
 };
@@ -33,10 +36,13 @@ export type UserType = {
   _id: string;
   firstName: string;
   lastName: string;
+  username: string;
   email: string;
-  profilePicture?: string;
   coverPicture?: string;
-  businessName?: string;
+  isBusinessOwner: boolean;
+  profilePicture?: string;
+  bio?: string; // Add this to your IUser schema if needed
+  
   emailVerified?: boolean;
   twoFactorEnabled?: boolean;
   lastLoginAt?: Date;
@@ -49,6 +55,42 @@ export type UserType = {
   businesses: string[];
   createdAt: Date;
   updatedAt: Date;
+};
+
+export type BusinessType = {
+  _id: string;
+  businessName: string;
+  about: string;
+  category: string;
+  businessLogo: string;
+  businessCover: string;
+  contact: {
+    phone?: string;
+    website?: string;
+    email?: string;
+  };
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    country: string;
+    fullAddress: string;
+  };
+  operatingHours: IOperatingHour[];
+};
+export interface IOperatingHour {
+  day: string;
+  open: string;  // Will be "09:00" or "Closed"
+  close: string; // Will be "17:00" or "Closed"
+}
+
+export type ProfileResponse = {
+  user: UserType;
+  business: BusinessType | null;
+  related: {
+    counts: { posts: number; followers: number; following: number };
+    stats: { rating: number; reviewsCount: number };
+  };
 };
 
 export type RelatedData = {
@@ -81,10 +123,49 @@ export type RelatedData = {
   };
 };
 
-export type CurrentUserResponseType = {
+export interface CurrentUserResponseType {
   success: boolean;
-  message: string;
+  message?: string;
   user: UserType;
-  related?: RelatedData;
-};
+  // Add this line:
+  business: BusinessType | null; 
+  related: RelatedData;
+}
 
+
+export type UsernameCheckResponse = {
+  available: boolean;
+  message: string; // e.g., "Username is available" or "Username is taken"
+}
+
+export interface Chat {
+  id: string;
+  name: string;
+  message: string;
+  date: string;
+  avatar: string;
+  isUnread: boolean;
+}
+
+// Import the interface defined above
+export interface Activity {
+  id: string | number;
+  name: string;
+  action: string;
+  time: string;
+  avatar: string;
+}
+
+export interface Bookmark {
+  id: string;
+  name: string;
+  description: string;
+  avatar: string;
+}
+
+// src/types/api.types.ts
+
+export interface FeedResponse {
+  success: boolean;
+  posts: FeedItem[]; // FeedItem is the Union type we created earlier
+}

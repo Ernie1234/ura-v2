@@ -1,10 +1,12 @@
 // src/components/profile/ProfileHeader.tsx
+import { generateAvatarUrl } from "@/utils/avatar-generator";
 import React from "react";
 type Props = {
   profile: any;
 };
 
 const ProfileHeader: React.FC<Props> = ({ profile }) => {
+  const FALLBACK_PROFILE_URL = generateAvatarUrl(profile.user.username);
 
   return (
     <header className="bg-white rounded-xl shadow-sm">
@@ -19,7 +21,7 @@ const ProfileHeader: React.FC<Props> = ({ profile }) => {
         {/* circular avatar */}
         <div className="absolute left-12 -bottom-12">
           <img
-            src={profile?.user?.profilePicture ?? "/images/avatar-female.png"}
+            src={profile.user.profilePicture ?? FALLBACK_PROFILE_URL}
             alt="avatar"
             className="w-24 h-24 md:w-28 md:h-28 rounded-full border-4 border-white object-cover shadow"
           />

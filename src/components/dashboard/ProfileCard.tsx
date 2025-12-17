@@ -1,25 +1,20 @@
-// src/components/dashboard/ProfileCard.tsx
-
 import { Button } from "@/components/ui/button";
-import { useAuthContext } from "@/context/auth-provider";
 import { Link } from "react-router-dom";
+import { generateAvatarUrl } from '@/utils/avatar-generator';
+import type { UserType, RelatedData } from '@/types/api.types';
 
-const ProfileCard = () => {
-  // Provide default empty objects so TypeScript knows these are always defined
-  const {
-    user = {
-      firstName: "",
-      lastName: "",
-      profilePicture: "",
-      coverPicture: "",
-    },
-    related = {
-      counts: { posts: 0, followers: 0, following: 0 },
-    },
-  } = useAuthContext();
+interface ProfileCardProps {
+  user: UserType;
+  related: RelatedData;
+}
+
+const ProfileCard: React.FC<ProfileCardProps> = ({ user, related }) => {
+ 
+  const FALLBACK_PROFILE_URL = generateAvatarUrl(user.username);
 
   return (
     <div className="rounded-xl bg-white p-4 shadow-md">
+
       {/* Cover */}
       <div className="relative">
         <img
@@ -30,7 +25,8 @@ const ProfileCard = () => {
 
         {/* Profile photo */}
         <img
-          src={user.profilePicture}
+          src={user.profilePicture ?? FALLBACK_PROFILE_URL}
+
           className="absolute left-1/2 top-full -translate-x-1/2 -translate-y-1/2 h-20 w-20 rounded-full border-4 border-white shadow-md"
         />
       </div>
@@ -40,7 +36,7 @@ const ProfileCard = () => {
           {user.firstName} {user.lastName}
         </h2>
         <p className="text-sm text-gray-500">
-          @{user.firstName}{user.lastName}_
+          @{user.username}
         </p>
 
         <div className="mt-3 flex justify-around text-sm">
@@ -62,7 +58,7 @@ const ProfileCard = () => {
           className="mt-4 bg-orange-500 hover:bg-orange-600 text-white w-full"
           asChild
         >
-          <Link to="/dashboard/profile/12345">My Profile</Link>
+          <Link to={`/user/profile/${user._id}`}>My Profile</Link>
         </Button>
       </div>
     </div>

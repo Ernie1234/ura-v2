@@ -6,9 +6,12 @@ import MakePostForm from '@/components/product/MakePostForm';
 // Assuming ProfileCard and ChatList are imported correctly
 import ProfileCard from '@/components/dashboard/ProfileCard'; 
 import ChatList from '@/components/dashboard/ChatList'; 
+import { useAuthContext } from '@/context/auth-provider';
 
 const CreateProduct: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'product' | 'post'>('product');
+
+    const { user, related, isLoading: isContextLoading } = useAuthContext();
 
   return (
     // Mobile padding added here: px-4. Background color changed to white for mobile content area.
@@ -18,8 +21,8 @@ const CreateProduct: React.FC = () => {
         
         {/* LEFT SIDEBAR (Desktop Only) */}
         <aside className="space-y-6 lg:col-span-1 hidden lg:block">
-          <ProfileCard />
-          <ChatList />
+          <ProfileCard user={user} related={related} />
+          {/* <ChatList user={user} /> */}
         </aside>
 
         {/* Right Column (Content Area) - Takes up full width on mobile (col-span-1) */}

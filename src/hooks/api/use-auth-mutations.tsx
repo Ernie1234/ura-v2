@@ -5,6 +5,17 @@ import { loginMutationFn, registerMutationFn, logoutMutationFn } from '@/lib/api
 import { tokenStorage } from '@/lib/token-storage';
 import type { LoginResponseType, RegisterResponseType } from '@/types/api.types';
 import type { AxiosError } from 'axios';
+import type { UseFormSetError } from 'react-hook-form';
+
+import type { BackendErrorResponse } from '@/types/api.error.types'; // Your provided error type
+import type { RegisterFormData } from '@/pages/auth/SignUp'; // The type we exported from the page
+
+// --- Define the hook's required properties ---
+interface UseRegisterProps {
+  setError: UseFormSetError<RegisterFormData>;
+  // Type for React state setter function
+  setGlobalError: React.Dispatch<React.SetStateAction<string>>;
+}
 
 export const useLogin = () => {
   const navigate = useNavigate();
@@ -28,22 +39,61 @@ export const useLogin = () => {
   });
 };
 
-export const useRegister = () => {
+export const useRegister = ({ setError, setGlobalError }: UseRegisterProps) => {
   const navigate = useNavigate();
 
   return useMutation({
     mutationFn: registerMutationFn,
+
     onSuccess: (response: RegisterResponseType) => {
-      const message = response?.message || 'Registration successful! Please log in.';
+      const message = response?.message || 'Registration successful! Check your email for verification.';
       toast.success(message);
       navigate('/auth/login');
     },
-    onError: (error: AxiosError<{ message?: string }>) => {
-      const message = error.response?.data?.message || 'Something went wrong';
-      toast.error(message);
+
+    onError: (error: AxiosError<BackendErrorResponse | undefined>) => {
+      setGlobalError('');
+      const errorData = error.response?.data;
+      const status = error.response?.status;
+      console.log("status", status);
+      console.log("errorData", errorData);
+      if ((status === 400 || status === 409) && errorData?.error.details) {
+        console.log("errorData", errorData);
+        let fieldsHandled = false;
+
+        errorData.error.details.forEach(detail => {
+          const field = detail.field as keyof RegisterFormData;
+
+          if (['firstName', 'lastName', 'email', 'password'].includes(field)) {
+            setError(field, {
+              type: 'server',
+              message: detail.message
+            });
+            fieldsHandled = true;
+          }
+        });
+
+        if (fieldsHandled) {
+          toast.error('Please correct the highlighted fields.');
+        } else {
+          // Fallback for structured error if the field wasn't recognized
+          setGlobalError(errorData.message || 'Validation failed. Check inputs.');
+        }
+        return;
+      }
+
+      // Generic/Server Errors (500, unhandled 400/409 without details, network issues)
+      else {
+        const userFriendlyMessage = 'Registration failed. Please try again later.';
+        const toastMessage = errorData?.message || userFriendlyMessage;
+
+        toast.error(toastMessage);
+        setGlobalError(userFriendlyMessage);
+      }
     },
   });
 };
+
 
 export const useLogout = () => {
   const navigate = useNavigate();
@@ -72,3 +122,4 @@ export const useLogout = () => {
     },
   });
 };
+

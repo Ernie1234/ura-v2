@@ -3,7 +3,7 @@ import { AUTH_ROUTES, BASE_ROUTE, PROTECTED_ROUTES } from './routePaths';
 import Home from '@/pages/public/Home';
 import GoogleOAuthFailure from '@/pages/auth/GoogleOAuthFailure';
 import Dashboard from '@/pages/dashboard/Dashboard';
-import Settings from '@/pages/dashboard/Settings.tsx';
+import SettingsPage from '@/pages/dashboard/Settings';
 import About from '@/pages/public/About';
 import ForgotPasswordPage from '@/pages/auth/ForgetPassword';
 import LoginPage from '@/pages/auth/SignIn';
@@ -12,6 +12,7 @@ import UserProfilePage from '@/pages/dashboard/Profile';
 import ProductDetails from '@/pages/ProductDetails';
 import CreateProduct from '@/pages/dashboard/CreateProduct';
 import Bookmark from '@/pages/dashboard/Bookmark';
+import { Edit } from 'lucide-react';
 
 // --- Auth Routes ---
 export const authenticationRoutePaths = [
@@ -24,7 +25,7 @@ export const authenticationRoutePaths = [
 // --- Protected Routes ---
 export const protectedRoutePaths = [
   { path: PROTECTED_ROUTES.DASHBOARD, element: <Dashboard /> },
-  { path: PROTECTED_ROUTES.SETTINGS, element: <Settings /> },
+  { path: PROTECTED_ROUTES.SETTINGS, element: <SettingsPage /> },
   { path: PROTECTED_ROUTES.PROFILE, element: <UserProfilePage /> },
   { path: PROTECTED_ROUTES.PRODUCT_DETAIL, element: <ProductDetails /> },
   { path: PROTECTED_ROUTES.BOOKMARK, element: <Bookmark /> },

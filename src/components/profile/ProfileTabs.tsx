@@ -4,37 +4,33 @@ import React from "react";
 type Props = {
   active: string;
   onChange: (t: string) => void;
+  isBusiness?: boolean; // Add this prop
 };
 
-const tabs = ["All Posts", "About", "Products", "Reviews"];
+const ProfileTabs: React.FC<Props> = ({ active, onChange, isBusiness }) => {
+  // Filter tabs: only include "Products" if isBusiness is true
+  const availableTabs = ["Feeds", "Posts", "Products", "About", "Reviews"].filter(tab => {
+    if (tab === "Products") return isBusiness;
+    return true;
+  });
 
-const ProfileTabs: React.FC<Props> = ({ active, onChange }) => {
   return (
     <div className="mt-2 border-b">
-      <nav className="flex gap-6 lg:gap-12 px-6 md:px-10">
-        {tabs.map((t) => {
-          // Hide "About" on desktop
-          const isAbout = t === "About";
-
-          const isActive = t === active;
-
-          return (
-            <button
-              key={t}
-              onClick={() => onChange(t)}
-              className={`
-                py-3 relative -mb-px
-                ${isActive ? "text-orange-500 font-semibold" : "text-gray-600"}
-                ${isAbout ? "block lg:hidden" : ""}
-              `}
-            >
-              {t}
-              {isActive && (
-                <span className="absolute left-0 right-0 -bottom-1 h-0.5 bg-orange-400" />
-              )}
-            </button>
-          );
-        })}
+      <nav className="flex gap-6 lg:gap-12 px-6">
+        {availableTabs.map((t) => (
+          <button
+            key={t}
+            onClick={() => onChange(t)}
+            className={`py-3 relative -mb-px transition-colors ${
+              active === t ? "text-orange-500 font-semibold" : "text-gray-500 hover:text-gray-700"
+            } ${t === "About" ? "block lg:hidden" : ""}`}
+          >
+            {t}
+            {active === t && (
+              <span className="absolute left-0 right-0 -bottom-px h-0.5 bg-orange-500" />
+            )}
+          </button>
+        ))}
       </nav>
     </div>
   );
