@@ -3,7 +3,7 @@ import { useFeed } from "@/hooks/api/use-feed"; // Our new hook
 import SocialPostCard from "./SocialPostCard";
 import ProductPostCard from "./ProductPostCard";
 
-export default function PostFeed({ onRequireAuth }: { onRequireAuth?: () => void }) {
+export default function AllFeed({ onRequireAuth }: { onRequireAuth?: () => void }) {
   // 🚀 Logic is now a single line
   const { posts, isLoading, isError, refetch } = useFeed();
 

@@ -132,3 +132,15 @@
 .hover\:spin-slow:hover {
   animation: spin-slow 2s linear infinite;
 }
+
+
+/* Add to your global CSS file */
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

@@ -8,6 +8,7 @@ interface BasePost {
   caption: string;
   media?: string[];
   tags?: string[];
+  username?: string;
   createdAt: string;
 }
 

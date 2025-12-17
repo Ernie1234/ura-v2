@@ -1,10 +1,10 @@
 // src/components/feed/ProductPostCard.tsx
-
 import { useState } from "react";
-import { Bookmark, Heart, Share2, Star, ShoppingBag } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Bookmark, Heart, Share2, Star, ShoppingBag, CheckCircle2, MessageCircle } from "lucide-react";
 import useAuth from "@/hooks/api/use-auth";
-import type { CardProps, ProductPostType } from "@/types/feed.types"; // Adjust import path
+import type { CardProps, ProductPostType } from "@/types/feed.types";
+import { MediaRenderer } from "./MediaRender";
+import { MediaCarousel } from "./MediaCarousel";
 
 export default function ProductPostCard({ post, onRequireAuth }: CardProps<ProductPostType>) {
   const { isAuthenticated } = useAuth();
@@ -15,59 +15,85 @@ export default function ProductPostCard({ post, onRequireAuth }: CardProps<Produ
     setLiked(!liked);
   };
 
-  // Format price currency
   const formattedPrice = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(post.price);
+  
+  // Rating Logic: Create an array of 5 for the stars
+  const ratingValue = post.rating || 0;
+const [isExpanded, setIsExpanded] = useState(false);
+  
+  // TEXT LIMIT LOGIC
+  const TEXT_LIMIT = 100;
+  const shouldShowReadMore = post.caption.length > TEXT_LIMIT;
+  const displayText = isExpanded ? post.caption : post.caption.slice(0, TEXT_LIMIT) + "...";
 
   return (
-    <div className="bg-white rounded-2xl shadow-md border border-orange-100 overflow-hidden hover:shadow-lg transition-all animate-fadeIn relative">
-        {/* Product Badge */}
-        <div className="absolute top-4 right-4 bg-orange-500 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md z-10 flex items-center gap-1">
-            <ShoppingBag size={12} /> Product
-        </div>
+    <div className="bg-white border-b border-gray-100 lg:rounded-2xl lg:border lg:mb-6 lg:shadow-sm relative animate-fadeIn">
+{/* PRODUCT BADGE - Moved slightly higher/smaller for mobile */}
+      <div className="absolute top-3 right-3 bg-orange-600 text-white text-[8px] font-black uppercase px-2 py-1 rounded z-20 flex items-center gap-1 shadow-sm">
+        <ShoppingBag size={10} /> PRODUCT
+      </div>
 
-      {/* HEADER (Business focused) */}
-      <div className="flex items-center gap-3 p-4">
-        <img src={post.displayAvatar || "/images/default-avatar.png"} className="w-12 h-12 rounded-full object-cover border-2 border-orange-50" alt={post.displayName} />
-        <div className="flex-1">
-          <h3 className="font-bold text-gray-900">{post.displayName}</h3>
-           {/* Rating - Assuming businesses have ratings */}
-           <div className="flex items-center text-yellow-400 text-xs mt-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} size={12} className={i < (post.author?.rating ?? 4) ? "fill-yellow-400" : "fill-gray-200 stroke-gray-200"} />
-              ))}
-              <span className="text-gray-400 ml-1">({post.author?.rating ?? 4}.0)</span>
-            </div>
+      {/* HEADER - Fixed Overlap */}
+      <div className="flex items-center gap-3 p-4 pr-20"> {/* Added pr-20 to clear space for badge */}
+        <img src={post.displayAvatar || "/images/default-avatar.png"} className="w-10 h-10 rounded-full object-cover border" alt="" />
+        <div className="min-w-0 flex-1"> {/* min-w-0 allows truncation to work */}
+          <div className="flex items-center gap-1">
+            <h3 className="font-bold text-gray-900 text-[15px] truncate">{post.displayName}</h3>
+            {post.isVerified && <CheckCircle2 size={14} className="fill-blue-500 text-white flex-shrink-0" />}
+          </div>
+          <div className="flex items-center gap-0.5">
+             {[1,2,3,4,5].map(s => (
+               <Star key={s} size={10} className={s <= (post.rating || 0) ? "fill-yellow-500 text-yellow-500" : "text-gray-200"} />
+             ))}
+          </div>
         </div>
       </div>
 
-      {/* MEDIA SHOWCASE (Larger for products) */}
-      {post.media && post.media[0] && (
-        <div className="px-4 pb-4">
-            <img src={post.media[0]} className="rounded-2xl w-full h-[350px] object-cover shadow-sm" alt={post.productName} />
-        </div>
-      )}
-
-      {/* PRODUCT DETAILS & PRICE */}
-      <div className="px-5 pb-4">
-        <div className="flex justify-between items-start mb-2">
-             <h2 className="text-xl font-bold text-gray-900 leading-tight max-w-[70%]">{post.productName}</h2>
-             <p className="text-orange-600 font-extrabold text-xl bg-orange-50 px-2 py-1 rounded-lg">{formattedPrice}</p>
-        </div>
-        
-        <p className="text-gray-600 text-sm line-clamp-2 mb-3">{post.caption}</p>
-
-        {/* CALL TO ACTION FOOTER */}
-        <div className="flex items-center gap-3 mt-4">
-            <Link
-            to={`/business/${post.author._id}/product/${post._id}`} // Example route
-            className="flex-1 text-center bg-gray-900 text-white py-3 rounded-xl font-bold hover:bg-black transition flex items-center justify-center gap-2"
+      {/* CAPTION with Read More */}
+      <div className="px-4 pb-3">
+        <p className="text-gray-700 text-[14px] leading-snug">
+          {shouldShowReadMore ? displayText : post.caption}
+          {shouldShowReadMore && (
+            <button 
+              onClick={() => setIsExpanded(!isExpanded)} 
+              className="text-orange-600 font-bold ml-1 hover:underline"
             >
-             <ShoppingBag size={18} /> View Product Details
-            </Link>
-            <button onClick={toggleLike} className="p-3 bg-gray-100 rounded-xl hover:bg-red-50 transition group">
-                <Heart className={`w-6 h-6 ${liked ? "fill-red-500 stroke-red-500" : "stroke-gray-500 group-hover:stroke-red-500"}`} />
+              {isExpanded ? "Read Less" : "Read More"}
             </button>
+          )}
+        </p>
+      </div>
+
+      <MediaCarousel media={post.media} />
+
+      {/* PRICE & BUTTONS */}
+      <div className="px-4 pt-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 mb-4">
+          <div>
+            <h2 className="text-[15px] font-bold text-gray-900 leading-tight">{post.productName}</h2>
+            <p className="text-orange-600 font-black text-[18px]">{formattedPrice}</p>
+          </div>
+          <div className="flex gap-2 w-full sm:w-auto">
+             <button className="flex-1 sm:flex-none bg-gray-100 text-gray-900 px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-200 transition">
+                Details
+             </button>
+             <button className="flex-1 sm:flex-none bg-orange-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-orange-600 transition flex items-center justify-center gap-1">
+                <ShoppingBag size={14} /> Buy
+             </button>
+          </div>
         </div>
+      </div>
+
+      {/* FOOTER ACTIONS */}
+      <div className="flex items-center justify-between px-4 py-3 border-t border-gray-50">
+        <div className="flex items-center gap-5">
+          <button onClick={toggleLike} className="group">
+            <Heart className={`w-6 h-6 ${liked ? "fill-red-500 text-red-500" : "text-gray-700 group-hover:text-red-500"}`} />
+          </button>
+          <button className="group text-gray-700 hover:text-orange-500 transition"><MessageCircle className="w-6 h-6" /></button>
+          <button className="group text-gray-700 hover:text-orange-500 transition"><Share2 className="w-6 h-6" /></button>
+        </div>
+        <button className="group text-gray-700 hover:text-orange-500 transition"><Bookmark className="w-6 h-6" /></button>
       </div>
     </div>
   );
