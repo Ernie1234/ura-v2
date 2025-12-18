@@ -169,3 +169,28 @@ export interface FeedResponse {
   success: boolean;
   posts: FeedItem[]; // FeedItem is the Union type we created earlier
 }
+
+// types/api.types.ts
+export interface ICommentAuthor {
+  _id: string;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  businessName?: string;
+  businessLogo?: string;
+  profilePicture?: string;
+}
+
+export interface CommentData {
+  _id: string;
+  content: string;
+  author: ICommentAuthor;
+  authorType: 'User' | 'Business';
+  postId: string;
+  likes: string[];
+  parentId: string | null;
+  likesCount: number;
+  isLiked: boolean;
+  replies?: CommentData[];
+  createdAt: string;
+}

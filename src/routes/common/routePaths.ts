@@ -11,7 +11,9 @@ export const PROTECTED_ROUTES = {
   SETTINGS: '/dashboard/settings',
   BOOKMARK: '/dashboard/bookmark',
   PROFILE: '/profile/user/:userId',
-  CREATE_PRODUCT: '/product/add',
+  CREATE_PRODUCT: '/post/create',
+  MENU: '/dashboard/menu',
+  CHAT: '/dashboard/chats',
   PRODUCT_DETAIL: '/product/:productId',
 };
 

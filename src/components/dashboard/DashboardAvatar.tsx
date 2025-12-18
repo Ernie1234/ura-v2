@@ -1,22 +1,79 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { User, LogOut, Settings } from 'lucide-react';
 import { useAuthContext } from '@/context/auth-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Link } from 'react-router-dom';
+import { generateAvatarUrl } from '@/utils/avatar-generator'; // Adjust path if needed
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import LogoutDialog from '../shared/LogoutDialog';
 
 export const DashboardAvatar = () => {
   const { isLoading, user } = useAuthContext();
+  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
+  const navigate = useNavigate();
+
+  if (isLoading || !user) return null;
+
   return (
     <>
-      {!isLoading && user && (
-        <Link to={`/profile/user/${user._id}`}>
-          <Avatar>
-            <AvatarImage src={user.profilePicture} alt={user.firstName} />
-            <AvatarFallback>
-              {user.firstName.charAt(0)}
-              {user.lastName.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-        </Link>
-      )}
+      <DropdownMenu>
+        {/* Removed <Link>. The Trigger handles the click now. */}
+        <DropdownMenuTrigger asChild>
+          <button className="outline-none block rounded-full hover:ring-2 hover:ring-orange-100 transition-all">
+            <Avatar className="h-9 w-9 border border-gray-200">
+              <AvatarImage src={user.profilePicture} alt={user.firstName} />
+              <AvatarFallback className="p-0">
+                <img 
+                  src={generateAvatarUrl(user.username)} 
+                  alt="avatar" 
+                />
+              </AvatarFallback>
+            </Avatar>
+          </button>
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent className="w-56" align="end" sideOffset={10}>
+          <div className="px-2 py-1.5 text-sm font-semibold text-gray-900">
+            My Account
+          </div>
+          <DropdownMenuSeparator />
+          
+          <DropdownMenuItem 
+            className="cursor-pointer flex items-center gap-2" 
+            onClick={() => navigate(`/profile/user/${user._id}`)}
+          >
+            <User size={16} />
+            <span>Profile</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem 
+            className="cursor-pointer flex items-center gap-2"
+            onClick={() => navigate('/dashboard/settings')}
+          >
+            <Settings size={16} />
+            <span>Settings</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+          
+          <DropdownMenuItem 
+            className="cursor-pointer flex items-center gap-2 text-red-600 focus:text-red-600 focus:bg-red-50" 
+            onClick={() => setIsLogoutOpen(true)}
+          >
+            <LogOut size={16} />
+            <span>Log out</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* The Dialog that pops up when 'Log out' is clicked */}
+      <LogoutDialog isOpen={isLogoutOpen} setIsOpen={setIsLogoutOpen} />
     </>
   );
 };

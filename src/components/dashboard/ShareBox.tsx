@@ -1,75 +1,130 @@
-// src/components/dashboard/ShareBox.tsx (REVISED)
-
-import { ImageIcon, Video, Tag, Globe, SendHorizonal } from 'lucide-react';
+// src/components/dashboard/ShareBox.tsx
+import { useState, useRef } from 'react';
+import { ImageIcon, Video, Tag, SendHorizonal, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { AvatarCard } from '../shared/AvatarCard';
+import { useCreatePost } from '@/hooks/api/use-feed';
 import { useAuthContext } from '@/context/auth-provider';
-// Assuming this utility function is globally available or imported elsewhere
-import { generateAvatarUrl } from '@/utils/avatar-generator'; 
-
-// NOTE: Define the FALLBACK_PROFILE_URL generation function
-// const generateAvatarUrl = (username: string) => 
-//     `https://ui-avatars.com/api/?name=${username}&background=random&color=fff&size=40`; 
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { TagInput } from '../shared/TagInput';
 
 const ShareBox = () => {
-    const { isLoading, user } = useAuthContext();
+    const { user } = useAuthContext();
+    const { mutate, isPending } = useCreatePost();
 
-    if (isLoading || !user) {
-        return <div className="p-4 text-gray-400 text-sm">Loading...</div>;
-    }
+    const [content, setContent] = useState('');
+    const [rawFiles, setRawFiles] = useState<File[]>([]);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const initials = `${user.firstName?.[0] ?? 'U'}${user.lastName?.[0] ?? ''}`;
-    
-    // 🚨 NEW LOGIC: Determine the final avatar source
-    const fallbackUrl = generateAvatarUrl(user.username ?? initials);
-    const avatarSource = user.profilePicture ?? fallbackUrl;
+    const [tags, setTags] = useState<string[]>([]);
+    const [tagInput, setTagInput] = useState('');
+    const [showTagInput, setShowTagInput] = useState(false);
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setRawFiles([file]); // Match payload structure
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
+
+    const handlePost = () => {
+        if (!content.trim() && rawFiles.length === 0) return;
+
+        const payload = {
+            type: 'POST',
+            caption: content,
+            tags: tags, // Adding the tags to the payload
+        };
+
+        mutate({ data: payload, files: rawFiles }, {
+            onSuccess: () => {
+                setContent('');
+                setRawFiles([]);
+                setPreviewUrl(null);
+                setTags([]);
+                setShowTagInput(false);
+            }
+        });
+    };
 
     return (
-        <div className="rounded-xl bg-white p-4 shadow-md">
+        <div className="rounded-xl bg-white p-3 md:p-4 shadow-sm border border-gray-100 w-full">
             <div className="flex items-start gap-3">
-                <AvatarCard
-                    // 🚨 Using the derived avatarSource
-                    image={avatarSource} 
-                    fallbackText={user.username ? user.username.charAt(0).toUpperCase() : initials}
-                    link="/dashboard/profile"
-                    key={user._id}
-                />
+                <Avatar className="h-10 w-10 shrink-0">
+                    <AvatarImage src={user?.profilePicture} />
+                    <AvatarFallback className="bg-orange-500 text-white">
+                        {user?.firstName?.[0]}
+                    </AvatarFallback>
+                </Avatar>
 
-                <div className="flex-1 space-y-3">
-                    {/* 🚨 REVISION 1: Input and Send Button on the same line */}
-                    <div className="flex items-center gap-2">
+                <div className="flex-1 min-w-0 space-y-3">
+                    <div className="flex items-center gap-2 w-full">
                         <Input
+                            value={content}
+                            onChange={(e) => setContent(e.target.value)}
                             placeholder="Share something..."
-                            className="flex-1 rounded-full bg-[#FFF3E8] border-none text-sm focus-visible:ring-0 focus-visible:ring-offset-0 h-10"
+                            className="flex-1 rounded-full bg-[#FFF3E8]/50 border-none text-sm focus-visible:ring-1 focus-visible:ring-orange-200 h-10 md:h-11"
                         />
-                        <Button 
-                            size="icon" 
+                        <Button
+                            onClick={handlePost}
+                            disabled={isPending || (!content.trim() && rawFiles.length === 0)}
                             className="rounded-full bg-orange-500 hover:bg-orange-600 h-10 w-10 shrink-0"
-                            aria-label="Send Post"
                         >
-                            <SendHorizonal size={16} />
+                            <SendHorizonal size={18} />
                         </Button>
                     </div>
 
-                    {/* 🚨 REVISION 2: Action buttons moved below the input line */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 mt-3">
-                        <div className="flex items-center gap-3 md:gap-5 text-sm text-gray-600">
-                            <button className="flex items-center gap-1 hover:text-orange-500 transition-colors">
-                                <ImageIcon size={16} /> <span className="hidden sm:inline">Image</span>
+                    {previewUrl && (
+                        <div className="relative mt-2 w-full max-h-52 overflow-hidden rounded-lg border border-gray-100">
+                            <button
+                                onClick={() => { setRawFiles([]); setPreviewUrl(null); }}
+                                className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white z-10"
+                            >
+                                <X size={14} />
                             </button>
-                            <button className="flex items-center gap-1 hover:text-orange-500 transition-colors">
-                                <Video size={16} /> <span className="hidden sm:inline">Video</span>
-                            </button>
-                            <button className="flex items-center gap-1 hover:text-orange-500 transition-colors">
-                                <Tag size={16} /> <span className="hidden sm:inline">Tag</span>
-                            </button>
-                            <button className="flex items-center gap-1 hover:text-orange-500 transition-colors">
-                                <Globe size={16} /> <span className="hidden sm:inline">Public</span>
-                            </button>
+                            <img src={previewUrl} className="w-full h-full object-cover" alt="preview" />
                         </div>
-                        {/* Send button removed from here */}
+                    )}
+
+                    {showTagInput && (
+                        <div className="pt-1">
+                            <TagInput 
+                                tags={tags} 
+                                setTags={setTags} 
+                                tagInput={tagInput} 
+                                setTagInput={setTagInput} 
+                            />
+                        </div>
+                    )}
+
+                    <div className="flex items-center gap-4 mt-2 pt-2 border-t border-gray-50 overflow-x-auto no-scrollbar">
+                        <input
+                            type="file"
+                            hidden
+                            ref={fileInputRef}
+                            accept="image/*,video/*"
+                            onChange={handleFileChange}
+                        />
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
+                            className="flex items-center gap-1.5 text-[12px] md:text-[13px] font-medium text-gray-500 hover:text-orange-600 shrink-0"
+                        >
+                            <ImageIcon size={18} className="text-orange-500" /> Image
+                        </button>
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
+                            className="flex items-center gap-1.5 text-[12px] md:text-[13px] font-medium text-gray-500 hover:text-orange-600 shrink-0"
+                        >
+                            <Video size={18} className="text-red-500" /> Video
+                        </button>
+                        <button
+                            onClick={() => setShowTagInput(!showTagInput)}
+                            className={`flex items-center gap-1.5 text-[12px] md:text-[13px] font-medium shrink-0 ${showTagInput ? 'text-blue-600' : 'text-gray-500'}`}
+                        >
+                            <Tag size={18} className="text-blue-500" /> Tag
+                        </button>
                     </div>
                 </div>
             </div>

@@ -1,6 +1,5 @@
-import { useCallback } from 'react';
+// src/components/nav/LogoutDialog.tsx
 import { Loader } from 'lucide-react';
-
 import {
   Dialog,
   DialogContent,
@@ -12,56 +11,54 @@ import {
 import { Button } from '@/components/ui/button';
 import { useLogout } from '@/hooks/api/use-auth-mutations';
 
-const LogoutDialog = (props: {
+interface LogoutDialogProps {
   isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}) => {
-  const { isOpen, setIsOpen } = props;
+  setIsOpen: (open: boolean) => void;
+}
 
+const LogoutDialog = ({ isOpen, setIsOpen }: LogoutDialogProps) => {
   const { mutate, isPending } = useLogout();
 
-  const handleLogout = useCallback(() => {
-if (isPending) return;
-    // The useLogout hook is configured to handle tokens,
-    // so we can call mutate() with no arguments here.
-    // However, the onSuccess/onError logic of useLogout redirects
-    // to /auth/login and shows a toast.
- mutate(undefined, {
-      onSuccess: () => {
-        // We still need to close the dialog locally
-        setIsOpen(false);
-        // The useLogout hook handles navigation and toast for success
-      },
-      onError: () => {
-        // The useLogout hook handles navigation and toast for error
-        setIsOpen(false);
-      }
+  const handleLogout = () => {
+    mutate(undefined, {
+      onSettled: () => setIsOpen(false), // Close dialog regardless of success/error
     });
- }, [isPending, mutate, setIsOpen]);
+  };
 
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Are you sure you want to log out?</DialogTitle>
-            <DialogDescription>
-              This will end your current session and you will need to log in again to access your
-              account.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button disabled={isPending} type="button" onClick={handleLogout}>
-              {isPending && <Loader className="animate-spin" />}
-              Sign out
-            </Button>
-            <Button type="button" onClick={() => setIsOpen(false)}>
-              Cancel
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold text-gray-900">
+            Confirm Logout
+          </DialogTitle>
+          <DialogDescription className="pt-2 text-gray-500">
+            Are you sure you want to log out? You will need to enter your credentials again to access your dashboard.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <DialogFooter className="mt-6 flex gap-2">
+          <Button 
+            variant="ghost" 
+            disabled={isPending}
+            onClick={() => setIsOpen(false)}
+            className="flex-1 hover:bg-gray-100"
+          >
+            Cancel
+          </Button>
+          <Button 
+            disabled={isPending} 
+            onClick={handleLogout}
+            className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-semibold transition-all"
+          >
+            {isPending ? (
+              <Loader className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
+            Sign out
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

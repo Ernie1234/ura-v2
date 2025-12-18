@@ -5,6 +5,7 @@ import useAuth from "@/hooks/api/use-auth";
 import type { CardProps, ProductPostType } from "@/types/feed.types";
 import { MediaRenderer } from "./MediaRender";
 import { MediaCarousel } from "./MediaCarousel";
+import { PostActions } from "./PostAction";
 
 export default function ProductPostCard({ post, onRequireAuth }: CardProps<ProductPostType>) {
   const { isAuthenticated } = useAuth();
@@ -16,11 +17,11 @@ export default function ProductPostCard({ post, onRequireAuth }: CardProps<Produ
   };
 
   const formattedPrice = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(post.price);
-  
+
   // Rating Logic: Create an array of 5 for the stars
   const ratingValue = post.rating || 0;
-const [isExpanded, setIsExpanded] = useState(false);
-  
+  const [isExpanded, setIsExpanded] = useState(false);
+
   // TEXT LIMIT LOGIC
   const TEXT_LIMIT = 100;
   const shouldShowReadMore = post.caption.length > TEXT_LIMIT;
@@ -28,7 +29,7 @@ const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <div className="bg-white border-b border-gray-100 lg:rounded-2xl lg:border lg:mb-6 lg:shadow-sm relative animate-fadeIn">
-{/* PRODUCT BADGE - Moved slightly higher/smaller for mobile */}
+      {/* PRODUCT BADGE - Moved slightly higher/smaller for mobile */}
       <div className="absolute top-3 right-3 bg-orange-600 text-white text-[8px] font-black uppercase px-2 py-1 rounded z-20 flex items-center gap-1 shadow-sm">
         <ShoppingBag size={10} /> PRODUCT
       </div>
@@ -42,9 +43,9 @@ const [isExpanded, setIsExpanded] = useState(false);
             {post.isVerified && <CheckCircle2 size={14} className="fill-blue-500 text-white flex-shrink-0" />}
           </div>
           <div className="flex items-center gap-0.5">
-             {[1,2,3,4,5].map(s => (
-               <Star key={s} size={10} className={s <= (post.rating || 0) ? "fill-yellow-500 text-yellow-500" : "text-gray-200"} />
-             ))}
+            {[1, 2, 3, 4, 5].map(s => (
+              <Star key={s} size={10} className={s <= (post.rating || 0) ? "fill-yellow-500 text-yellow-500" : "text-gray-200"} />
+            ))}
           </div>
         </div>
       </div>
@@ -54,8 +55,8 @@ const [isExpanded, setIsExpanded] = useState(false);
         <p className="text-gray-700 text-[14px] leading-snug">
           {shouldShowReadMore ? displayText : post.caption}
           {shouldShowReadMore && (
-            <button 
-              onClick={() => setIsExpanded(!isExpanded)} 
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
               className="text-orange-600 font-bold ml-1 hover:underline"
             >
               {isExpanded ? "Read Less" : "Read More"}
@@ -74,27 +75,27 @@ const [isExpanded, setIsExpanded] = useState(false);
             <p className="text-orange-600 font-black text-[18px]">{formattedPrice}</p>
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
-             <button className="flex-1 sm:flex-none bg-gray-100 text-gray-900 px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-200 transition">
-                Details
-             </button>
-             <button className="flex-1 sm:flex-none bg-orange-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-orange-600 transition flex items-center justify-center gap-1">
-                <ShoppingBag size={14} /> Buy
-             </button>
+            <button className="flex-1 sm:flex-none bg-gray-100 text-gray-900 px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-200 transition">
+              Details
+            </button>
+            <button className="flex-1 sm:flex-none bg-orange-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-orange-600 transition flex items-center justify-center gap-1">
+              <ShoppingBag size={14} /> Buy
+            </button>
           </div>
         </div>
       </div>
 
       {/* FOOTER ACTIONS */}
-      <div className="flex items-center justify-between px-4 py-3 border-t border-gray-50">
-        <div className="flex items-center gap-5">
-          <button onClick={toggleLike} className="group">
-            <Heart className={`w-6 h-6 ${liked ? "fill-red-500 text-red-500" : "text-gray-700 group-hover:text-red-500"}`} />
-          </button>
-          <button className="group text-gray-700 hover:text-orange-500 transition"><MessageCircle className="w-6 h-6" /></button>
-          <button className="group text-gray-700 hover:text-orange-500 transition"><Share2 className="w-6 h-6" /></button>
-        </div>
-        <button className="group text-gray-700 hover:text-orange-500 transition"><Bookmark className="w-6 h-6" /></button>
-      </div>
+      {/* FOOTER ACTIONS - Unified with the Social Post */}
+      <PostActions
+        postId={post._id}
+        isAuthenticated={isAuthenticated}
+        onRequireAuth={onRequireAuth}
+        initialLikes={post.likesCount || 0}
+        initialComments={post.commentsCount || 0}
+        isLiked={post.isLiked}
+        isBookmarked={post.isBookmarked}
+      />
     </div>
   );
 }

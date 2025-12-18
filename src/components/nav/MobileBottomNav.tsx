@@ -8,7 +8,7 @@ export default function MobileBottomNav({ onSearchClick }: { onSearchClick: () =
   const navItems = [
     { name: 'Home', to: '/dashboard', icon: Home },
     { name: 'Search', onClick: onSearchClick, icon: Search },
-    { name: 'Post', to: '/dashboard/create', icon: PlusSquare },
+    { name: 'Post', to: '/post/create', icon: PlusSquare },
     { name: 'Chats', to: '/dashboard/chats', icon: MessageCircle },
     { name: 'More', to: '/dashboard/menu', icon: MoreHorizontal },
   ];

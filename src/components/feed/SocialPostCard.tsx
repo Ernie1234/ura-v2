@@ -3,30 +3,34 @@ import { useState } from "react";
 import { Bookmark, Heart, MessageCircle, Share2, MoreVertical } from "lucide-react";
 import useAuth from "@/hooks/api/use-auth";
 import type { CardProps, SocialPostType } from "@/types/feed.types";
-import { MediaRenderer } from "./MediaRender";
 import { MediaCarousel } from "./MediaCarousel";
+import { generateAvatarUrl } from "@/utils/avatar-generator";
+import { PostActions } from "./PostAction";
+
+
 
 export default function SocialPostCard({ post, onRequireAuth }: CardProps<SocialPostType>) {
   const { isAuthenticated } = useAuth();
   const [liked, setLiked] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleLike = () => {
     if (!isAuthenticated) return onRequireAuth?.();
     setLiked(!liked);
   };
-const [isExpanded, setIsExpanded] = useState(false);
   
   // TEXT LIMIT LOGIC
   const TEXT_LIMIT = 100;
   const shouldShowReadMore = post.caption.length > TEXT_LIMIT;
   const displayText = isExpanded ? post.caption : post.caption.slice(0, TEXT_LIMIT) + "...";
+  const user_image = post.displayAvatar || generateAvatarUrl(post.displayName);
 
   return (
-    <div className="bg-white border-b border-gray-100 lg:rounded-2xl lg:border lg:mb-6 animate-fadeIn">
+    <div className="bg-white border-b border-gray-100 lg:rounded-2xl lg:border lg:mb-6 animate-fadeIn overflow-hidden">
       {/* HEADER */}
       <div className="flex items-center gap-3 p-4">
         <img 
-          src={post.displayAvatar || "/images/default-avatar.png"} 
+          src={user_image}
           className="w-10 h-10 rounded-full object-cover border" 
           alt={post.displayName} 
         />
@@ -36,11 +40,13 @@ const [isExpanded, setIsExpanded] = useState(false);
             @{post.username || 'user'} • <span className="text-[11px] font-normal">1h ago</span>
           </p>
         </div>
-        <button className="text-gray-400 p-1 hover:bg-gray-50 rounded-full"><MoreVertical size={18} /></button>
+        <button className="text-gray-400 p-1 hover:bg-gray-50 rounded-full">
+          <MoreVertical size={18} />
+        </button>
       </div>
 
       {/* CAPTION */}
-      <div className="px-4 pb-3">
+      <div className="px-4 pb-2">
         <p className="text-gray-700 text-[14px] leading-snug">
           {shouldShowReadMore ? displayText : post.caption}
           {shouldShowReadMore && (
@@ -54,28 +60,36 @@ const [isExpanded, setIsExpanded] = useState(false);
         </p>
       </div>
 
-      {/* MEDIA CAROUSEL - No Scrollbar */}
-        <MediaCarousel media={post.media}/>
+      {/* 🚨 TAGS SECTION - Added here */}
+      {post.tags && post.tags.length > 0 && (
+        <div className="px-4 pb-3 flex flex-wrap gap-2">
+          {post.tags.map((tag, idx) => (
+            <span key={idx} className="text-[13px] font-medium text-orange-600 hover:underline cursor-pointer">
+              #{tag}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* 🚨 MEDIA CAROUSEL - Conditional check fixed to prevent empty space */}
+      {post.media && post.media.length > 0 ? (
+        <div className="w-full">
+          <MediaCarousel media={post.media}/>
+        </div>
+      ) : null}
 
       {/* ACTIONS BAR */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-6">
-          <button onClick={toggleLike} className="flex items-center gap-1.5 group">
-            <Heart className={`w-6 h-6 transition ${liked ? "fill-red-500 stroke-red-500 text-red-500" : "text-gray-700 group-hover:text-red-500"}`} />
-            <span className="text-xs font-bold text-gray-600">183</span>
-          </button>
-          <button className="flex items-center gap-1.5 group">
-            <MessageCircle className="w-6 h-6 text-gray-700 group-hover:text-orange-500" />
-            <span className="text-xs font-bold text-gray-600">57</span>
-          </button>
-          <button className="group text-gray-700 hover:text-orange-500">
-            <Share2 className="w-6 h-6" />
-          </button>
-        </div>
-        <button className="group text-gray-700 hover:text-orange-500">
-          <Bookmark className="w-6 h-6" />
-        </button>
-      </div>
+{/* Replace the old actions bar with this */}
+      <PostActions
+        postId={post._id} 
+        user_image={user_image}
+        isAuthenticated={isAuthenticated}
+        onRequireAuth={onRequireAuth}
+        initialLikes={post.likesCount || 0}
+        initialComments={post.commentsCount || 0}
+        isLiked={post.isLiked}
+        isBookmarked={post.isBookmarked}
+      />
     </div>
   );
 }

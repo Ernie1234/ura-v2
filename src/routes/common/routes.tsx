@@ -13,6 +13,8 @@ import ProductDetails from '@/pages/ProductDetails';
 import CreateProduct from '@/pages/dashboard/CreateProduct';
 import Bookmark from '@/pages/dashboard/Bookmark';
 import { Edit } from 'lucide-react';
+import MenuPage from '@/pages/dashboard/MenuPage';
+import { ChatsPage } from '@/pages/dashboard/ChatPage';
 
 // --- Auth Routes ---
 export const authenticationRoutePaths = [
@@ -27,6 +29,8 @@ export const protectedRoutePaths = [
   { path: PROTECTED_ROUTES.DASHBOARD, element: <Dashboard /> },
   { path: PROTECTED_ROUTES.SETTINGS, element: <SettingsPage /> },
   { path: PROTECTED_ROUTES.PROFILE, element: <UserProfilePage /> },
+  { path: PROTECTED_ROUTES.MENU, element: <MenuPage /> },
+  { path: PROTECTED_ROUTES.CHAT, element: <ChatsPage /> },
   { path: PROTECTED_ROUTES.PRODUCT_DETAIL, element: <ProductDetails /> },
   { path: PROTECTED_ROUTES.BOOKMARK, element: <Bookmark /> },
   { path: PROTECTED_ROUTES.CREATE_PRODUCT, element: <CreateProduct /> },
