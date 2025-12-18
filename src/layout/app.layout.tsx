@@ -22,10 +22,6 @@ const AppLayout = () => {
           <AppSideBar />
           
           <SidebarInset className="flex flex-col flex-1 overflow-x-hidden">
-            {/* The Unified Header now handles:
-               - Mobile: Logo + Sidebar Trigger + Bell
-               - Desktop: Sidebar Trigger + Breadcrumbs + Nav Menu + Avatar
-            */}
             <Header onSearchClick={() => setIsSearchOpen(true)} />
             
             <main className="flex-1 pb-20 lg:pb-0">

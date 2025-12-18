@@ -10,7 +10,7 @@ export const PROTECTED_ROUTES = {
   DASHBOARD: '/dashboard',
   SETTINGS: '/dashboard/settings',
   BOOKMARK: '/dashboard/bookmark',
-  PROFILE: '/user/profile/:userId',
+  PROFILE: '/profile/user/:userId',
   CREATE_PRODUCT: '/product/add',
   PRODUCT_DETAIL: '/product/:productId',
 };

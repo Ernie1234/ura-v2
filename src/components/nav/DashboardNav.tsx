@@ -84,11 +84,7 @@ const DashboardNav: React.FC<DashboardNavProps> = ({ onSearchClick }) => {
                         <Settings className="text-orange-400" />
                     </Link>
                     <DashboardAvatar />
-                </div>
-                
-                {/* Mobile Menu is hidden/unaffected by these changes */}
-                {/* ... (Mobile menu JSX remains the same) ... */}
-                
+                </div>        
             </div>
         </header>
     );

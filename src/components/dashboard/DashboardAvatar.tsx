@@ -7,7 +7,7 @@ export const DashboardAvatar = () => {
   return (
     <>
       {!isLoading && user && (
-        <Link to={`/${user._id}`}>
+        <Link to={`/profile/user/${user._id}`}>
           <Avatar>
             <AvatarImage src={user.profilePicture} alt={user.firstName} />
             <AvatarFallback>

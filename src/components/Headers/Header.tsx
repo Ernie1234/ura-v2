@@ -22,7 +22,10 @@ export default function Header({ onSearchClick }: { onSearchClick: () => void })
   const getPageLabel = (path: string) => {
     if (path.includes('/project/')) return 'Project';
     if (path.includes('/settings')) return 'Settings';
-    if (path.includes('/tasks')) return 'Tasks';
+    if (path.includes('/profile')) return 'Profile';
+    if (path.includes('/chat')) return 'Chat';
+    if (path.includes('/activity')) return 'Activity';
+    if (path.includes('/bookmark')) return 'Bookmark';
     if (path.includes('/notifications')) return 'Notifications';
     return null;
   };
@@ -41,7 +44,7 @@ export default function Header({ onSearchClick }: { onSearchClick: () => void })
         
         {/* LEFT: Mobile (Trigger/Logo) | Desktop (Trigger/Breadcrumbs) */}
         <div className="flex items-center gap-3 min-w-[200px]">
-          <SidebarTrigger className="lg:hidden" />
+          <SidebarTrigger className="hidden" />
           <div className="lg:hidden">
             <Logo url="/dashboard" />
           </div>
@@ -101,7 +104,7 @@ export default function Header({ onSearchClick }: { onSearchClick: () => void })
             <Bell size={22} />
             <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
           </button>
-          <div className="hidden sm:block">
+          <div className="sm:block">
             <DashboardAvatar />
           </div>
         </div>

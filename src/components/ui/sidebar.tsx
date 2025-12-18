@@ -22,10 +22,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
-const SIDEBAR_WIDTH = '16rem';
-const SIDEBAR_WIDTH_MOBILE = '18rem';
-const SIDEBAR_WIDTH_ICON = '3rem';
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b';
+const SIDEBAR_WIDTH = '14rem'; // Reduced from 16rem
+const SIDEBAR_WIDTH_MOBILE = '16rem'; // Reduced from 18rem
+const SIDEBAR_WIDTH_ICON = '4rem'; // Slightly wider for better icon centering
 
 type SidebarContextProps = {
   state: 'expanded' | 'collapsed';
@@ -49,7 +49,7 @@ function useSidebar() {
 }
 
 function SidebarProvider({
-  defaultOpen = true,
+  defaultOpen = false,
   open: openProp,
   onOpenChange: setOpenProp,
   className,
