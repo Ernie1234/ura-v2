@@ -3,17 +3,26 @@ import { generateAvatarUrl } from "@/utils/avatar-generator";
 import React from "react";
 type Props = {
   profile: any;
+  isBusiness: boolean;
 };
 
-const ProfileHeader: React.FC<Props> = ({ profile }) => {
-  const FALLBACK_PROFILE_URL = generateAvatarUrl(profile.user.username);
+const ProfileHeader: React.FC<Props> = ({ profile, isBusiness = false }) => {
+  const fallbackSeed = isBusiness 
+    ? (profile.business?.businessName || "Business") 
+    : profile.user.username;
+
+  const FALLBACK_PROFILE_URL = generateAvatarUrl(fallbackSeed);
 
   return (
     <header className="bg-white rounded-xl shadow-sm">
       {/* Banner */}
       <div className="relative">
         <img
-          src={profile?.user?.coverPicture ?? "/images/default-cover.jpg"}
+          src={
+            isBusiness 
+              ? (profile.business?.businessCover) 
+              : (profile.user.coverPicture)
+          }
           alt="cover"
           className="w-full h-44 md:h-56 object-cover rounded-t-xl"
         />
@@ -21,9 +30,13 @@ const ProfileHeader: React.FC<Props> = ({ profile }) => {
         {/* circular avatar */}
         <div className="absolute left-12 -bottom-12">
           <img
-            src={profile.user.profilePicture ?? FALLBACK_PROFILE_URL}
+            src={
+              isBusiness 
+                ? (profile.business?.businessLogo ?? FALLBACK_PROFILE_URL) 
+                : (profile.user.profilePicture ?? FALLBACK_PROFILE_URL)
+            }
             alt="avatar"
-            className="w-24 h-24 md:w-28 md:h-28 rounded-full border-4 border-white object-cover shadow"
+            className="w-24 h-24 md:w-28 md:h-28 rounded-full border-4 border-white object-cover shadow bg-white"
           />
         </div>
       </div>

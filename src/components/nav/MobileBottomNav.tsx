@@ -6,11 +6,39 @@ export default function MobileBottomNav({ onSearchClick }: { onSearchClick: () =
   const { pathname } = useLocation();
 
   const navItems = [
-    { name: 'Home', to: '/dashboard', icon: Home },
-    { name: 'Search', onClick: onSearchClick, icon: Search },
-    { name: 'Post', to: '/post/create', icon: PlusSquare },
-    { name: 'Chats', to: '/dashboard/chats', icon: MessageCircle },
-    { name: 'More', to: '/dashboard/menu', icon: MoreHorizontal },
+    { 
+      name: 'Home', 
+      to: '/dashboard', 
+      icon: Home,
+      // Only active on exact home
+      activePaths: ['/dashboard'] 
+    },
+    { 
+      name: 'Search', 
+      onClick: onSearchClick, 
+      icon: Search,
+      activePaths: ['/search', '/explore'] // Associated routes
+    },
+    { 
+      name: 'Post', 
+      to: '/dashboard/post/create?type=post', 
+      icon: PlusSquare,
+      // Active if creating post, product, or editing
+      activePaths: ['/dashboard/post', '/dashboard/inventory/new'] 
+    },
+    { 
+      name: 'Chats', 
+      to: '/dashboard/chats', 
+      icon: MessageCircle,
+      activePaths: ['/dashboard/chats', '/dashboard/messages'] 
+    },
+    { 
+      name: 'More', 
+      to: '/dashboard/menu', 
+      icon: MoreHorizontal,
+      // Associate completely different routes here
+      activePaths: ['/dashboard/menu', '/dashboard/settings', '/dashboard/profile'] 
+    },
   ];
 
   return (
@@ -18,7 +46,13 @@ export default function MobileBottomNav({ onSearchClick }: { onSearchClick: () =
       <ul className="flex justify-around items-center">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.to;
+          
+          // CHECK: Is the current pathname included in or starting with any of the activePaths?
+          const isActive = item.activePaths.some(path => 
+            item.name === 'Home' 
+              ? pathname === path // Home stays strict
+              : pathname.startsWith(path) // Others use partial matching
+          );
 
           const content = (
             <div className={cn(

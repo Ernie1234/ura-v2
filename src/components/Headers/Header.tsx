@@ -20,9 +20,10 @@ export default function Header({ onSearchClick }: { onSearchClick: () => void })
 
   // Breadcrumb Logic
   const getPageLabel = (path: string) => {
-    if (path.includes('/project/')) return 'Project';
+    if (path.includes('/post/create')) return 'Create Post';
     if (path.includes('/settings')) return 'Settings';
-    if (path.includes('/profile')) return 'Profile';
+    if (path.includes('/profile/user')) return 'User Profile';
+    if (path.includes('/profile/business')) return 'Business Profile';
     if (path.includes('/chat')) return 'Chat';
     if (path.includes('/activity')) return 'Activity';
     if (path.includes('/bookmark')) return 'Bookmark';

@@ -1,66 +1,119 @@
-// src/components/CreationDashboard.tsx
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
+import { useSearchParams, Navigate } from 'react-router-dom';
+import { useAuthContext } from '@/context/auth-provider';
 import UploadProductForm from '@/components/product/UploadProductForm';
 import MakePostForm from '@/components/product/MakePostForm';
+import ProfileCard from '@/components/dashboard/ProfileCard';
+import SidebarWidget from '@/components/dashboard/SidebarWidget';
+import { PackagePlus, Megaphone, Info, Sparkles } from 'lucide-react';
 
-// Assuming ProfileCard and ChatList are imported correctly
-import ProfileCard from '@/components/dashboard/ProfileCard'; 
-import ChatList from '@/components/dashboard/ChatList'; 
-import { useAuthContext } from '@/context/auth-provider';
+const CreateProduct = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { user, related, isLoading } = useAuthContext();
+  
+  const activeTab = searchParams.get('type') || 'post';
+  const isBusiness = user?.isBusinessOwner;
 
-const CreateProduct: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'product' | 'post'>('product');
+  useEffect(() => {
+    if (activeTab === 'product' && !isBusiness) {
+      setSearchParams({ type: 'post' });
+    }
+  }, [activeTab, isBusiness, setSearchParams]);
 
-    const { user, related, isLoading: isContextLoading } = useAuthContext();
+  if (isLoading) return null; // Or your DashboardSkeleton
+  if (!user || !related) return <Navigate to="/auth/login" replace />;
 
   return (
-    // Mobile padding added here: px-4. Background color changed to white for mobile content area.
-    <div className="min-h-screen bg-[#FFF9F6] lg:py-8 px-0 sm:px-4"> 
-      
-      <div className="mx-auto max-w-7xl lg:px-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div className="min-h-screen bg-[#FFF9F6] py-8">
+      <div className="mx-auto max-w-7xl px-4 lg:px-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
         
-        {/* LEFT SIDEBAR (Desktop Only) */}
+        {/* LEFT SIDEBAR - Reusing your ProfileCard for consistency */}
         <aside className="space-y-6 lg:col-span-1 hidden lg:block">
           <ProfileCard user={user} related={related} />
-          {/* <ChatList user={user} /> */}
+          
+          <SidebarWidget isDesktop={true} isError={false} errorTitle={''}>
+            <div className="p-4 space-y-4">
+              <div className="flex gap-3">
+                <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                  <Sparkles size={16} className="text-orange-600" />
+                </div>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Posts with **high-quality images** receive 3x more engagement.
+                </p>
+              </div>
+            </div>
+          </SidebarWidget>
         </aside>
 
-        {/* Right Column (Content Area) - Takes up full width on mobile (col-span-1) */}
-        <div className="space-y-6 lg:col-span-3 flex flex-col bg-white lg:rounded-xl lg:shadow-xl">
+        {/* MAIN COLUMN - Swapping Feed for Form */}
+        <main className="space-y-6 lg:col-span-2 flex flex-col">
           
-          {/* Tabs: Unified responsive structure */}
-          <div className="flex border-b  lg:p-4">
+          {/* Tabs styled like your ShareBox/Dashboard elements */}
+          <div className="bg-white p-1.5 rounded-[24px] shadow-sm border border-gray-100 flex items-center">
+            {isBusiness && (
+              <button
+                onClick={() => setSearchParams({ type: 'product' })}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-[20px] text-sm font-bold transition-all ${
+                  activeTab === 'product' ? 'bg-gray-900 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'
+                }`}
+              >
+                <PackagePlus size={18} />
+                <span>List Product</span>
+              </button>
+            )}
+
             <button
-              onClick={() => setActiveTab('product')}
-              // Adjusted text size to 'base' for mobile/desktop tabs
-              className={`flex-1 lg:flex-none py-3 lg:px-4 text-base lg:text-lg font-semibold transition-colors ${
-                activeTab === 'product'
-                  ? 'text-orange-500 border-b-2 border-orange-500'
-                  : 'text-gray-500 hover:text-gray-700'
+              onClick={() => setSearchParams({ type: 'post' })}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-[20px] text-sm font-bold transition-all ${
+                activeTab === 'post' ? 'bg-orange-500 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'
               }`}
             >
-              Upload Product
-            </button>
-            <button
-              onClick={() => setActiveTab('post')}
-              // Adjusted text size to 'base' for mobile/desktop tabs
-              className={`flex-1 lg:flex-none py-3 lg:px-4 text-base lg:text-lg font-semibold transition-colors ${
-                activeTab === 'post'
-                  ? 'text-orange-500 border-b-2 border-orange-500'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Make a Post
+              <Megaphone size={18} />
+              <span>Make a Post</span>
             </button>
           </div>
+
+          {/* Form Content - Matches the width of your Feed cards */}
+          <div className="bg-white rounded-[32px] shadow-sm border border-gray-100 p-6 lg:p-8">
+            <div className="mb-6">
+               <h2 className="text-xl font-black text-gray-900">
+                 {activeTab === 'product' ? 'Product Information' : 'New Update'}
+               </h2>
+               <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mt-1">
+                 Fill in the details below to publish
+               </p>
+            </div>
+            
+            {activeTab === 'product' ? <UploadProductForm /> : <MakePostForm />}
+          </div>
+        </main>
+
+        {/* RIGHT SIDEBAR - Keeping the layout balance */}
+        <aside className="space-y-6 lg:col-span-1 hidden lg:block">
+          <SidebarWidget isDesktop={true} isError={false} errorTitle={''}>
+            <div className="p-5">
+              <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+                <div className="flex items-center gap-2 text-gray-900 font-bold mb-2">
+                  <Info size={16} className="text-orange-500" />
+                  <span className="text-sm">Visibility</span>
+                </div>
+                <p className="text-[11px] text-gray-500 leading-normal">
+                  Product listings appear in the Shop and are searchable by all users. 
+                  Normal posts appear on your followers' feeds.
+                </p>
+              </div>
+            </div>
+          </SidebarWidget>
           
-          {/* Form Content: Mobile padding added directly to the forms for control */}
-          <div className="lg:p-8 pt-0 lg:pt-2">
-             {activeTab === 'product' ? <UploadProductForm /> : <MakePostForm />}
+          <div className="p-6 bg-gradient-to-br from-orange-500 to-orange-600 rounded-[32px] text-white">
+             <h4 className="font-black text-sm mb-1">Sell Faster</h4>
+             <p className="text-[10px] opacity-90 leading-normal">
+               Tag your products in your posts to let customers buy directly from their feed.
+             </p>
           </div>
-        </div>
+        </aside>
+
       </div>
-      
     </div>
   );
 };

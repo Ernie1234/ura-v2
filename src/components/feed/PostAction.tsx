@@ -7,7 +7,7 @@ import { CommentDrawer } from "./CommentDrawer";
 
 interface PostActionsProps {
   postId: string;
-  user_image: URL;
+  user_image: string;
   initialLikes?: number;
   initialComments?: number;
   isLiked?: boolean;

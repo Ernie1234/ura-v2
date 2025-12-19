@@ -6,6 +6,7 @@ import type { CardProps, SocialPostType } from "@/types/feed.types";
 import { MediaCarousel } from "./MediaCarousel";
 import { generateAvatarUrl } from "@/utils/avatar-generator";
 import { PostActions } from "./PostAction";
+import { Link } from "react-router-dom";
 
 
 
@@ -35,10 +36,13 @@ export default function SocialPostCard({ post, onRequireAuth }: CardProps<Social
           alt={post.displayName} 
         />
         <div className="flex-1">
+          <Link to={`/dashboard/profile/user/${post.author._id}`}>
+          
           <h3 className="font-bold text-gray-900 text-[15px]">{post.displayName}</h3>
           <p className="text-[12px] text-gray-500 -mt-0.5">
             @{post.username || 'user'} • <span className="text-[11px] font-normal">1h ago</span>
           </p>
+          </Link>
         </div>
         <button className="text-gray-400 p-1 hover:bg-gray-50 rounded-full">
           <MoreVertical size={18} />

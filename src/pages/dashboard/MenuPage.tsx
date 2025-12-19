@@ -1,95 +1,148 @@
 // src/pages/dashboard/MenuPage.tsx
-import { 
-  CreditCard, 
-  Calendar, 
-  Tag, 
-  BadgePercent, 
-  HelpCircle, 
-  Settings, 
-  LogOut, 
-  ChevronRight 
-} from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { 
+  CreditCard, Calendar, Tag, BadgePercent, HelpCircle, 
+  Settings, LogOut, ChevronRight, Bookmark, Bell, 
+  MessageCircle, ShoppingCart, ShoppingBag, Store, 
+  PlusCircle, Wallet 
+} from 'lucide-react';
 import { useAuthContext } from '@/context/auth-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { generateAvatarUrl } from '@/utils/avatar-generator';
 import LogoutDialog from '@/components/shared/LogoutDialog';
-import { useState } from 'react';
 
 const MenuPage = () => {
   const { user } = useAuthContext();
   const navigate = useNavigate();
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
-  const menuItems = [
-    { title: 'Payments & Transactions', icon: CreditCard, path: '/dashboard/wallet' },
-    { title: 'Events', icon: Calendar, path: '/dashboard/events' },
-    { title: 'Deals and Offers', icon: Tag, path: '/dashboard/deals' },
-    { title: 'Tailored Business Loan', icon: BadgePercent, path: '/dashboard/loans' },
-    { title: 'Help & Support', icon: HelpCircle, path: '/dashboard/support' },
-    { title: 'Settings & Privacy', icon: Settings, path: '/dashboard/settings' },
+  // Grouped Navigation Items
+  const sections = [
+    {
+      label: "General",
+      items: [
+        // { title: 'Chat', icon: MessageCircle, path: '/dashboard/chat', badge: 5 },
+        { title: 'Notifications', icon: Bell, path: '/dashboard/notifications', badge: 3 },
+        { title: 'Bookmarks', icon: Bookmark, path: '/dashboard/bookmarks' },
+        // { title: 'Wallet & Payments', icon: Wallet, path: '/dashboard/wallet' },
+      ]
+    },
+    {
+      label: "Shopping & Savings",
+      items: [
+        { title: 'My Cart', icon: ShoppingCart, path: '/dashboard/cart', badge: 2 },
+        { title: 'My Orders', icon: ShoppingBag, path: '/dashboard/orders' },
+        { title: 'Deals & Offers', icon: Tag, path: '/dashboard/deals' },
+        { title: 'Events', icon: Calendar, path: '/dashboard/events' },
+      ]
+    }
   ];
 
+  // Business Section (Conditional)
+  const businessSection = {
+    label: "Business Tools",
+    items: [
+      { title: 'List a Product', icon: PlusCircle, path: '/dashboard/create?type=product' },
+      { title: 'Store Orders', icon: Store, path: '/dashboard/store-management', badge: 12 },
+      { title: 'Business Loan', icon: BadgePercent, path: '/dashboard/loans' },
+    ]
+  };
+
   return (
-    <div className="flex flex-col min-h-screen bg-white pb-20">
+    <div className="flex flex-col min-h-screen bg-gray-50/30 pb-24">
       {/* Header */}
-      <div className="p-4 flex items-center border-b border-gray-50">
-        <h1 className="text-xl font-bold w-full text-center">Features</h1>
+      <div className="sticky top-0 z-10 bg-white p-4 flex items-center border-b border-gray-100">
+        <h1 className="text-lg font-bold w-full text-center">Menu</h1>
       </div>
 
-      {/* User Profile Section */}
-      <div 
-        className="p-6 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
-        onClick={() => navigate(`/profile/user/${user?._id}`)}
-      >
-        <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16 border-2 border-orange-100">
-            <AvatarImage src={user?.profilePicture} />
-            <AvatarFallback>
-              <img src={generateAvatarUrl(user?.username || 'user')} alt="avatar" />
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h2 className="text-lg font-bold text-gray-900">
-              {user?.firstName} {user?.lastName}
-            </h2>
-            <p className="text-sm text-gray-500 font-medium">Go to Profile</p>
-          </div>
-        </div>
-        <ChevronRight className="text-gray-400" size={20} />
-      </div>
-
-      {/* Navigation List */}
-      <div className="flex flex-col px-2">
-        {menuItems.map((item, idx) => (
-          <button
-            key={idx}
-            onClick={() => navigate(item.path)}
-            className="flex items-center justify-between p-4 hover:bg-orange-50/50 rounded-xl transition-all group"
-          >
-            <div className="flex items-center gap-4">
-              <div className="p-2 bg-orange-50 rounded-lg group-hover:bg-orange-100 transition-colors">
-                <item.icon size={22} className="text-orange-600" />
-              </div>
-              <span className="font-semibold text-gray-800 text-[15px]">{item.title}</span>
+      {/* User Profile Card */}
+      <div className="px-4 py-6">
+        <div 
+          className="p-4 flex items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-100 active:scale-[0.98] transition-all"
+          onClick={() => navigate(`/dashboard/profile/${user?._id}`)}
+        >
+          <div className="flex items-center gap-4">
+            <Avatar className="h-14 w-14 border-2 border-orange-100">
+              <AvatarImage src={user?.profilePicture} />
+              <AvatarFallback className="bg-orange-500 text-white font-bold text-xl">
+                {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h2 className="text-base font-bold text-gray-900">
+                {user?.firstName} {user?.lastName}
+              </h2>
+              <p className="text-xs text-gray-500 font-medium">View your profile</p>
             </div>
-            <ChevronRight className="text-gray-300 group-hover:text-orange-400" size={18} />
-          </button>
+          </div>
+          <ChevronRight className="text-gray-400" size={18} />
+        </div>
+      </div>
+
+      {/* Render Sections */}
+      <div className="flex flex-col gap-6 px-4">
+        {[...sections, ...(user?.isBusinessOwner ? [businessSection] : [])].map((section, sIdx) => (
+          <div key={sIdx} className="flex flex-col gap-2">
+            <h3 className="px-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+              {section.label}
+            </h3>
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+              {section.items.map((item, iIdx) => (
+                <button
+                  key={iIdx}
+                  onClick={() => navigate(item.path)}
+                  className={`w-full flex items-center justify-between p-4 active:bg-orange-50 transition-colors ${
+                    iIdx !== section.items.length - 1 ? 'border-b border-gray-50' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-orange-50 rounded-lg">
+                      <item.icon size={20} className="text-orange-600" />
+                    </div>
+                    <span className="font-semibold text-gray-800 text-[14px]">{item.title}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {item.badge && (
+                      <span className="bg-orange-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                        {item.badge}
+                      </span>
+                    )}
+                    <ChevronRight className="text-gray-300" size={16} />
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
         ))}
 
-        {/* Separator */}
-        <div className="my-2 border-t border-gray-100 mx-4" />
-
-        {/* Sign Out Button */}
-        <button
-          onClick={() => setIsLogoutOpen(true)}
-          className="flex items-center gap-4 p-4 text-red-600 hover:bg-red-50 rounded-xl transition-all"
-        >
-          <div className="p-2 bg-red-50 rounded-lg">
-            <LogOut size={22} />
+        {/* Support & Logout */}
+        <div className="flex flex-col gap-2 mb-4">
+          <h3 className="px-2 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Settings</h3>
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <button
+              onClick={() => navigate('/dashboard/settings')}
+              className="w-full flex items-center justify-between p-4 border-b border-gray-50 active:bg-gray-50"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gray-100 rounded-lg">
+                  <Settings size={20} className="text-gray-600" />
+                </div>
+                <span className="font-semibold text-gray-800 text-[14px]">Settings & Privacy</span>
+              </div>
+              <ChevronRight className="text-gray-300" size={16} />
+            </button>
+            
+            <button
+              onClick={() => setIsLogoutOpen(true)}
+              className="w-full flex items-center gap-3 p-4 text-red-600 active:bg-red-50"
+            >
+              <div className="p-2 bg-red-50 rounded-lg">
+                <LogOut size={20} />
+              </div>
+              <span className="font-semibold text-[14px]">Sign Out</span>
+            </button>
           </div>
-          <span className="font-semibold text-[15px]">Sign Out</span>
-        </button>
+        </div>
       </div>
 
       <LogoutDialog isOpen={isLogoutOpen} setIsOpen={setIsLogoutOpen} />

@@ -25,75 +25,70 @@ const TABS = {
   REVIEWS: "Reviews",
 } as const;
 
-const UserProfilePage: React.FC = () => {
-  const { userId } = useParams<{ userId: string }>();
-  const { user: currentUser } = useAuthContext();
-  const location = useLocation();
-  const [activeTab, setActiveTab] = useState<string>(TABS.POSTS);
+// ... imports stay the same
 
-  // 1. Ownership Check
-  const isMe = useMemo(() =>
-    !!(currentUser?._id && userId && currentUser._id === userId),
-    [currentUser?._id, userId]
+const ProfilePage: React.FC = () => {
+  const { userId, businessId } = useParams<{ userId?: string; businessId?: string }>();
+  const { user: currentUser } = useAuthContext();
+
+
+  const isBusinessProfile = location.pathname.includes("/business/");
+  const targetId = businessId || userId;
+
+  const [activeTab, setActiveTab] = useState<string>(TABS.FEEDS);
+
+  const isMe = useMemo(() => {
+    if (!currentUser || !targetId) return false;
+    if (isBusinessProfile) {
+      // Check if current user owns the business being viewed
+      return currentUser.business?._id === targetId;
+    }
+    return currentUser._id === targetId;
+  }, [currentUser, targetId, isBusinessProfile]);
+
+  // Inside ProfilePage.tsx
+
+  const { data: profile, isLoading, isError, error } = useUserProfile(
+    targetId,
+    isBusinessProfile
   );
 
-  // 2. Data Fetching
-  const { data: profile, isLoading, isError, error } = useUserProfile(userId, true);
-
-  // 3. Data Normalization - Fixed the 'related' type mismatch by providing default values
   const userProfile = useMemo(() => {
+    // 1. If we have fetched data from the server, use it (most accurate)
     if (profile) return profile as unknown as ProfileResponse;
 
+    // 2. If no server data yet, but I am looking at MYSELF, use context data
     if (isMe && currentUser) {
       return {
         user: currentUser,
-        business: null,
+        business: currentUser.isBusinessOwner ? currentUser.business : null,
         related: {
           counts: { posts: 0, followers: 0, following: 0 },
           stats: { rating: 0, reviewsCount: 0 }
         }
-      } as ProfileResponse;
+      } as unknown as ProfileResponse;
     }
 
     return null;
   }, [profile, isMe, currentUser]);
+  // --- CRITICAL FIXES BELOW ---
 
-  // 4. Early Returns & Guard Clauses
-  if (isLoading && !userProfile) return <DashboardSkeleton />;
-
-  const is404 = (error as any)?.response?.status === 404;
-  if (is404 || (!userProfile && !isLoading)) {
-    return <Navigate to="/404" replace />;
-  }
-
-  if (isError && !userProfile) {
-    return (
-      <div className="p-12 text-center flex flex-col items-center justify-center min-h-[50vh]">
-        <h2 className="text-xl font-bold text-gray-800">Connection Error</h2>
-        <p className="text-gray-500 mb-4">Please check your internet and try again.</p>
-        <button onClick={() => window.location.reload()} className="bg-orange-500 text-white px-6 py-2 rounded-lg">
-          Reload
-        </button>
-      </div>
-    );
-  }
-
-  // 5. Tab Content Logic - Safe narrowing
   const renderTabContent = () => {
     if (!userProfile) return null;
 
-    const isOwner = userProfile.user?.isBusinessOwner;
+    // Use userProfile.business to decide if business tabs should exist
+    const showBusinessTabs = !!userProfile.business;
 
     switch (activeTab) {
-      case TABS.FEEDS: return <AllFeed />;
+      case TABS.FEEDS: return <AllFeed entityId={targetId} />;
       case TABS.POSTS: return (
         <div className="bg-white rounded-xl p-4 shadow-sm border">
-          <PostsFeed />
+          <PostsFeed filters={{ authorId: targetId }} />
         </div>
       );
-      case TABS.PRODUCTS: return isOwner ? (
+      case TABS.PRODUCTS: return showBusinessTabs ? (
         <div className="bg-white rounded-xl p-4 shadow-sm border">
-          <ProductsFeed />
+          <ProductsFeed filters={{ businessId: targetId }} />
         </div>
       ) : null;
       case TABS.ABOUT: return (
@@ -101,16 +96,18 @@ const UserProfilePage: React.FC = () => {
           <ProfileAbout profile={userProfile} />
         </div>
       );
-      case TABS.REVIEWS: return isOwner ? (
+      case TABS.REVIEWS: return showBusinessTabs ? ( // FIX: Changed 'isOwner' (undefined) to 'showBusinessTabs'
         <div className="bg-white rounded-xl shadow-sm border">
-          <ReviewsSection />
+          <ReviewsSection filters={{ businessId: targetId }}/>
         </div>
       ) : null;
       default: return null;
     }
   };
 
-  // Final Guard for JSX
+  if (isLoading && !userProfile) return <DashboardSkeleton />;
+
+  // Guard for JSX rendering
   if (!userProfile?.user) return <DashboardSkeleton />;
 
   return (
@@ -133,7 +130,9 @@ const UserProfilePage: React.FC = () => {
           <ProfileTabs
             active={activeTab}
             onChange={setActiveTab}
-            isBusiness={userProfile.user.isBusinessOwner}
+            // FIX: Use userProfile.business to show business tabs, 
+            // not userProfile.user.isBusinessOwner (which refers to the person's status, not the page type)
+            isBusiness={!!userProfile.business}
           />
           <div className="mt-6">
             {renderTabContent()}
@@ -144,4 +143,5 @@ const UserProfilePage: React.FC = () => {
   );
 };
 
-export default UserProfilePage;
+export default ProfilePage;
+

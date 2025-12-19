@@ -1,8 +1,11 @@
 import React from "react";
-import { MapPin, Phone, Globe, Pencil, UserPlus, MessageCircle, Briefcase, Share2 } from "lucide-react";
+import { MapPin, Phone, Globe, Pencil, UserPlus, MessageCircle, Briefcase, Share2, Bookmark, UserCheck } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import type { UserType, BusinessType } from "@/types/api.types";
-
+import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { toast } from "sonner"; // Or your preferred toast library
+import { useProfileActions } from "@/hooks/api/use-user-profile";
 type Props = {
   user: UserType;
   business: BusinessType | null;
@@ -11,8 +14,49 @@ type Props = {
 };
 
 const ProfileInfo: React.FC<Props> = ({ user, business, related, isMe }) => {
+
+
   const location = useLocation();
   const isBusinessRoute = location.pathname.includes("/business/");
+
+  // Assuming these are passed via props or context
+  const isFollowing = related?.isFollowing;
+  const isSaved = related?.isBookmarked;
+  const displayName = isBusinessRoute ? business?.businessName : user.firstName;
+
+  const [showUnfollowDialog, setShowUnfollowDialog] = useState(false);
+
+  const targetId = isBusinessRoute ? business?._id : user._id;
+
+  // INITIALIZE EXTERNAL HOOK
+  const { follow, isFollowingLoading, bookmark, isBookmarkLoading } =
+    useProfileActions(targetId!, isBusinessRoute);
+
+
+  const onFollowToggle = () => {
+    if (isFollowing) setShowUnfollowDialog(true);
+    else follow();
+  };
+
+
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: displayName,
+          text: `Check out ${displayName} on our platform!`,
+          url: window.location.href,
+        });
+      } catch (err) {
+        console.log("Error sharing", err);
+      }
+    } else {
+      // Fallback: Copy to clipboard
+      navigator.clipboard.writeText(window.location.href);
+      toast.success("Link copied to clipboard!");
+    }
+  };
 
   const btnBase = "w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition-all text-sm";
   const btnPrimary = `${btnBase} bg-orange-500 text-white hover:bg-orange-600 shadow-sm`;
@@ -29,57 +73,158 @@ const ProfileInfo: React.FC<Props> = ({ user, business, related, isMe }) => {
         <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
         <p className="text-orange-600 font-medium text-sm">{subTitle}</p>
         <p className="mt-4 text-gray-600 leading-relaxed text-sm">
-          {bio || "No description provided."}
+          {bio || "No bio provided."}
         </p>
       </div>
 
       {/* Stats Summary */}
-      <div className="flex justify-between items-center py-4 border-y border-gray-100">
+      <div className="flex justify-around items-center py-3 border-y border-gray-100 mt-4">
         <StatBlock label="Followers" value={related?.counts?.followers || 0} />
+
+        {/* Vertical Divider */}
+        <div className="w-[1px] h-4 bg-gray-200" />
+
         <StatBlock label="Following" value={related?.counts?.following || 0} />
+
+        {/* Vertical Divider */}
+        <div className="w-[1px] h-4 bg-gray-200" />
+
         <StatBlock label="Posts" value={related?.counts?.posts || 0} />
       </div>
 
-      {/* Actions */}
-      <div className="flex flex-col gap-3">
-        {isMe ? (
-          <Link to="/user/settings/edit" className={btnPrimary}>
-            <Pencil size={18} /> Edit {isBusinessRoute ? "Business" : "Profile"}
-          </Link>
-        ) : (
-          <>
-            <button className={btnPrimary}><UserPlus size={18} /> Follow</button>
-            <button className={btnOutline}><MessageCircle size={18} /> Message</button>
-          </>
-        )}
-        <button className={btnOutline}><Share2 size={18} /> Share Profile</button>
+      {/* Actions Container */}
+      <div className="flex flex-col gap-3 px-1">
+        <div className="grid grid-cols-3 gap-2">
+          {isMe ? (
+            <>
+              {/* EDIT PROFILE */}
+              <Link to="/user/settings/edit" className={cn(btnPrimary, "flex-col py-3 px-1 h-auto text-[12px] gap-1 rounded-[18px]")}>
+                <Pencil size={22} strokeWidth={2.5} />
+                <span className="font-bold">Edit Profile</span>
+              </Link>
 
-        {/* Dynamic Navigation Switch */}
-        {!isBusinessRoute && user.isBusinessOwner && business && (
-          <Link to={`/business/${business._id}`} className={`${btnOutline} border-orange-200 text-orange-600 bg-orange-50/50 mt-2`}>
-            <Briefcase size={18} /> View Business Page
-          </Link>
-        )}
-        {isBusinessRoute && (
-          <Link to={`/dashboard/profile/${user._id}`} className={`${btnOutline} mt-2`}>
-            <User size={18} /> View Owner Profile
-          </Link>
-        )}
+              {/* SAVE (Self) */}
+              <button
+                onClick={() => bookmark(isBusinessRoute)}
+                disabled={isBookmarkLoading}
+                className={cn(btnOutline, "flex-col py-3 px-1 h-auto text-[12px] gap-1 border-gray-200 rounded-[18px]", isSaved && "bg-orange-50")}
+              >
+                <Bookmark size={22} className={isSaved ? "fill-orange-500 text-orange-500" : "text-orange-500"} strokeWidth={2.5} />
+                <span className="text-gray-600 font-bold">{isBookmarkLoading ? "..." : (isSaved ? "Saved" : "Save")}</span>
+              </button>
+
+              {/* SHARE */}
+              <button onClick={handleShare} className={cn(btnOutline, "flex-col py-3 px-1 h-auto text-[12px] gap-1 border-gray-200 rounded-[18px]")}>
+                <Share2 size={22} className="text-orange-500" strokeWidth={2.5} />
+                <span className="text-gray-600 font-bold">Share</span>
+              </button>
+            </>
+          ) : (
+            <>
+              {/* FOLLOW TOGGLE */}
+              <button
+                onClick={onFollowToggle}
+                disabled={isFollowingLoading}
+                className={cn(
+                  "flex flex-col items-center justify-center py-3 px-1 h-auto text-[12px] gap-1 rounded-[18px] transition-all",
+                  isFollowing ? "bg-gray-100 text-gray-800 border border-gray-200" : btnPrimary
+                )}
+              >
+                {isFollowingLoading ? (
+                  <span className="animate-pulse">...</span>
+                ) : isFollowing ? (
+                  <UserCheck size={22} strokeWidth={2.5} />
+                ) : (
+                  <UserPlus size={22} strokeWidth={2.5} />
+                )}
+                <span className="font-bold">{isFollowing ? "Following" : "Follow"}</span>
+              </button>
+
+              {/* SAVE TOGGLE (Other User) */}
+              <button
+                onClick={() => bookmark(isBusinessRoute)}
+                disabled={isBookmarkLoading}
+                className={cn(btnOutline, "flex-col py-3 px-1 h-auto text-[12px] gap-1 border-gray-200 rounded-[18px]", isSaved && "bg-orange-50")}
+              >
+                <Bookmark size={22} className={isSaved ? "fill-orange-500 text-orange-500" : "text-orange-500"} strokeWidth={2.5} />
+                <span className="text-gray-600 font-bold">{isBookmarkLoading ? "..." : "Save"}</span>
+              </button>
+
+              {/* MESSAGE LINK */}
+              <Link
+                to={`/dashboard/chats/${user._id}`}
+                className={cn(btnOutline, "flex-col py-3 px-1 h-auto text-[12px] gap-1 border-gray-200 rounded-[18px]")}
+              >
+                <MessageCircle size={22} className="text-orange-500" strokeWidth={2.5} />
+                <span className="text-gray-600 font-bold">Message</span>
+              </Link>
+            </>
+          )}
+        </div>
+
+        {/* SECONDARY ACTIONS (Full Width) */}
+        <div className="flex flex-col gap-2">
+          {!isMe && (
+            <button className={cn(btnOutline, "w-full py-3 gap-2 rounded-2xl border-gray-100 text-gray-600")}>
+              <Share2 size={18} /> Share Profile
+            </button>
+          )}
+
+          {/* Dynamic Navigation Switch */}
+          {!isBusinessRoute && user.isBusinessOwner && business && (
+            <Link
+              to={`/dashboard/profile/business/${business._id}`}
+              className={cn(btnOutline, "w-full py-3 border-orange-100 text-orange-600 bg-orange-50/30 rounded-2xl gap-2")}
+            >
+              <Briefcase size={18} /> View Business Page
+            </Link>
+          )}
+
+          {isBusinessRoute && (
+            <Link to={`/dashboard/profile/user/${user._id}`} className={cn(btnOutline, "w-full py-3 rounded-2xl gap-2")}>
+              <User size={18} /> View Owner Profile
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Contact Info (Only for Business) */}
       {isBusinessRoute && business && (
         <div className="space-y-4 pt-6 border-t border-gray-100">
           <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Contact & Location</h4>
-          {business.address?.fullAddress && <InfoRow icon={<MapPin size={18}/>} text={business.address.fullAddress} />}
-          {business.contact?.phone && <InfoRow icon={<Phone size={18}/>} text={business.contact.phone} />}
+          {business.address?.fullAddress && <InfoRow icon={<MapPin size={18} />} text={business.address.fullAddress} />}
+          {business.contact?.phone && <InfoRow icon={<Phone size={18} />} text={business.contact.phone} />}
           {business.contact?.website && (
-            <InfoRow 
-              icon={<Globe size={18}/>} 
-              text={business.contact.website} 
-              link={business.contact.website} 
+            <InfoRow
+              icon={<Globe size={18} />}
+              text={business.contact.website}
+              link={business.contact.website}
             />
           )}
+        </div>
+      )}
+
+      {/* Unfollow Confirmation Dialog */}
+      {showUnfollowDialog && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <h3 className="text-lg font-bold text-center">Unfollow {displayName}?</h3>
+            <p className="text-gray-500 text-sm text-center mt-2">Their posts will no longer show up in your feed.</p>
+            <div className="flex flex-col gap-2 mt-6">
+              <button
+                onClick={() => {
+                  follow();
+                  setShowUnfollowDialog(false);
+                }}
+                className="w-full py-3 text-red-600 font-bold border-b border-gray-100"
+              >
+                {isFollowingLoading ? "Unfollowing..." : "Unfollow"}
+              </button>
+              <button onClick={() => setShowUnfollowDialog(false)} className="w-full py-3 text-gray-800 font-medium">
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -106,7 +251,10 @@ const InfoRow = ({ icon, text, link }: { icon: React.ReactNode; text: string; li
 );
 
 const User = ({ size }: { size: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
 );
+
+
+
 
 export default ProfileInfo;

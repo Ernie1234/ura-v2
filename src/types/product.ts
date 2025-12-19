@@ -48,3 +48,46 @@ export interface ProductCardProps {
   likes: number;          // Total number of likes/saves
   price?: string;         // Optional: Price string (if displayed on the card)
 }
+
+
+
+
+
+
+
+// --- Updated/Added Types ---
+
+export interface Product {
+  _id: string; // Backend uses MongoDB _id
+  name: string;
+  category: string;
+  media: string[]; // Backend uses 'media' for consistency
+  description: string;
+  price: number;
+  stock: number;
+  size?: string;
+  business?: string; // ID of the business owner
+}
+
+// Payload for the /create endpoint
+export interface CreatePostPayload {
+  type: 'POST' | 'PRODUCT';
+  caption: string;
+  tags?: string[];
+  media?: string[];
+  // Product specific (Required if type is PRODUCT)
+  productId?: string; // For Requirement 6: Linking existing
+  productName?: string;
+  category?: string;
+  description?: string;
+  price?: number;
+  stock?: number;
+  size?: string;
+  publishToFeed?: boolean;
+}
+
+export interface PostResponse {
+  success: boolean;
+  data: any;
+  message?: string;
+}

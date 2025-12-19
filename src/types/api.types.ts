@@ -52,7 +52,7 @@ export type UserType = {
   followingUsers: string[];
   followingBusinesses: string[];
   followers: string[];
-  businesses: string[];
+  business: BusinessType | null;
   createdAt: Date;
   updatedAt: Date;
 };

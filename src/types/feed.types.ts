@@ -15,6 +15,10 @@ interface BasePost {
 // Specific shape for a Social Post
 export interface SocialPostType extends BasePost {
   type: 'POST';
+  likesCount: number;
+  commentsCount: number;
+  isLiked: boolean;
+  isBookmarked: boolean
 }
 
 // Specific shape for a Product Post

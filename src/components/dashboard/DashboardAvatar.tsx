@@ -46,7 +46,7 @@ export const DashboardAvatar = () => {
           
           <DropdownMenuItem 
             className="cursor-pointer flex items-center gap-2" 
-            onClick={() => navigate(`/profile/user/${user._id}`)}
+            onClick={() => navigate(`/dashboard/profile/user/${user._id}`)}
           >
             <User size={16} />
             <span>Profile</span>

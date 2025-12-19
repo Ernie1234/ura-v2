@@ -9,7 +9,7 @@ import type {
 import API from './axios-client';
 import type { FeedItem } from '@/types/feed.types';
 import { uploadImageToCloudinary, uploadMediaToCloudinary } from "@/services/cloudinary.service";
-
+import type { UnifiedPost } from '@/types/post';
 
 
 export const checkUsernameAvailability = async (username: string): Promise<UsernameCheckResponse> => {
@@ -48,12 +48,16 @@ export const getCurrentUserQueryFn = async (): Promise<CurrentUserResponseType> 
 };
 
 // Required userId to prevent accidental fallbacks
+// Existing User Fetcher
 export const getUserQueryFn = async (userId: string): Promise<CurrentUserResponseType> => {
-  if (!userId) {
-    throw new Error("User ID is required to fetch a profile");
-  }
-
   const response = await API.get(`/user/profile/${userId}`);
+  return response.data; // Ensure this matches your ProfileResponse type
+};
+
+// New Business Fetcher
+export const getBusinessQueryFn = async (businessId: string): Promise<CurrentUserResponseType> => {
+  // This fetches the user data associated with this business ID
+  const response = await API.get(`/business/profile/${businessId}`);
   return response.data;
 };
 
@@ -130,24 +134,22 @@ export const fetchBookmarkList = async () => {
     return response.data.bookmarks;
 }
 
-/**
- * Fetches the unified feed (Social Posts + Products)
- * Suited for the main Dashboard view
- */
-export const fetchPostFeedQueryFn = async (): Promise<FeedItem[]> => {
+export const fetchPostFeedQueryFn = async (): Promise<UnifiedPost[]> => {
   const response = await API.get('/post/feed'); 
-  // Note: We use the base API client which already handles the '/api/v1' prefix
   return response.data.posts;
 };
 
-
-// src/hooks/api/post-mutations.ts
 export const createPostMutationFn = async ({ data, files }: { data: any; files: File[] }) => {
-  // Uploading mixed media (images and videos)
-  const mediaUrls = await Promise.all(
-    files.map((file) => uploadMediaToCloudinary(file))
-  );
+  // 1. Upload media only if files exist
+  let mediaUrls: string[] = [];
+  if (files && files.length > 0) {
+    mediaUrls = await Promise.all(
+      files.map((file) => uploadMediaToCloudinary(file))
+    );
+  }
 
+  // 2. Build the payload
+  // If a product is linked, we ensure media is the uploaded list or empty
   const payload = {
     ...data,
     media: mediaUrls,
@@ -156,20 +158,19 @@ export const createPostMutationFn = async ({ data, files }: { data: any; files: 
   const response = await API.post("/post/create", payload);
   return response.data;
 };
-//  export const createPostMutationFn = async ({ data, files }: { data: any; files: File[] }) => {
-//   // 1. Upload all media files to Cloudinary in parallel
-//   // This handles multiple images/videos for a single product/post
-//   const mediaUrls = await Promise.all(
-//     files.map((file) => uploadImageToCloudinary(file))
-//   );
 
-//   // 2. Build the final payload with the newly generated URLs
-//   const payload = {
-//     ...data,
-//     media: mediaUrls, // This matches your Mongoose 'media: [String]' field
-//   };
 
-//   // 3. Send the structured JSON to your backend
-//   const response = await API.post("/post/create", payload);
-//   return response.data;
-// };
+// --- api.service.ts ---
+export const toggleFollowUser = async (targetId: string) => {
+  const response = await API.post(`/user/follow/${targetId}`);
+  return response.data;
+};
+
+export const toggleBookmarkProfile = async (targetId: string, isBusiness: boolean) => {
+  // Sending type ensures the backend knows if it's a User or Business profile being saved
+  const response = await API.post(`/user/bookmarks/toggle`, { 
+    targetId, 
+    type: isBusiness ? 'business' : 'user' 
+  });
+  return response.data;
+};

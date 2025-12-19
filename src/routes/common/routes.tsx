@@ -8,13 +8,13 @@ import About from '@/pages/public/About';
 import ForgotPasswordPage from '@/pages/auth/ForgetPassword';
 import LoginPage from '@/pages/auth/SignIn';
 import RegisterPage from '@/pages/auth/SignUp';
-import UserProfilePage from '@/pages/dashboard/Profile';
 import ProductDetails from '@/pages/ProductDetails';
 import CreateProduct from '@/pages/dashboard/CreateProduct';
 import Bookmark from '@/pages/dashboard/Bookmark';
 import { Edit } from 'lucide-react';
 import MenuPage from '@/pages/dashboard/MenuPage';
 import { ChatsPage } from '@/pages/dashboard/ChatPage';
+import ProfilePage from '@/pages/dashboard/Profile';
 
 // --- Auth Routes ---
 export const authenticationRoutePaths = [
@@ -28,7 +28,8 @@ export const authenticationRoutePaths = [
 export const protectedRoutePaths = [
   { path: PROTECTED_ROUTES.DASHBOARD, element: <Dashboard /> },
   { path: PROTECTED_ROUTES.SETTINGS, element: <SettingsPage /> },
-  { path: PROTECTED_ROUTES.PROFILE, element: <UserProfilePage /> },
+  { path: PROTECTED_ROUTES.USER_PROFILE, element: <ProfilePage /> },
+  { path: PROTECTED_ROUTES.BUSINESS_PROFILE, element: <ProfilePage /> },
   { path: PROTECTED_ROUTES.MENU, element: <MenuPage /> },
   { path: PROTECTED_ROUTES.CHAT, element: <ChatsPage /> },
   { path: PROTECTED_ROUTES.PRODUCT_DETAIL, element: <ProductDetails /> },
