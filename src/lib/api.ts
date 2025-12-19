@@ -166,11 +166,9 @@ export const toggleFollowUser = async (targetId: string) => {
   return response.data;
 };
 
-export const toggleBookmarkProfile = async (targetId: string, isBusiness: boolean) => {
-  // Sending type ensures the backend knows if it's a User or Business profile being saved
-  const response = await API.post(`/user/bookmarks/toggle`, { 
-    targetId, 
-    type: isBusiness ? 'business' : 'user' 
+export const toggleBookmarkApi = async (targetId: string, targetType: "Business" | "Post") => {
+  const { data } = await API.post(`/user/bookmarks/toggle/${targetId}`, {
+    targetType,
   });
-  return response.data;
+  return data;
 };

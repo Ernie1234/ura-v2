@@ -112,7 +112,7 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 animate-in fade-in duration-500">
-      <ProfileHeader profile={userProfile} />
+      <ProfileHeader profile={userProfile} isBusiness={isBusinessProfile}/>
 
       <div className="mt-16 grid grid-cols-1 gap-8 lg:grid-cols-3">
         <aside className="lg:col-span-1">

@@ -1,4 +1,4 @@
-import { getBusinessQueryFn, getUserQueryFn, toggleBookmarkProfile, toggleFollowUser } from "@/lib/api";
+import { getBusinessQueryFn, getUserQueryFn, toggleBookmarkApi, toggleFollowUser } from "@/lib/api";
 
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { updateProfileMutationFn, updateBusinessMutationFn } from "@/lib/api";
@@ -8,15 +8,15 @@ export const useUserProfile = (targetId: string | undefined, isBusiness: boolean
   return useQuery({
     // Include isBusiness in the key so caching is distinct for users vs businesses
     queryKey: ["profile", targetId, isBusiness ? 'business' : 'user'],
-    
+
     queryFn: () => {
       if (!targetId) throw new Error("ID is required");
       return isBusiness ? getBusinessQueryFn(targetId) : getUserQueryFn(targetId);
     },
-    
+
     // Enable only if targetId exists
-    enabled: !!targetId, 
-    
+    enabled: !!targetId,
+
     retry: (failureCount, error: any) => {
       if (error?.response?.status === 404) return false;
       return failureCount < 2;
@@ -24,6 +24,7 @@ export const useUserProfile = (targetId: string | undefined, isBusiness: boolean
     staleTime: 1000 * 60 * 5, // 5 minutes cache
   });
 };
+
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
 
@@ -68,19 +69,28 @@ export const useProfileActions = (targetId: string, isBusiness: boolean) => {
     onError: () => toast.error("Follow action failed"),
   });
 
-  const bookmarkMutation = useMutation({
-    mutationFn: (isBusinessMode: boolean) => toggleBookmarkProfile(targetId, isBusinessMode),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["profile", targetId] });
-      toast.success(data?.isBookmarked ? "Saved" : "Removed");
-    },
-    onError: () => toast.error("Bookmark action failed"),
-  });
-
   return {
     follow: followMutation.mutate,
     isFollowingLoading: followMutation.isPending,
-    bookmark: bookmarkMutation.mutate,
-    isBookmarkLoading: bookmarkMutation.isPending,
   };
 };
+
+
+
+export  const useBookmark = (targetId: string, profileKey: any[]) => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+      // Using the separate mutation function here
+      mutationFn: (targetType: "Business" | "Post") => toggleBookmarkApi(targetId, targetType),
+
+      onSuccess: (data) => {
+        queryClient.invalidateQueries({ queryKey: profileKey });
+        toast.success(data.isBookmarked ? "Saved to bookmarks" : "Removed from bookmarks");
+      },
+      onError: (error: any) => {
+        const message = error.response?.data?.message || "Bookmark action failed";
+        toast.error(message);
+      },
+    });
+  };
