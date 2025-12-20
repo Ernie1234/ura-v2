@@ -1,66 +1,89 @@
-import { Skeleton } from '@/components/ui/skeleton';
-import { Loader } from 'lucide-react';
+import { Skeleton } from "@/components/ui/skeleton";
 
-export function DashboardSkeleton() {
+export const DashboardSkeleton = () => {
   return (
-    <div className="p-4">
-      {/* Loader on top */}
-      <div className="absolute inset-0 z-50 flex items-start pt-10 justify-center bg-[rgba(255,255,255,.01)]">
-        <div className="flex items-center space-x-2">
-          <Loader size="25px" className="animate-spin" />
-          <span className="text-sm font-medium">Preparing your dashboard...</span>
-        </div>
-      </div>
-
-      {/* Main layout */}
-      <div className="flex space-x-4">
-        {/* Sidebar */}
-        <div className="w-64 space-y-4">
-          {/* Workspace name */}
-          <Skeleton className="h-8 w-40" />
-          {/* Navigation items */}
-          <div className="space-y-2">
-            <Skeleton className="h-6 w-32" />
-            <Skeleton className="h-6 w-28" />
-            <Skeleton className="h-6 w-36" />
-          </div>
-          {/* Project Section */}
-          <div className="space-y-2">
-            <Skeleton className="h-6 w-40" />
-            <div className="space-y-1">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-4 w-28" />
-              <Skeleton className="h-4 w-36" />
+    <div className="min-h-screen bg-[#FFF9F6] py-8">
+      <div className="mx-auto max-w-7xl px-4 lg:px-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        {/* LEFT SIDEBAR SKELETON */}
+        <aside className="space-y-6 lg:col-span-1 hidden lg:block">
+          {/* Profile Card Skeleton */}
+          <div className="rounded-xl border bg-white p-6 shadow-sm space-y-4">
+            <Skeleton className="h-20 w-20 rounded-full mx-auto animate-pulse" />
+            <div className="space-y-2 text-center">
+              <Skeleton className="h-4 w-3/4 mx-auto animate-pulse" />
+              <Skeleton className="h-3 w-1/2 mx-auto animate-pulse" />
             </div>
           </div>
-          {/* User info */}
-          <Skeleton className="h-10 w-full rounded-md" />
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 space-y-6">
-          {/* Header */}
-          <Skeleton className="h-8 w-64" />
-          {/* Overview cards */}
-          <div className="grid grid-cols-3 gap-4">
-            <Skeleton className="h-24 w-full rounded-lg" />
-            <Skeleton className="h-24 w-full rounded-lg" />
-            <Skeleton className="h-24 w-full rounded-lg" />
-          </div>
-          {/* Recent section */}
-          <div className="space-y-4">
-            <Skeleton className="h-6 w-48" />
-            <div className="space-y-2">
-              {Array.from({ length: 6 }).map((_, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <Skeleton className="h-6 w-64" />
-                  <Skeleton className="h-6 w-12 rounded-full" />
+          
+          {/* Chat List Skeleton */}
+          <div className="rounded-xl border bg-white p-4 shadow-sm space-y-4">
+            <Skeleton className="h-4 w-1/3 animate-pulse" />
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton className="h-10 w-10 rounded-full animate-pulse" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-3 w-3/4 animate-pulse" />
+                  <Skeleton className="h-2 w-1/2 animate-pulse" />
                 </div>
-              ))}
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        {/* MAIN FEED SKELETON */}
+        <main className="space-y-6 lg:col-span-2">
+          {/* Share Box Skeleton */}
+          <div className="rounded-xl border bg-white p-4 shadow-sm">
+            <div className="flex gap-4">
+              <Skeleton className="h-10 w-10 rounded-full animate-pulse" />
+              <Skeleton className="h-10 flex-1 rounded-lg animate-pulse" />
             </div>
           </div>
-        </div>
+
+          {/* Feed Posts Skeletons */}
+          {[1, 2].map((i) => (
+            <div key={i} className="rounded-xl border bg-white p-6 shadow-sm space-y-4">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-10 w-10 rounded-full animate-pulse" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24 animate-pulse" />
+                  <Skeleton className="h-3 w-16 animate-pulse" />
+                </div>
+              </div>
+              <Skeleton className="h-48 w-full rounded-lg animate-pulse" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full animate-pulse" />
+                <Skeleton className="h-4 w-5/6 animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </main>
+
+        {/* RIGHT SIDEBAR SKELETON */}
+        <aside className="space-y-6 lg:col-span-1 hidden lg:block">
+          {/* Activity Panel Skeleton */}
+          <div className="rounded-xl border bg-white p-4 shadow-sm space-y-4">
+            <Skeleton className="h-4 w-1/2 animate-pulse" />
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="space-y-2">
+                <Skeleton className="h-3 w-full animate-pulse" />
+                <Skeleton className="h-2 w-2/3 animate-pulse" />
+              </div>
+            ))}
+          </div>
+
+          {/* Bookmarks Skeleton */}
+          <div className="rounded-xl border bg-white p-4 shadow-sm space-y-4">
+            <Skeleton className="h-4 w-1/3 animate-pulse" />
+            <div className="grid grid-cols-2 gap-2">
+              <Skeleton className="h-20 w-full rounded-lg animate-pulse" />
+              <Skeleton className="h-20 w-full rounded-lg animate-pulse" />
+            </div>
+          </div>
+        </aside>
+
       </div>
     </div>
   );
-}
+};

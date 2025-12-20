@@ -167,7 +167,7 @@ export interface Bookmark {
 
 export interface FeedResponse {
   success: boolean;
-  posts: FeedItem[]; // FeedItem is the Union type we created earlier
+  posts: FeedItem[];
 }
 
 // types/api.types.ts

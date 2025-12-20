@@ -2,15 +2,21 @@ import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@ta
 import { fetchPostFeedQueryFn, createPostMutationFn } from '@/lib/api';
 import { uploadImageToCloudinary } from '@/services/cloudinary.service';
 import { toast } from 'sonner';
-import type { UnifiedPost, PostData } from '@/types/post';
+import type { UnifiedPost } from '@/types/feed.types';
+import { useInfiniteQuery } from '@tanstack/react-query';
 
 /**
  * Hook to fetch the unified feed
  */
-export const useFeed = (options: Omit<UseQueryOptions<UnifiedPost[]>, 'queryKey' | 'queryFn'> = {}) => {
+// src/hooks/api/use-feed.ts
+export const useFeed = (
+  userId?: string, // Optional userId
+  options: Omit<UseQueryOptions<UnifiedPost[]>, 'queryKey' | 'queryFn'> = {}
+) => {
   const { data, isLoading, isError, error, refetch } = useQuery<UnifiedPost[]>({
-    queryKey: ['posts-feed'],
-    queryFn: fetchPostFeedQueryFn,
+    // Adding userId to the queryKey ensures the feed refreshes when switching profiles
+    queryKey: ['posts-feed', userId || 'me'], 
+    queryFn: () => fetchPostFeedQueryFn(userId), // Pass userId to your API function
     staleTime: 1000 * 60 * 5,
     ...options
   });
@@ -24,7 +30,21 @@ export const useFeed = (options: Omit<UseQueryOptions<UnifiedPost[]>, 'queryKey'
   };
 };
 
+// src/hooks/api/use-feed.ts
 
+// src/hooks/api/use-feed.ts
+export const useInfiniteFeed = (userId?: string) => {
+  return useInfiniteQuery({
+    queryKey: ['posts-feed', userId || 'me'],
+    queryFn: ({ pageParam = 1 }) => fetchPostFeedQueryFn(userId, pageParam as number),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      // If the last page has fewer than 20 posts, we've reached the end
+      return lastPage.length < 20 ? undefined : allPages.length + 1;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+};
 
 export const useCreatePost = () => {
   const queryClient = useQueryClient();

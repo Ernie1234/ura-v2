@@ -7,9 +7,8 @@ import type {
   UsernameCheckResponse
 } from '@/types/api.types';
 import API from './axios-client';
-import type { FeedItem } from '@/types/feed.types';
 import { uploadImageToCloudinary, uploadMediaToCloudinary } from "@/services/cloudinary.service";
-import type { UnifiedPost } from '@/types/post';
+import type { UnifiedPost } from '@/types/feed.types';
 
 
 export const checkUsernameAvailability = async (username: string): Promise<UsernameCheckResponse> => {
@@ -134,8 +133,12 @@ export const fetchBookmarkList = async () => {
     return response.data.bookmarks;
 }
 
-export const fetchPostFeedQueryFn = async (): Promise<UnifiedPost[]> => {
-  const response = await API.get('/post/feed'); 
+export const fetchPostFeedQueryFn = async (userId?: string, page: number = 1): Promise<UnifiedPost[]> => {
+  const url = userId 
+    ? `/post/feed?userId=${userId}&page=${page}` 
+    : `/post/feed?page=${page}`;
+  
+  const response = await API.get(url); 
   return response.data.posts;
 };
 

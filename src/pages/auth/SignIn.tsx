@@ -1,34 +1,34 @@
+
+
 import Logo from '@/components/shared/Logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useLogin } from '@/hooks/api/use-auth-mutations';
+import { AlertCircle } from 'lucide-react'; // For the error icon
+import { PasswordInput } from '@/components/shared/PasswordInput';
 
-const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const { mutate: login, isPending } = useLogin();
+  // We extract 'error' from the mutation to display server-side messages
+  const { mutate: login, isPending, error: serverError } = useLogin();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  const { register, handleSubmit } = useForm({
+    defaultValues: {
+      identifier: '', // This can be email or username
+      password: '',
+    },
   });
 
-  const onSubmit = (data: LoginFormData) => {
+  const onSubmit = (data: any) => {
     login(data);
   };
+
+  // Extract the error message from the Axios error object
+  const errorMessage = (serverError as any)?.response?.data?.message;
+
 
   return (
     <section className="flex min-h-screen bg-zinc-50 px-4 py-16 md:py-32 dark:bg-transparent">
@@ -45,13 +45,27 @@ export default function LoginPage() {
             <p className="text-sm">Welcome back! Sign in to continue</p>
           </div>
 
+          {/* SERVER RESPONSE SPACE */}
+          {errorMessage && (
+            <div className="mt-4 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-600 border border-red-100 animate-in fade-in slide-in-from-top-1">
+              <AlertCircle size={16} />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
           <div className="mt-6 space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="block text-sm">
-                Email
+              <Label htmlFor="identifier" className="block text-sm">
+                Username or Email
               </Label>
-              <Input type="email" id="email" {...register('email')} disabled={isPending} />
-              {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+              <Input
+                type="text"
+                id="identifier"
+                placeholder="Enter your username or email"
+                {...register('identifier')}
+                disabled={isPending}
+                required
+              />
             </div>
 
             <div className="space-y-0.5">
@@ -68,8 +82,13 @@ export default function LoginPage() {
                   </Link>
                 </Button>
               </div>
-              <Input type="password" id="password" {...register('password')} disabled={isPending} />
-              {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
+
+              {/* 2. Use it here */}
+              <PasswordInput
+                id="password"
+                {...register('password')}
+                disabled={isPending}
+              />
             </div>
 
             <Button className="w-full" type="submit" disabled={isPending}>
@@ -83,6 +102,7 @@ export default function LoginPage() {
             <hr className="border-dashed" />
           </div>
 
+          {/* Social Buttons (Omitted for brevity, keep as you had them) */}
           <div className="grid grid-cols-2 gap-3">
             <Button type="button" variant="outline">
               <svg
@@ -126,7 +146,7 @@ export default function LoginPage() {
             </Button>
           </div>
         </div>
-
+        {/* Footer Create Account (Keep as you had it) */}
         <div className="p-3">
           <p className="text-accent-foreground text-center text-sm">
             Don't have an account ?
@@ -139,3 +159,4 @@ export default function LoginPage() {
     </section>
   );
 }
+

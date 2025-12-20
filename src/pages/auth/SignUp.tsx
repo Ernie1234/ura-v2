@@ -10,6 +10,8 @@ import { useRegister } from '@/hooks/api/use-auth-mutations';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useUsernameCheck } from '@/hooks/api/use-username-check';
+import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { PasswordInput } from '@/components/shared/PasswordInput';
 
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+])[A-Za-z\d!@#$%^&*()_+]{6,}$/;
 
@@ -145,39 +147,39 @@ export default function RegisterPage() {
               <Label htmlFor="username" className={cn("block text-sm", errors.username && 'text-red-500')}>
                 Username
               </Label>
-              <Input
-                type="text"
-                id="username"
-                {...registerField('username')}
-                disabled={isPending}
-                // 3. Conditional border styling (assuming Tailwind CSS classes or similar)
-                className={`
-                    ${isChecking ? 'border-yellow-500' : ''}
-                    ${isAvailable === false ? 'border-red-500' : ''} 
-                    ${isAvailable === true ? 'border-green-500' : ''}
-                `}
-              />
-              {/* 3. Display Feedback (Prioritize React Hook Form error, then API error) */}
+              <div className="relative">
+                <Input
+                  type="text"
+                  id="username"
+                  {...registerField('username')}
+                  disabled={isPending}
+                  className={cn(
+                    isChecking && 'border-yellow-500',
+                    isAvailable === false && 'border-red-500',
+                    isAvailable === true && 'border-green-500'
+                  )}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  {isChecking && <Loader2 className="h-4 w-4 animate-spin text-yellow-500" />}
+                  {!isChecking && isAvailable === true && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+                  {!isChecking && isAvailable === false && <XCircle className="h-4 w-4 text-red-500" />}
+                </div>
+              </div>
+
+              {/* Error Messages */}
               {errors.username?.message && (
-                // Client-side Zod error (if any)
-                <p className="text-red-500">❌ {errors.username.message}</p>
-              )}
-
-              {!errors.username?.message && isChecking && <p className="text-yellow-500">Checking availability...</p>}
-
-              {!errors.username?.message && apiErrorMessage && (
-                // Server-side validation or availability error
-                <p className="text-red-500">
-                  ❌ {apiErrorMessage}
+                <p className="text-xs text-red-500 flex items-center gap-1 mt-1">
+                  {errors.username.message}
                 </p>
               )}
 
-              {isInputValid && (
-                <p className="text-green-500">
-                  ✅ Username is available!
+              {!errors.username?.message && apiErrorMessage && (
+                <p className="text-xs text-red-500 flex items-center gap-1 mt-1">
+                  {apiErrorMessage}
                 </p>
               )}
             </div>
+
 
             {/* EMAIL FIELD */}
             <div className="space-y-2">
@@ -199,13 +201,13 @@ export default function RegisterPage() {
               <Label htmlFor="password" className={cn("text-sm", errors.password && 'text-red-500')}>
                 Password
               </Label>
-              <Input
-                type="password"
+              <PasswordInput
                 id="password"
                 {...registerField('password')}
                 disabled={isPending}
                 className={cn(getErrorClass('password'))}
               />
+
               {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
             </div>
 
@@ -214,8 +216,7 @@ export default function RegisterPage() {
               <Label htmlFor="confirmPassword" className={cn("text-sm", errors.password && 'text-red-500')}>
                 Confrim Password
               </Label>
-              <Input
-                type="password"
+              <PasswordInput
                 id="confirmPassword"
                 {...registerField('confirmPassword')}
                 disabled={isPending}

@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Home, Info, Search, Image as ImageIcon, Bell } from 'lucide-react';
+// Added ShoppingCart to imports
+import { Home, Info, Search, Image as ImageIcon, Bell, ShoppingCart } from 'lucide-react'; 
 import { cn } from '@/lib/utils';
 import Logo from '../shared/Logo';
 import { DashboardAvatar } from '../dashboard/DashboardAvatar';
@@ -18,7 +19,9 @@ export default function Header({ onSearchClick }: { onSearchClick: () => void })
   const location = useLocation();
   const pathname = location.pathname;
 
-  // Breadcrumb Logic
+  // Mock cart count - later you'll get this from your Cart Context/Redux
+  const cartItemCount = 3;
+
   const getPageLabel = (path: string) => {
     if (path.includes('/post/create')) return 'Create Post';
     if (path.includes('/settings')) return 'Settings';
@@ -28,6 +31,7 @@ export default function Header({ onSearchClick }: { onSearchClick: () => void })
     if (path.includes('/activity')) return 'Activity';
     if (path.includes('/bookmark')) return 'Bookmark';
     if (path.includes('/notifications')) return 'Notifications';
+    if (path.includes('/cart')) return 'Shopping Cart'; // Added breadcrumb label
     return null;
   };
   const pageHeading = getPageLabel(pathname);
@@ -37,13 +41,14 @@ export default function Header({ onSearchClick }: { onSearchClick: () => void })
     { name: 'About', to: '/about', icon: Info },
     { name: 'Search', onClick: onSearchClick, icon: Search },
     { name: 'Picture Search', to: '/search/image', icon: ImageIcon },
+    { name: 'Cart', to: '/cart', icon: ShoppingCart }, // Added to center menu
   ];
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white border-b border-gray-100 h-16">
       <div className="flex items-center justify-between h-full px-4 lg:px-6">
         
-        {/* LEFT: Mobile (Trigger/Logo) | Desktop (Trigger/Breadcrumbs) */}
+        {/* LEFT SECTION */}
         <div className="flex items-center gap-3 min-w-[200px]">
           <SidebarTrigger className="hidden" />
           <div className="lg:hidden">
@@ -77,13 +82,13 @@ export default function Header({ onSearchClick }: { onSearchClick: () => void })
           </div>
         </div>
 
-        {/* CENTER: Desktop Navigation Menu */}
+        {/* CENTER SECTION: Desktop Navigation */}
         <nav className="hidden lg:flex items-center gap-8">
           {desktopMenu.map((item) => {
             const isActive = pathname === item.to;
             const Icon = item.icon;
             const baseClass = cn(
-              "flex items-center gap-2 text-[14px] font-semibold transition-colors hover:text-[#E67E22]",
+              "flex items-center gap-2 text-[14px] font-semibold transition-colors hover:text-[#E67E22] relative",
               isActive ? "text-black" : "text-gray-500"
             );
 
@@ -94,17 +99,35 @@ export default function Header({ onSearchClick }: { onSearchClick: () => void })
             ) : (
               <Link key={item.name} to={item.to!} className={baseClass}>
                 <Icon size={18} /> {item.name}
+                {/* Desktop Cart Badge */}
+                {item.name === 'Cart' && cartItemCount > 0 && (
+                  <span className="absolute -top-1 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#E67E22] text-[10px] text-white">
+                    {cartItemCount}
+                  </span>
+                )}
               </Link>
             );
           })}
         </nav>
 
-        {/* RIGHT: Global Actions */}
+        {/* RIGHT SECTION: Global Actions */}
         <div className="flex items-center gap-2 sm:gap-4 min-w-[100px] justify-end">
+          
+          {/* Cart Icon for Mobile/Right Actions */}
+          <Link to="/cart" className="lg:hidden relative p-2 text-gray-600 hover:bg-gray-50 rounded-full transition">
+            <ShoppingCart size={22} />
+            {cartItemCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#E67E22] text-[10px] text-white border-2 border-white">
+                {cartItemCount}
+              </span>
+            )}
+          </Link>
+
           <button className="relative p-2 text-gray-600 hover:bg-gray-50 rounded-full transition">
             <Bell size={22} />
             <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
           </button>
+          
           <div className="sm:block">
             <DashboardAvatar />
           </div>

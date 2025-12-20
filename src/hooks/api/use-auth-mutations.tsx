@@ -64,7 +64,7 @@ export const useRegister = ({ setError, setGlobalError }: UseRegisterProps) => {
         errorData.error.details.forEach(detail => {
           const field = detail.field as keyof RegisterFormData;
 
-          if (['firstName', 'lastName', 'email', 'password'].includes(field)) {
+          if (['firstName', 'lastName', 'email', 'password', 'username'].includes(field)) {
             setError(field, {
               type: 'server',
               message: detail.message

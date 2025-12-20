@@ -39,15 +39,15 @@ const ProfileInfo: React.FC<Props> = ({ user, business, related, isMe }) => {
   };
 
 
-const profileKey = ["profile", isBusinessRoute ? business?._id : user.username];
+  const profileKey = ["profile", isBusinessRoute ? business?._id : user.username];
 
-// Initialize our separate hook
-const { mutate: handleBookmark, isPending: isBookmarkLoading } = useBookmark(
-  targetId!,
-  profileKey
-);
+  // Initialize our separate hook
+  const { mutate: handleBookmark, isPending: isBookmarkLoading } = useBookmark(
+    targetId!,
+    profileKey
+  );
 
-const showBookmarkButton = isBusinessRoute && !isMe;
+  const showBookmarkButton = isBusinessRoute && !isMe;
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -102,71 +102,101 @@ const showBookmarkButton = isBusinessRoute && !isMe;
       </div>
 
       {/* Actions Container */}
-<div className="flex flex-col gap-3 px-1">
-      <div className={cn(
-        "grid gap-2", 
-        showBookmarkButton || isMe ? "grid-cols-3" : "grid-cols-2"
-      )}>
-        {isMe ? (
-          <>
-            {/* Owner Actions */}
-            <Link to="/user/settings/edit" className={cn(btnPrimary, "flex-col py-3 px-1 h-auto text-[12px] gap-1 rounded-[18px]")}>
-              <Pencil size={22} strokeWidth={2.5} />
-              <span className="font-bold">Edit Profile</span>
-            </Link>
+      {/* Actions Container */}
+      <div className="flex flex-col gap-3 px-1">
+        <div className="grid grid-cols-3 gap-2">
+          {isMe ? (
+            <>
+              {/* EDIT PROFILE */}
+              <Link to="/user/settings/edit" className={cn(btnPrimary, "flex-col py-3 px-1 h-auto text-[12px] gap-1 rounded-[18px]")}>
+                <Pencil size={22} strokeWidth={2.5} />
+                <span className="font-bold">Edit Profile</span>
+              </Link>
 
-            {/* In Owner view, we hide Save and show Share instead to fill the 3rd slot */}
-            <button onClick={handleShare} className={cn(btnOutline, "flex-col py-3 px-1 h-auto text-[12px] gap-1 border-gray-200 rounded-[18px]")}>
-              <Share2 size={22} className="text-orange-500" strokeWidth={2.5} />
-              <span className="text-gray-600 font-bold">Share</span>
-            </button>
-          </>
-        ) : (
-          <>
-            {/* Visitor Actions */}
-            <button
-              onClick={onFollowToggle}
-              className={cn(isFollowing ? "bg-gray-100" : btnPrimary, "flex-col py-3 px-1 h-auto text-[12px] gap-1 rounded-[18px]")}
-            >
-              {isFollowing ? <UserCheck size={22} /> : <UserPlus size={22} />}
-              <span className="font-bold">{isFollowing ? "Following" : "Follow"}</span>
-            </button>
-
-            {/* DYNAMIC BOOKMARK BUTTON: 
-               Visible only on Business profiles that don't belong to the logged-in user 
-            */}
-            {showBookmarkButton && (
+              {/* SAVE (Self) */}
               <button
-                onClick={() => handleBookmark("Business")}
+                onClick={() => bookmark(isBusinessRoute)}
                 disabled={isBookmarkLoading}
+                className={cn(btnOutline, "flex-col py-3 px-1 h-auto text-[12px] gap-1 border-gray-200 rounded-[18px]", isSaved && "bg-orange-50")}
+              >
+                <Bookmark size={22} className={isSaved ? "fill-orange-500 text-orange-500" : "text-orange-500"} strokeWidth={2.5} />
+                <span className="text-gray-600 font-bold">{isBookmarkLoading ? "..." : (isSaved ? "Saved" : "Save")}</span>
+              </button>
+
+              {/* SHARE */}
+              <button onClick={handleShare} className={cn(btnOutline, "flex-col py-3 px-1 h-auto text-[12px] gap-1 border-gray-200 rounded-[18px]")}>
+                <Share2 size={22} className="text-orange-500" strokeWidth={2.5} />
+                <span className="text-gray-600 font-bold">Share</span>
+              </button>
+            </>
+          ) : (
+            <>
+              {/* FOLLOW TOGGLE */}
+              <button
+                onClick={onFollowToggle}
+                disabled={isFollowingLoading}
                 className={cn(
-                  btnOutline, 
-                  "flex-col py-3 px-1 h-auto text-[12px] gap-1 border-gray-200 rounded-[18px]", 
-                  isSaved && "bg-orange-50 border-orange-200"
+                  "flex flex-col items-center justify-center py-3 px-1 h-auto text-[12px] gap-1 rounded-[18px] transition-all",
+                  isFollowing ? "bg-gray-100 text-gray-800 border border-gray-200" : btnPrimary
                 )}
               >
-                <Bookmark 
-                  size={22} 
-                  className={isSaved ? "fill-orange-500 text-orange-500" : "text-orange-500"} 
-                  strokeWidth={2.5} 
-                />
-                <span className="text-gray-600 font-bold">
-                  {isBookmarkLoading ? "..." : isSaved ? "Saved" : "Save"}
-                </span>
+                {isFollowingLoading ? (
+                  <span className="animate-pulse">...</span>
+                ) : isFollowing ? (
+                  <UserCheck size={22} strokeWidth={2.5} />
+                ) : (
+                  <UserPlus size={22} strokeWidth={2.5} />
+                )}
+                <span className="font-bold">{isFollowing ? "Following" : "Follow"}</span>
               </button>
-            )}
 
+              {/* SAVE TOGGLE (Other User) */}
+              <button
+                onClick={() => bookmark(isBusinessRoute)}
+                disabled={isBookmarkLoading}
+                className={cn(btnOutline, "flex-col py-3 px-1 h-auto text-[12px] gap-1 border-gray-200 rounded-[18px]", isSaved && "bg-orange-50")}
+              >
+                <Bookmark size={22} className={isSaved ? "fill-orange-500 text-orange-500" : "text-orange-500"} strokeWidth={2.5} />
+                <span className="text-gray-600 font-bold">{isBookmarkLoading ? "..." : "Save"}</span>
+              </button>
+
+              {/* MESSAGE LINK */}
+              <Link
+                to={`/dashboard/chats/${user._id}`}
+                className={cn(btnOutline, "flex-col py-3 px-1 h-auto text-[12px] gap-1 border-gray-200 rounded-[18px]")}
+              >
+                <MessageCircle size={22} className="text-orange-500" strokeWidth={2.5} />
+                <span className="text-gray-600 font-bold">Message</span>
+              </Link>
+            </>
+          )}
+        </div>
+
+        {/* SECONDARY ACTIONS (Full Width) */}
+        <div className="flex flex-col gap-2">
+          {!isMe && (
+            <button className={cn(btnOutline, "w-full py-3 gap-2 rounded-2xl border-gray-100 text-gray-600")}>
+              <Share2 size={18} /> Share Profile
+            </button>
+          )}
+
+          {/* Dynamic Navigation Switch */}
+          {!isBusinessRoute && user.isBusinessOwner && business && (
             <Link
-              to={`/dashboard/chats/${user._id}`}
-              className={cn(btnOutline, "flex-col py-3 px-1 h-auto text-[12px] gap-1 border-gray-200 rounded-[18px]")}
+              to={`/dashboard/profile/business/${business._id}`}
+              className={cn(btnOutline, "w-full py-3 border-orange-100 text-orange-600 bg-orange-50/30 rounded-2xl gap-2")}
             >
-              <MessageCircle size={22} className="text-orange-500" strokeWidth={2.5} />
-              <span className="text-gray-600 font-bold">Message</span>
+              <Briefcase size={18} /> View Business Page
             </Link>
-          </>
-        )}
+          )}
+
+          {isBusinessRoute && (
+            <Link to={`/dashboard/profile/user/${user._id}`} className={cn(btnOutline, "w-full py-3 rounded-2xl gap-2")}>
+              <User size={18} /> View Owner Profile
+            </Link>
+          )}
+        </div>
       </div>
-    </div>
 
       {/* Contact Info (Only for Business) */}
       {isBusinessRoute && business && (

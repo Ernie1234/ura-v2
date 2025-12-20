@@ -33,7 +33,7 @@ const AppSideBar = () => {
 
   return (
     <>
-      <Sidebar collapsible="icon" className="border-r border-gray-100 hidden md:flex">
+      <Sidebar collapsible="icon" className="border-r border-gray-100 hidden lg:flex">
 
         <SidebarHeader className="h-auto flex flex-col bg-background border-b border-gray-50 p-4 transition-all duration-300">
           <div className="flex items-center justify-center group-data-[collapsible=icon]:justify-center">

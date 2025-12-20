@@ -5,18 +5,16 @@ import { FullPageSpinner } from '@/components/ui/FullpageSpinner';
 
 const ProtectedRoute = () => {
   const { user, isAuthenticated, isLoading, error } = useAuth();
-  // ...
-  if (isLoading) {
-    return <FullPageSpinner />; // Use the fast guard here
-  }
-  // ...
-  // If there's an error or user is not authenticated, redirect to login
-  if (error || !isAuthenticated || !user) {
 
+  if (isLoading) {
+    return <FullPageSpinner />; // Quick check: "Who is this user?"
+  }
+
+  if (error || !isAuthenticated || !user) {
     return <Navigate to="/auth/login" replace />;
   }
 
-  return <Outlet />;
+  return <Outlet />; // Moves to the specific Page
 };
 
 export default ProtectedRoute;

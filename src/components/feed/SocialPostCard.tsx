@@ -7,11 +7,15 @@ import { MediaCarousel } from "./MediaCarousel";
 import { generateAvatarUrl } from "@/utils/avatar-generator";
 import { PostActions } from "./PostAction";
 import { Link } from "react-router-dom";
+import { formatTimeAgo } from '@/utils/date-format';
 
-
+import { PostMenu } from "./PostMenu";
+import { Link2, Flag, UserMinus, Trash2, BellOff } from "lucide-react";
+import { toast } from "sonner"; // Assuming you use Sonner for notifications
+import { useAuthContext } from "@/context/auth-provider";
 
 export default function SocialPostCard({ post, onRequireAuth }: CardProps<SocialPostType>) {
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuthContext();
   const [liked, setLiked] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -19,7 +23,46 @@ export default function SocialPostCard({ post, onRequireAuth }: CardProps<Social
     if (!isAuthenticated) return onRequireAuth?.();
     setLiked(!liked);
   };
-  
+
+  const isOwner = post.authorId === user?._id;
+
+  const menuActions = [
+    {
+      label: "Copy Link",
+      icon: Link2,
+      onClick: () => {
+        navigator.clipboard.writeText(`${window.location.origin}/post/${post._id}`);
+        toast.success("Link copied to clipboard!");
+      }
+    },
+    {
+      label: "Mute Notifications",
+      icon: BellOff,
+      onClick: () => console.log("Muted"),
+      show: isOwner // Only show if owner
+    },
+    {
+      label: "Unfollow User",
+      icon: UserMinus,
+      onClick: () => console.log("Unfollowed"),
+      show: !isOwner // Only show if NOT owner
+    },
+    {
+      label: "Report Post",
+      icon: Flag,
+      variant: 'danger' as const,
+      onClick: () => console.log("Reported"),
+      show: !isOwner
+    },
+    {
+      label: "Delete Post",
+      icon: Trash2,
+      variant: 'danger' as const,
+      onClick: () => console.log("Deleted"),
+      show: isOwner
+    }
+  ];
+
   // TEXT LIMIT LOGIC
   const TEXT_LIMIT = 100;
   const shouldShowReadMore = post.caption.length > TEXT_LIMIT;
@@ -30,23 +73,22 @@ export default function SocialPostCard({ post, onRequireAuth }: CardProps<Social
     <div className="bg-white border-b border-gray-100 lg:rounded-2xl lg:border lg:mb-6 animate-fadeIn overflow-hidden">
       {/* HEADER */}
       <div className="flex items-center gap-3 p-4">
-        <img 
+        <img
           src={user_image}
-          className="w-10 h-10 rounded-full object-cover border" 
-          alt={post.displayName} 
+          className="w-10 h-10 rounded-full object-cover border"
+          alt={post.displayName}
         />
         <div className="flex-1">
-          <Link to={`/dashboard/profile/user/${post.author._id}`}>
-          
-          <h3 className="font-bold text-gray-900 text-[15px]">{post.displayName}</h3>
-          <p className="text-[12px] text-gray-500 -mt-0.5">
-            @{post.username || 'user'} • <span className="text-[11px] font-normal">1h ago</span>
-          </p>
+          <Link to={`/dashboard/profile/user/${post.authorId}`}>
+
+            <h3 className="font-bold text-gray-900 text-[15px]">{post.displayName}</h3>
+            <p className="text-[12px] text-gray-500 -mt-0.5">
+              @{post.username || ''} • <span className="text-[11px] font-normal">{formatTimeAgo(post.createdAt)}</span>
+            </p>
           </Link>
         </div>
-        <button className="text-gray-400 p-1 hover:bg-gray-50 rounded-full">
-          <MoreVertical size={18} />
-        </button>
+          {/* <MoreVertical size={18} /> */}
+          <PostMenu actions={menuActions} />
       </div>
 
       {/* CAPTION */}
@@ -54,8 +96,8 @@ export default function SocialPostCard({ post, onRequireAuth }: CardProps<Social
         <p className="text-gray-700 text-[14px] leading-snug">
           {shouldShowReadMore ? displayText : post.caption}
           {shouldShowReadMore && (
-            <button 
-              onClick={() => setIsExpanded(!isExpanded)} 
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
               className="text-orange-600 font-bold ml-1 hover:underline"
             >
               {isExpanded ? "Read Less" : "Read More"}
@@ -78,14 +120,14 @@ export default function SocialPostCard({ post, onRequireAuth }: CardProps<Social
       {/* 🚨 MEDIA CAROUSEL - Conditional check fixed to prevent empty space */}
       {post.media && post.media.length > 0 ? (
         <div className="w-full">
-          <MediaCarousel media={post.media}/>
+          <MediaCarousel media={post.media} />
         </div>
       ) : null}
 
       {/* ACTIONS BAR */}
-{/* Replace the old actions bar with this */}
+      {/* Replace the old actions bar with this */}
       <PostActions
-        postId={post._id} 
+        postId={post._id}
         user_image={user_image}
         isAuthenticated={isAuthenticated}
         onRequireAuth={onRequireAuth}
