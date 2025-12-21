@@ -100,7 +100,7 @@ const ProfileInfo: React.FC<Props> = ({ user, business, related, isMe }) => {
         {isMe ? (
           <>
             {/* EDIT PROFILE */}
-            <Link to="/dashboard/settings?action=profile"
+            <Link to="/dashboard/settings/profile"
               className={cn(btnBase, btnAction, "bg-orange-500 border-transparent text-white shadow-lg shadow-orange-100 hover:bg-orange-600")}
 
             >

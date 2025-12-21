@@ -11,10 +11,12 @@ import RegisterPage from '@/pages/auth/SignUp';
 import ProductDetails from '@/pages/ProductDetails';
 import CreateProduct from '@/pages/dashboard/CreateProduct';
 import Bookmark from '@/pages/dashboard/Bookmark';
-import { Edit } from 'lucide-react';
 import MenuPage from '@/pages/dashboard/MenuPage';
 import { ChatsPage } from '@/pages/dashboard/ChatPage';
 import ProfilePage from '@/pages/dashboard/Profile';
+import { ProfileSettings } from '@/components/settings/pages/ProfileSettings';
+import { ActivityLog } from '@/components/settings/pages/ActivityLog';
+import { SettingsHome } from '@/components/settings/pages/SettingsHome';
 
 // --- Auth Routes ---
 export const authenticationRoutePaths = [
@@ -27,7 +29,16 @@ export const authenticationRoutePaths = [
 // --- Protected Routes ---
 export const protectedRoutePaths = [
   { path: PROTECTED_ROUTES.DASHBOARD, element: <Dashboard /> },
-  { path: PROTECTED_ROUTES.SETTINGS, element: <SettingsPage /> },
+  {
+    path: PROTECTED_ROUTES.SETTINGS, // This is "/dashboard/settings"
+    element: <SettingsPage />,
+    children: [
+      { index: true, element: <SettingsHome /> },
+      { path: 'profile', element: <ProfileSettings /> },
+      { path: 'activities', element: <ActivityLog activities={[]} /> },
+      { path: 'security', element: <div>Security Form coming soon...</div> },
+    ]
+  },
   { path: PROTECTED_ROUTES.USER_PROFILE, element: <ProfilePage /> },
   { path: PROTECTED_ROUTES.BUSINESS_PROFILE, element: <ProfilePage /> },
   { path: PROTECTED_ROUTES.MENU, element: <MenuPage /> },

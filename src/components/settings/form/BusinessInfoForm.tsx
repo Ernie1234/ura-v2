@@ -8,7 +8,7 @@ const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sat
 
 const BusinessInfoForm: React.FC = () => {
   const { user } = useAuthContext();
-  const { data: profile, isLoading } = useUserProfile(user?._id, true);
+  const { data: profile, isLoading } = useUserProfile(user?._id, false);
   const { mutate, isPending } = useUpdateBusiness();
 
   const business = profile?.business;

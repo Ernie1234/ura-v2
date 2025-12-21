@@ -9,6 +9,9 @@ export const AUTH_ROUTES = {
 export const PROTECTED_ROUTES = {
   DASHBOARD: '/dashboard',
   SETTINGS: '/dashboard/settings',
+  SETTINGS_PROFILE: '/dashboard/settings/profile',
+  SETTINGS_SECURITY: '/dashboard/settings/security',
+  SETTINGS_ACTIVITY: '/dashboard/settings/activities',
   BOOKMARK: '/dashboard/bookmark',
   USER_PROFILE: '/dashboard/profile/user/:userId',
   BUSINESS_PROFILE: '/dashboard/profile/business/:userId',

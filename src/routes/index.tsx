@@ -29,10 +29,21 @@ function AppRoutes() {
         </Route>
 
         {/* Protected Route */}
+        {/* Protected Route */}
         <Route path="/" element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             {protectedRoutePaths.map((route) => (
-              <Route key={route.path} path={route.path} element={route.element} />
+              <Route key={route.path} path={route.path} element={route.element}>
+                {/* If route has children, map them here */}
+                {route.children?.map((child, index) => (
+                  <Route
+                    key={index}
+                    index={child.index}
+                    path={child.path} // This will be "profile", "security", etc.
+                    element={child.element}
+                  />
+                ))}
+              </Route>
             ))}
           </Route>
         </Route>

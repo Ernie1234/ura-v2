@@ -3,11 +3,37 @@ import { Camera, Image as ImageIcon, Save, Loader2, User, Lock } from "lucide-re
 import { useAuthContext } from "@/context/auth-provider";
 import BusinessWarningModal from "../ui/BusinessWarningModal";
 import { useUpdateProfile } from "@/hooks/api/use-user-profile";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner"; // Assuming you use sonner based on your main.tsx
+import { z } from "zod";
+import { cn } from "@/lib/utils";
+
+const profileSchema = z.object({
+    firstName: z.string().min(2, "First name must be at least 2 characters"),
+    lastName: z.string().min(2, "Last name must be at least 2 characters"),
+    bio: z.string().max(160, "Bio cannot exceed 160 characters").optional(),
+});
+
+type ProfileFormValues = z.infer<typeof profileSchema>;
+
 
 const PersonalInfoForm: React.FC = () => {
     const { user } = useAuthContext();
     const { mutate, isPending } = useUpdateProfile();
     const [showBusinessModal, setShowBusinessModal] = useState(false);
+
+
+    // React Hook Form Setup
+    const { register, handleSubmit, formState: { errors } } = useForm<ProfileFormValues>({
+        resolver: zodResolver(profileSchema),
+        defaultValues: {
+            firstName: user?.firstName || "",
+            lastName: user?.lastName || "",
+            bio: user?.bio || "",
+        }
+    });
+
 
     // 1. Store Previews (for UI) AND actual Files (for Upload)
     const [previews, setPreviews] = useState({
@@ -23,10 +49,12 @@ const PersonalInfoForm: React.FC = () => {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'profilePicture' | 'coverPicture') => {
         const file = e.target.files?.[0];
         if (file) {
-            // Save the actual file for the API call
-            setFiles(prev => ({ ...prev, [type]: file }));
+            // Frontend Validation: Size check (e.g., 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                return toast.error("Image must be less than 5MB");
+            }
 
-            // Create a preview for the UI
+            setFiles(prev => ({ ...prev, [type]: file }));
             const reader = new FileReader();
             reader.onloadend = () => {
                 setPreviews(prev => ({ ...prev, [type]: reader.result as string }));
@@ -35,24 +63,16 @@ const PersonalInfoForm: React.FC = () => {
         }
     };
 
-    const handleSave = (e: React.FormEvent) => {
-        e.preventDefault();
-
-        // 2. Use FormData to easily grab input values by their "name" attribute
-        const form = e.currentTarget as HTMLFormElement;
-        const formData = new FormData(form);
-
+    const onSubmit = (data: ProfileFormValues) => {
         mutate({
-            firstName: formData.get("firstName") as string,
-            lastName: formData.get("lastName") as string,
-            bio: formData.get("bio") as string, // Added bio here
-            profilePicture: files.profilePicture, // Actual File object
-            coverPicture: files.coverPicture,         // Actual File object
+            ...data,
+            profilePicture: files.profilePicture,
+            coverPicture: files.coverPicture,
         });
     };
 
     return (
-        <form onSubmit={handleSave} className="divide-y divide-gray-100">
+        <form onSubmit={handleSubmit(onSubmit)} className="divide-y divide-gray-100">
             {/* Header Section */}
             <div className="p-6 md:p-10 space-y-8">
                 <div>
@@ -103,37 +123,51 @@ const PersonalInfoForm: React.FC = () => {
                 <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6">Basic Information</h4>
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* First Name */}
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-gray-700">First Name</label>
                             <input
-                                name="firstName"
-                                type="text"
-                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-500 outline-none"
-                                defaultValue={user?.firstName}
+                                {...register("firstName")}
+                                className={cn(
+                                    "w-full px-4 py-3 rounded-xl border outline-none transition-all",
+                                    errors.firstName ? "border-red-500 bg-red-50" : "border-gray-200 focus:border-orange-500"
+                                )}
                             />
+                            {errors.firstName && <p className="text-xs text-red-500 font-medium">{errors.firstName.message}</p>}
                         </div>
+
+                        {/* Last Name */}
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-gray-700">Last Name</label>
                             <input
-                                name="lastName"
-                                type="text"
-                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-500 outline-none"
-                                defaultValue={user?.lastName}
+                                {...register("lastName")}
+                                className={cn(
+                                    "w-full px-4 py-3 rounded-xl border outline-none transition-all",
+                                    errors.lastName ? "border-red-500 bg-red-50" : "border-gray-200 focus:border-orange-500"
+                                )}
                             />
+                            {errors.lastName && <p className="text-xs text-red-500 font-medium">{errors.lastName.message}</p>}
                         </div>
                     </div>
 
-                    {/* Bio Section Added Here */}
+                    {/* Bio Section */}
                     <div className="space-y-2">
                         <label className="text-sm font-bold text-gray-700">Bio</label>
                         <textarea
-                            name="bio"
+                            {...register("bio")}
                             rows={4}
-                            placeholder="Tell us a little about yourself..."
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-500 outline-none transition-all resize-none"
-                            defaultValue={user?.bio}
+                            className={cn(
+                                "w-full px-4 py-3 rounded-xl border outline-none transition-all resize-none",
+                                errors.bio ? "border-red-500" : "border-gray-200 focus:border-orange-500"
+                            )}
                         />
-                        <p className="text-xs text-gray-400 text-right">Brief description for your profile.</p>
+                        <div className="flex justify-between">
+                            {errors.bio ? (
+                                <p className="text-xs text-red-500 font-medium">{errors.bio.message}</p>
+                            ) : (
+                                <p className="text-xs text-gray-400">Brief description for your profile.</p>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -177,14 +211,24 @@ const PersonalInfoForm: React.FC = () => {
             )}
 
             {/* Submit Section */}
+            {/* Submit Button (Updates automatically based on isPending) */}
             <div className="p-8 bg-gray-50/50 flex justify-end">
                 <button
                     type="submit"
                     disabled={isPending}
-                    className="bg-orange-500 text-white px-8 py-3 rounded-xl font-bold hover:bg-orange-600 transition flex items-center gap-2 disabled:opacity-50"
+                    className="bg-orange-500 text-white px-8 py-3 rounded-xl font-bold hover:bg-orange-600 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-wait"
                 >
-                    {isPending ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-                    Save Personal Info
+                    {isPending ? (
+                        <>
+                            <Loader2 className="animate-spin" size={20} />
+                            Saving...
+                        </>
+                    ) : (
+                        <>
+                            <Save size={20} />
+                            Save Personal Info
+                        </>
+                    )}
                 </button>
             </div>
             {showBusinessModal && <BusinessWarningModal onClose={() => setShowBusinessModal(false)} />}

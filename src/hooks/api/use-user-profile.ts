@@ -30,9 +30,12 @@ export const useUpdateProfile = () => {
 
   return useMutation({
     mutationFn: updateProfileMutationFn,
-    onSuccess: () => {
-      toast.success("Profile updated successfully!");
-      // Refetch user data everywhere in the app
+    onMutate: () => {
+       // Optional: This fires the MOMENT the button is clicked
+       // toast.loading("Uploading images and saving..."); 
+    },
+    onSuccess: (data) => {
+      toast.success("Profile updated successfully!"); // Ensure this is imported from 'sonner'
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });
     },
     onError: (error: any) => {
