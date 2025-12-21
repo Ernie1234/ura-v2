@@ -22,12 +22,13 @@ interface BasePost {
   commentsCount: number;
   isLiked: boolean;
   isBookmarked: boolean;
+  caption: string;
+
 }
 
 // 2. Specific shape for a Social Post
 export interface SocialPostType extends BasePost {
   type: 'POST';
-  caption: string;
   tags: string[]
   // You can add social-only fields here (e.g., sharesCount)
 }

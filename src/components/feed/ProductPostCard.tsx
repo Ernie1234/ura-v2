@@ -3,9 +3,10 @@ import { useState } from "react";
 import { Bookmark, Heart, Share2, Star, ShoppingBag, CheckCircle2, MessageCircle } from "lucide-react";
 import useAuth from "@/hooks/api/use-auth";
 import type { CardProps, ProductPostType } from "@/types/feed.types";
-import { MediaRenderer } from "./MediaRender";
 import { MediaCarousel } from "./MediaCarousel";
 import { PostActions } from "./PostAction";
+import { generateAvatarUrl } from "@/utils/avatar-generator";
+import { Link } from "react-router-dom";
 
 export default function ProductPostCard({ post, onRequireAuth }: CardProps<ProductPostType>) {
   const { isAuthenticated } = useAuth();
@@ -18,6 +19,8 @@ export default function ProductPostCard({ post, onRequireAuth }: CardProps<Produ
 
   const formattedPrice = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(post.price);
 
+    const user_image = post.displayAvatar || generateAvatarUrl(post.displayName);
+  
   // Rating Logic: Create an array of 5 for the stars
   const ratingValue = post.rating || 0;
   const [isExpanded, setIsExpanded] = useState(false);
@@ -39,7 +42,9 @@ export default function ProductPostCard({ post, onRequireAuth }: CardProps<Produ
         <img src={post.displayAvatar || "/images/default-avatar.png"} className="w-10 h-10 rounded-full object-cover border" alt="" />
         <div className="min-w-0 flex-1"> {/* min-w-0 allows truncation to work */}
           <div className="flex items-center gap-1">
+          <Link to={`/dashboard/profile/business/${post.authorId}`}>
             <h3 className="font-bold text-gray-900 text-[15px] truncate">{post.displayName}</h3>
+          </Link>
             {post.isVerified && <CheckCircle2 size={14} className="fill-blue-500 text-white flex-shrink-0" />}
           </div>
           <div className="flex items-center gap-0.5">
@@ -86,9 +91,9 @@ export default function ProductPostCard({ post, onRequireAuth }: CardProps<Produ
       </div>
 
       {/* FOOTER ACTIONS */}
-      {/* FOOTER ACTIONS - Unified with the Social Post */}
       <PostActions
         postId={post._id}
+        user_image={user_image}
         isAuthenticated={isAuthenticated}
         onRequireAuth={onRequireAuth}
         initialLikes={post.likesCount || 0}

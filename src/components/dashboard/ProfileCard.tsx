@@ -10,7 +10,7 @@ interface ProfileCardProps {
 
 const ProfileCard: React.FC<ProfileCardProps> = ({ user, related }) => {
  
-  const FALLBACK_PROFILE_URL = generateAvatarUrl(user.username);
+  const FALLBACK_PROFILE_URL = generateAvatarUrl(`${user.firstName} ${user.lastName}`);
 
   return (
     <div className="rounded-xl bg-white p-4 shadow-md">
@@ -58,7 +58,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user, related }) => {
           className="mt-4 bg-orange-500 hover:bg-orange-600 text-white w-full"
           asChild
         >
-          <Link to={`/user/profile/${user._id}`}>My Profile</Link>
+          <Link to={`/dashboard/profile/user/${user._id}`}>My Profile</Link>
         </Button>
       </div>
     </div>

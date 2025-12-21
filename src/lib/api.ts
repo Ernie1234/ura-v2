@@ -4,11 +4,12 @@ import type {
   loginType,
   RegisterResponseType,
   registerType,
-  UsernameCheckResponse
+  UsernameCheckResponse,
+
 } from '@/types/api.types';
 import API from './axios-client';
 import { uploadImageToCloudinary, uploadMediaToCloudinary } from "@/services/cloudinary.service";
-import type { UnifiedPost } from '@/types/feed.types';
+import type { UnifiedPost, SocialPostType, ProductPostType } from '@/types/feed.types';
 
 
 export const checkUsernameAvailability = async (username: string): Promise<UsernameCheckResponse> => {
@@ -56,7 +57,7 @@ export const getUserQueryFn = async (userId: string): Promise<CurrentUserRespons
 // New Business Fetcher
 export const getBusinessQueryFn = async (businessId: string): Promise<CurrentUserResponseType> => {
   // This fetches the user data associated with this business ID
-  const response = await API.get(`/business/profile/${businessId}`);
+  const response = await API.get(`/user/business/profile/${businessId}`);
   return response.data;
 };
 
@@ -142,6 +143,34 @@ export const fetchPostFeedQueryFn = async (userId?: string, page: number = 1): P
   return response.data.posts;
 };
 
+// src/services/post.service.ts
+
+
+interface FetchParams {
+  targetId?: string;
+  restrict?: boolean;
+  page: number;
+}
+
+export const postService = {
+  // Fetch Social Content
+  getSocialPosts: async ({ targetId, restrict, page }: FetchParams): Promise<SocialPostType[]> => {
+    const { data } = await API.get("/post/social", {
+      params: { authorId: targetId, restrict, page, limit: 15 }
+    });
+    return data.posts;
+  },
+
+  // Fetch Business Content
+  getProductPosts: async ({ targetId, restrict, page }: FetchParams): Promise<ProductPostType[]> => {
+    const { data } = await API.get("/post/products", {
+      params: { businessId: targetId, restrict, page, limit: 15 }
+    });
+    return data.posts;
+  }
+};
+
+
 export const createPostMutationFn = async ({ data, files }: { data: any; files: File[] }) => {
   // 1. Upload media only if files exist
   let mediaUrls: string[] = [];
@@ -174,4 +203,24 @@ export const toggleBookmarkApi = async (targetId: string, targetType: "Business"
     targetType,
   });
   return data;
+};
+
+// src/services/product.service.ts
+
+export const toggleWishlist = async (productId: string) => {
+  const { data } = await API.patch(`/products/wishlist/${productId}`);
+  return data; // returns { success: true, isWishlisted: boolean }
+};
+
+export const toggleLikeApi = async (targetId: string, targetType: 'post' | 'product') => {
+  const { data } = await API.patch(`/post/likes/${targetType}/${targetId}`);
+  return data; // { success: true, isLiked: boolean, likesCount: number }
+};
+
+export const fetchFollowList = async (targetId: string, type: "followers" | "following") => {
+  // Replace with your actual API base URL
+  const { data } = await API.get(`/user/${targetId}/social`, {
+    params: { type }
+  });
+  return data.users; // Returning the 'users' array from your controller's res.json
 };

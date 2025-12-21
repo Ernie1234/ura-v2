@@ -9,7 +9,7 @@ type Props = {
 const ProfileHeader: React.FC<Props> = ({ profile, isBusiness = false }) => {
   const fallbackSeed = isBusiness 
     ? (profile.business?.businessName || "Business") 
-    : profile.user.username;
+    : `${profile.user.firstName} ${profile.user.lastName}`;
 
   const FALLBACK_PROFILE_URL = generateAvatarUrl(fallbackSeed);
 

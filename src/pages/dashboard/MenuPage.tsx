@@ -59,7 +59,7 @@ const MenuPage = () => {
       <div className="px-4 py-6">
         <div 
           className="p-4 flex items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-100 active:scale-[0.98] transition-all"
-          onClick={() => navigate(`/dashboard/profile/${user?._id}`)}
+          onClick={() => navigate(`/dashboard/profile/user/${user?._id}`)}
         >
           <div className="flex items-center gap-4">
             <Avatar className="h-14 w-14 border-2 border-orange-100">

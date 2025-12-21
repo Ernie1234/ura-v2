@@ -1,9 +1,10 @@
-// src/components/feed/PostActions.tsx
 import { useState } from "react";
-import { Heart, MessageCircle, Share2, Bookmark, CommandIcon } from "lucide-react";
-// src/components/feed/PostActions.tsx
-import API from "@/lib/axios-client"; // Assuming your axios instance
+import { Heart, MessageCircle, Share2, Bookmark } from "lucide-react";
+import API from "@/lib/axios-client";
 import { CommentDrawer } from "./CommentDrawer";
+import { useToggleLike, useToggleBookmark } from "@/hooks/api/use-feed";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface PostActionsProps {
   postId: string;
@@ -12,15 +13,9 @@ interface PostActionsProps {
   initialComments?: number;
   isLiked?: boolean;
   isBookmarked?: boolean;
-  onLike?: () => void;
-  onComment?: () => void;
-  onShare?: () => void;
-  onBookmark?: () => void;
   onRequireAuth?: () => void;
   isAuthenticated: boolean;
 }
-
-
 
 export const PostActions = ({
   postId,
@@ -32,108 +27,114 @@ export const PostActions = ({
   onRequireAuth,
   isAuthenticated
 }: PostActionsProps) => {
-  const handleShare = async () => {
-  const shareData = {
-    title: 'Check out this post!',
-    text: 'I found this interesting post on the app.',
-    url: `${window.location.origin}/posts/${postId}`, // Adjust this to your actual routing
-  };
-
-  try {
-    // Try native sharing first (works on mobile/Safari)
-    if (navigator.share) {
-      await navigator.share(shareData);
-    } else {
-      // Fallback: Copy to clipboard
-      await navigator.clipboard.writeText(shareData.url);
-      alert('Link copied to clipboard!'); 
-      // Replace alert with a toast notification if you have one
-    }
-  } catch (err) {
-    console.error('Error sharing:', err);
-  }
-};
-
-  const [liked, setLiked] = useState(isLiked);
   const [bookmarked, setBookmarked] = useState(isBookmarked);
-  const [likesCount, setLikesCount] = useState(initialLikes);
   const [isCommentOpen, setIsCommentOpen] = useState(false);
-  const handleLike = async () => {
+  const { mutate: toggleBookmark } = useToggleBookmark(postId, 'Post');
+  const { mutate: toggleLike } = useToggleLike(postId, 'post');
+
+  const handleLike = (e: React.MouseEvent) => {
+    e.preventDefault(); // Stop navigation if inside a Link
     if (!isAuthenticated) return onRequireAuth?.();
+    toggleLike();
+  };
 
-    // Optimistic Update
-    setLiked(!liked);
-    setLikesCount(prev => liked ? prev - 1 : prev + 1);
+  const handleBookmark = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!isAuthenticated) return onRequireAuth?.();
+    toggleBookmark();
+  };
 
+  const handleShare = async () => {
+    const shareData = {
+      title: 'Check out this post!',
+      text: 'I found this interesting post on the app.',
+      url: `${window.location.origin}/posts/${postId}`,
+    };
     try {
-      await API.post(`/post/${postId}/like`);
-    } catch (error) {
-      // Revert if API fails
-      setLiked(liked);
-      setLikesCount(likesCount);
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareData.url);
+        alert('Link copied to clipboard!');
+      }
+    } catch (err) {
+      console.error('Error sharing:', err);
     }
   };
 
-  const handleBookmark = async () => {
-    if (!isAuthenticated) return onRequireAuth?.();
-
-    setBookmarked(!bookmarked);
-
-    try {
-      await API.post(`/bookmark/toggle/${postId}`, { targetType: 'Post' });
-    } catch (error) {
-      setBookmarked(bookmarked);
-    }
-  };
-
+  // --- RENDER ---
   return (
     <div className="flex items-center justify-between px-4 py-3 border-t border-gray-50">
       <div className="flex items-center gap-6">
         {/* Like Button */}
-        <button onClick={handleLike} className="flex items-center gap-1.5 group">
-          <Heart className={`w-6 h-6 transition-all ${liked ? "fill-red-500 text-red-500" : "text-gray-700 group-hover:text-red-500"}`} />
-          <span className="text-xs font-bold text-gray-600">{likesCount}</span>
-        </button>
+        <button onClick={handleLike} className="flex items-center gap-1.5 group outline-none">
+          <motion.div
+            key={isLiked ? "liked" : "unliked"}
+            animate={{ scale: isLiked ? [1, 1.4, 1] : 1 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Heart
+              className={cn(
+                "w-6 h-6 transition-colors duration-200",
+                isLiked ? "fill-red-500 text-red-500" : "text-gray-700"
+              )}
+            />
+          </motion.div>
 
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={initialLikes} // Number slides when it changes
+              initial={{ y: 5, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -5, opacity: 0 }}
+              transition={{ duration: 0.1 }}
+              className="text-xs font-black text-gray-700"
+            >
+              {initialLikes}
+            </motion.span>
+          </AnimatePresence>
+        </button>
         {/* Comment Button */}
         <button
           onClick={() => setIsCommentOpen(true)}
-          className="flex items-center gap-1.5 group">
+          className="flex items-center gap-1.5 group"
+        >
           <MessageCircle className="w-6 h-6 text-gray-700 group-hover:text-orange-500 transition-colors" />
           <span className="text-xs font-bold text-gray-600">{initialComments}</span>
         </button>
+
         <CommentDrawer
           isOpen={isCommentOpen}
           onClose={setIsCommentOpen}
           postId={postId}
           user_image={user_image}
-          
         />
 
         {/* Share Button */}
-{/* Share Button */}
-<button 
-  onClick={handleShare}
-  className="group flex items-center gap-1.5 text-gray-700 hover:text-orange-500 transition-all active:scale-90"
-  title="Share Post"
->
-  <div className="p-2 group-hover:bg-orange-50 rounded-full transition-colors">
-    <Share2 className="w-6 h-6" />
-  </div>
-  {/* Optional: Add a share count if your backend supports it */}
-  {/* <span className="text-xs font-bold text-gray-500 group-hover:text-orange-500">
-    Share
-  </span> */}
-</button>
+        <button
+          onClick={handleShare}
+          className="group flex items-center gap-1.5 text-gray-700 hover:text-orange-500 transition-all active:scale-90"
+        >
+          <div className="p-2 group-hover:bg-orange-50 rounded-full transition-colors">
+            <Share2 className="w-6 h-6" />
+          </div>
+        </button>
       </div>
 
       {/* Bookmark Button */}
-      <button onClick={handleBookmark}>
-        <Bookmark className={`w-6 h-6 transition-colors ${bookmarked ? "fill-orange-500 text-orange-500" : "text-gray-700 hover:text-orange-500"}`} />
+      <button onClick={handleBookmark} className="p-2 -mr-2 outline-none group">
+        <motion.div
+          animate={{ scale: isBookmarked ? [1, 1.2, 1] : 1 }}
+          transition={{ duration: 0.2 }}
+        >
+          <Bookmark
+            className={cn(
+              "w-6 h-6 transition-colors duration-200",
+              isBookmarked ? "fill-orange-500 text-orange-500" : "text-gray-700 hover:text-orange-400"
+            )}
+          />
+        </motion.div>
       </button>
     </div>
   );
 };
-
-
-

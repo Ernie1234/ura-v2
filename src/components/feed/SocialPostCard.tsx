@@ -16,14 +16,7 @@ import { useAuthContext } from "@/context/auth-provider";
 
 export default function SocialPostCard({ post, onRequireAuth }: CardProps<SocialPostType>) {
   const { user, isAuthenticated } = useAuthContext();
-  const [liked, setLiked] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-
-  const toggleLike = () => {
-    if (!isAuthenticated) return onRequireAuth?.();
-    setLiked(!liked);
-  };
-
   const isOwner = post.authorId === user?._id;
 
   const menuActions = [
@@ -63,6 +56,7 @@ export default function SocialPostCard({ post, onRequireAuth }: CardProps<Social
     }
   ];
 
+
   // TEXT LIMIT LOGIC
   const TEXT_LIMIT = 100;
   const shouldShowReadMore = post.caption.length > TEXT_LIMIT;
@@ -87,8 +81,8 @@ export default function SocialPostCard({ post, onRequireAuth }: CardProps<Social
             </p>
           </Link>
         </div>
-          {/* <MoreVertical size={18} /> */}
-          <PostMenu actions={menuActions} />
+        {/* <MoreVertical size={18} /> */}
+        <PostMenu actions={menuActions} />
       </div>
 
       {/* CAPTION */}
@@ -125,15 +119,15 @@ export default function SocialPostCard({ post, onRequireAuth }: CardProps<Social
       ) : null}
 
       {/* ACTIONS BAR */}
-      {/* Replace the old actions bar with this */}
+      {/* ACTIONS */}
       <PostActions
         postId={post._id}
         user_image={user_image}
         isAuthenticated={isAuthenticated}
         onRequireAuth={onRequireAuth}
-        initialLikes={post.likesCount || 0}
-        initialComments={post.commentsCount || 0}
-        isLiked={post.isLiked}
+        initialLikes={post.likesCount} // This comes directly from React Query
+        isLiked={post.isLiked}         // This comes directly from React Query
+        initialComments={post.commentsCount}
         isBookmarked={post.isBookmarked}
       />
     </div>

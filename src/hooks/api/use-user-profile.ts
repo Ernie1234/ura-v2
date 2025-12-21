@@ -1,4 +1,4 @@
-import { getBusinessQueryFn, getUserQueryFn, toggleBookmarkApi, toggleFollowUser } from "@/lib/api";
+import { fetchFollowList, getBusinessQueryFn, getUserQueryFn, toggleBookmarkApi, toggleFollowUser } from "@/lib/api";
 
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { updateProfileMutationFn, updateBusinessMutationFn } from "@/lib/api";
@@ -65,10 +65,12 @@ export const useProfileActions = (targetId: string, isBusiness: boolean) => {
     mutationFn: () => toggleFollowUser(targetId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile", targetId] });
+    queryClient.invalidateQueries({ queryKey: ["socialList"] });
+    toast.success("Success!");
+
     },
     onError: () => toast.error("Follow action failed"),
   });
-
   return {
     follow: followMutation.mutate,
     isFollowingLoading: followMutation.isPending,
@@ -94,3 +96,14 @@ export  const useBookmark = (targetId: string, profileKey: any[]) => {
       },
     });
   };
+
+
+
+
+export const useFollowData = (targetId: string, type: "followers" | "following") => {
+  return useQuery({
+    queryKey: ["socialList", targetId, type],
+    queryFn: () => fetchFollowList(targetId, type),
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
+};

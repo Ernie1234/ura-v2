@@ -16,6 +16,7 @@ import { DashboardSkeleton } from "@/components/skeleton/DashboardSkeleton";
 
 // Types - Use the central ProfileResponse to avoid assignment conflicts
 import type { ProfileResponse } from "@/types/api.types";
+import FollowList from "@/components/profile/FollowList";
 
 const TABS = {
   FEEDS: "Feeds",
@@ -23,14 +24,17 @@ const TABS = {
   PRODUCTS: "Products",
   ABOUT: "About",
   REVIEWS: "Reviews",
+  FOLLOWERS: "Followers", // New
+  FOLLOWING: "Following", // New
 } as const;
-
-// ... imports stay the same
 
 const ProfilePage: React.FC = () => {
   const { userId, businessId } = useParams<{ userId?: string; businessId?: string }>();
   const { user: currentUser } = useAuthContext();
 
+  if (!currentUser) {
+    return <DashboardSkeleton />; // Or return null
+  }
 
   const isBusinessProfile = location.pathname.includes("/business/");
   const targetId = businessId || userId;
@@ -73,37 +77,49 @@ const ProfilePage: React.FC = () => {
   }, [profile, isMe, currentUser]);
   // --- CRITICAL FIXES BELOW ---
 
-  const renderTabContent = () => {
-    if (!userProfile) return null;
 
-    // Use userProfile.business to decide if business tabs should exist
-    const showBusinessTabs = !!userProfile.business;
+const renderTabContent = () => {
+  if (!userProfile) return null;
+  
+  const isBusiness = !!userProfile.business;
+  
+  // Ensure displayName is always a string
+  const displayName = (isBusiness 
+    ? userProfile.business?.businessName 
+    : userProfile.user?.firstName) || "User";
 
-    switch (activeTab) {
-      case TABS.FEEDS: return <AllFeed entityId={targetId} />;
-      case TABS.POSTS: return (
-        <div className="bg-white rounded-xl p-4 shadow-sm border">
-          <PostsFeed filters={{ authorId: targetId }} />
-        </div>
+  switch (activeTab) {
+    case TABS.FEEDS: return <AllFeed userId={targetId!} />;
+    case TABS.POSTS: return <PostsFeed targetId={targetId!} />;
+    case TABS.PRODUCTS:
+      return isBusiness ? <ProductsFeed targetId={targetId!} /> : null;
+    
+    case TABS.FOLLOWERS:
+      return (
+        <FollowList
+          targetId={targetId!}
+          type="followers"
+          currentUser={currentUser}
+        />
       );
-      case TABS.PRODUCTS: return showBusinessTabs ? (
-        <div className="bg-white rounded-xl p-4 shadow-sm border">
-          <ProductsFeed filters={{ businessId: targetId }} />
-        </div>
+
+    case TABS.FOLLOWING:
+      return !isBusiness ? (
+        <FollowList
+          targetId={targetId!}
+          type="following"
+          currentUser={currentUser}
+        />
       ) : null;
-      case TABS.ABOUT: return (
-        <div className="lg:hidden">
-          <ProfileAbout profile={userProfile} />
-        </div>
-      );
-      case TABS.REVIEWS: return showBusinessTabs ? ( // FIX: Changed 'isOwner' (undefined) to 'showBusinessTabs'
-        <div className="bg-white rounded-xl shadow-sm border">
-          <ReviewsSection filters={{ businessId: targetId }}/>
-        </div>
-      ) : null;
-      default: return null;
-    }
-  };
+
+    case TABS.REVIEWS: 
+      return isBusiness ? <ReviewsSection filters={{ businessId: targetId! }} /> : null;
+    case TABS.ABOUT: 
+      return <ProfileAbout profile={userProfile} />;
+    default: 
+      return null;
+  }
+};
 
   if (isLoading && !userProfile) return <DashboardSkeleton />;
 
@@ -111,33 +127,54 @@ const ProfilePage: React.FC = () => {
   if (!userProfile?.user) return <DashboardSkeleton />;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 animate-in fade-in duration-500">
-      <ProfileHeader profile={userProfile} isBusiness={isBusinessProfile}/>
+    /* 1. Wrapper: Changed max-w to 7xl and increased py to give the header more air */
+    <div className="min-h-screen bg-[#FFF9F6] pt-6 pb-10 px-4 lg:px-12 animate-in fade-in duration-500">
+      <div className="max-w-7xl mx-auto">
 
-      <div className="mt-16 grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <aside className="lg:col-span-1">
-          <div className="sticky top-24">
-            <ProfileInfo
-              user={userProfile.user}
-              business={userProfile.business}
-              related={userProfile.related}
-              isMe={isMe}
-            />
-          </div>
-        </aside>
+        {/* Profile Header stays at the top */}
+        <ProfileHeader profile={userProfile} isBusiness={isBusinessProfile} />
 
-        <main className="lg:col-span-2">
-          <ProfileTabs
-            active={activeTab}
-            onChange={setActiveTab}
-            // FIX: Use userProfile.business to show business tabs, 
-            // not userProfile.user.isBusinessOwner (which refers to the person's status, not the page type)
-            isBusiness={!!userProfile.business}
-          />
-          <div className="mt-6">
-            {renderTabContent()}
-          </div>
-        </main>
+        {/* 2. Grid: items-start prevents the sidebar from stretching unnecessarily */}
+        <div className="mt-12 grid grid-cols-1 gap-10 lg:grid-cols-3 items-start">
+
+          {/* LEFT SIDEBAR */}
+          <aside className="lg:col-span-1">
+            {/* Added a subtle wrapper for the info card to ensure it feels separate */}
+            <div className="bg-white rounded-[25px] p-4 lg:py-8 border border-gray-100/80 shadow-sm overflow-hidden">
+              <ProfileInfo
+                user={userProfile.user}
+                business={userProfile.business}
+                related={userProfile.related}
+                isMe={isMe}
+              />
+            </div>
+          </aside>
+
+          {/* MAIN CONTENT COLUMN */}
+          <main className="lg:col-span-2 flex flex-col">
+            {/* 3. Tabs: Added a small bottom margin and ensured they don't scroll away */}
+            <div className="mb-2">
+              <ProfileTabs
+                tabs={Object.values(TABS)}
+                active={activeTab}
+                onChange={setActiveTab}
+                isBusiness={!!userProfile.business}
+              />
+            </div>
+
+            {/* 4. SCROLLABLE AREA: Added your custom scrollbar ID and adjusted height */}
+            <div
+              id="main-feed-container" // This triggers your custom CSS scrollbar
+              className="mt-4 overflow-y-auto pr-3 scroll-smooth"
+              /* Adjusted height: 100vh minus header and tabs space */
+              style={{ maxHeight: 'calc(100vh - 180px)' }}
+            >
+              <div className="space-y-6 pb-20 animate-in slide-in-from-bottom-4 duration-500">
+                {renderTabContent()}
+              </div>
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );
