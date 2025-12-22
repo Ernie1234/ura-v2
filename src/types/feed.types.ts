@@ -36,11 +36,11 @@ export interface SocialPostType extends BasePost {
 // 3. Specific shape for a Product Post
 export interface ProductPostType extends BasePost {
   type: 'PRODUCT';
-  productName: string;
+  name: string;
   price: number;
-  stock?: number;
-  category?: string;
-  description?: string; // Product specific description
+  stock: number;
+  category: string;
+  description: string; // Product specific description
   // Business/Product Rating
   rating: number | null;
   reviewCount: number | null;

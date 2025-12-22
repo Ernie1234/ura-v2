@@ -1,24 +1,35 @@
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
-import { Loader2, RefreshCcw, ShoppingBag, ArrowUp } from "lucide-react";
-import { useInfiniteFeed, useProductsFeed } from "@/hooks/api/use-feed"; 
+import { Loader2, RefreshCcw, PackageOpen, ArrowUp } from "lucide-react";
+import { usePostsFeed, useProductsFeed } from "@/hooks/api/use-feed"; // Reusing your specific author feed hook
 import { useAuthContext } from "@/context/auth-provider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import ProductPostCard from "./ProductPostCard"; // Optimized for product data
+import { ProductCard } from "./ProductCard";
+import { ProductDetailsModal } from "./ProductDetailsModal";
+import type { Product } from "@/types/product";
+import type { ProductPostType } from "@/types/feed.types";
+import { toast } from "sonner";
 
 interface ProductsFeedProps {
-  targetId?: string; // Business ID or User ID
+  targetId?: string; // The Business ID
   onRequireAuth?: () => void;
+  type?: string;
 }
 
-export default function ProductsFeed({ targetId, onRequireAuth }: ProductsFeedProps) {
-  const { user: currentUser } = useAuthContext();
-  
-  // Logic: Use the profile being viewed, otherwise fallback to logged-in user
-  const effectiveId = targetId || currentUser?._id;
 
-  // Fetch only 'PRODUCT' type for this specific ID
+
+
+
+
+
+
+export default function ProductsFeed({ targetId, onRequireAuth, type = "feed" }: ProductsFeedProps) {
+
+  const { user: currentUser, isAuthenticated } = useAuthContext();
+  const isPostType = type === 'post'
+
+  // 1. Fetch logic - strictly filtering for products by this specific business
   const {
     data,
     fetchNextPage,
@@ -27,12 +38,14 @@ export default function ProductsFeed({ targetId, onRequireAuth }: ProductsFeedPr
     status,
     refetch,
     isRefetching,
-  } = useProductsFeed(effectiveId, true); 
+  } = useProductsFeed(targetId!, isPostType); // Passing 'false' for isPostType to get products
+
+  const [selectedProduct, setSelectedProduct] = useState<ProductPostType | null>(null);
 
   const [showScrollTop, setShowScrollTop] = useState(false);
   const { ref: bottomRef, inView: isBottomInView } = useInView();
 
-  // Scroll Tracking for Internal Container
+  // Handle Scroll tracking for the floating button
   useEffect(() => {
     const container = document.getElementById("main-feed-container");
     const handleScroll = () => {
@@ -42,7 +55,7 @@ export default function ProductsFeed({ targetId, onRequireAuth }: ProductsFeedPr
     return () => container?.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Infinite Scroll Trigger
+  // Infinite Scroll Logic
   useEffect(() => {
     if (isBottomInView && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
@@ -58,81 +71,97 @@ export default function ProductsFeed({ targetId, onRequireAuth }: ProductsFeedPr
     return (
       <div className="flex flex-col items-center py-20 text-gray-400">
         <Loader2 className="w-8 h-8 animate-spin mb-2 text-orange-500" />
-        <p className="text-sm font-medium">Loading catalog...</p>
+        <p className="text-sm font-medium italic">Loading store...</p>
       </div>
     );
   }
 
   if (status === 'error') {
     return (
-      <div className="text-center py-10 bg-orange-50/30 rounded-2xl border border-orange-100">
-        <p className="text-orange-800 font-medium mb-3">Failed to load products.</p>
-        <Button onClick={() => refetch()} variant="outline" className="bg-white border-orange-200 text-orange-600 hover:bg-orange-50">
-          <RefreshCcw size={14} className="mr-2" /> Try Again
+      <div className="text-center py-10 bg-red-50 rounded-[32px] border border-red-100">
+        <p className="text-red-500 font-medium mb-3">Failed to load products.</p>
+        <Button onClick={() => refetch()} variant="outline" className="bg-white border-red-200 text-red-600">
+          <RefreshCcw size={14} className="mr-2" /> Refresh Store
         </Button>
       </div>
     );
   }
 
-  const allProducts = data?.pages.flatMap((page) => page) || [];
 
+  // TO THIS (Adding the explicit Type Cast):
+  const allProducts = data?.pages.flatMap((page) => page as ProductPostType[]) || [];
   if (allProducts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-white border border-dashed rounded-[32px] border-gray-100">
-        <div className="bg-orange-50 p-4 rounded-full mb-3">
-          <ShoppingBag className="w-8 h-8 text-orange-300" />
+        <div className="bg-gray-50 p-4 rounded-full mb-3">
+          <PackageOpen className="w-8 h-8 text-gray-300" />
         </div>
-        <h3 className="text-base font-bold text-gray-900">No products listed</h3>
-        <p className="text-gray-400 text-xs max-w-[200px]">
-          {targetId === currentUser?._id 
-            ? "You haven't added any products to your business yet." 
-            : "This business hasn't listed any items for sale."}
+        <h3 className="text-base font-bold text-gray-900">No products yet</h3>
+        <p className="text-gray-400 text-xs max-w-[220px]">
+          {targetId === currentUser?._id
+            ? "You haven't listed any products in your store yet."
+            : "This business doesn't have any products listed."}
         </p>
       </div>
     );
   }
 
   return (
-    <div className="relative flex flex-col gap-6">
-      {/* Refetching State */}
+    <div className="relative flex flex-col gap-6 px-1">
+      {/* Syncing State indicator */}
       {isRefetching && !isFetchingNextPage && (
-        <div className="flex justify-center sticky top-0 z-10">
-          <div className="bg-orange-600 text-white px-3 py-1 rounded-full text-[10px] font-black flex items-center gap-2 shadow-lg tracking-wider">
-            <RefreshCcw size={10} className="animate-spin" /> UPDATING CATALOG
+        <div className="flex justify-center sticky top-2 z-10">
+          <div className="bg-gray-900/90 backdrop-blur-md text-white px-3 py-1.5 rounded-full text-[10px] font-black flex items-center gap-2 shadow-xl">
+            <RefreshCcw size={10} className="animate-spin" /> UPDATING STORE
           </div>
         </div>
       )}
 
-      {/* Product List - Using a slightly different gap for items */}
-      <div className="grid gap-8">
-        {allProducts.map((product) => (
-          <ProductPostCard 
-            key={product._id} 
-            post={product} 
-            onRequireAuth={onRequireAuth} 
+      {/* PRODUCT GRID - Optimized for e-commerce */}
+      {/* PRODUCT GRID */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
+        {allProducts.map((product: ProductPostType) => ( // Add explicit type here
+          <ProductCard
+            key={product._id}
+            product={product}
+            isAuthenticated={isAuthenticated}
+            onRequireAuth={onRequireAuth}
+            onViewDetails={(p) => setSelectedProduct(p)} // 'p' will now be ProductPostType
           />
         ))}
+
+        {/* The Modal remains the same */}
+        <ProductDetailsModal
+          isOpen={!!selectedProduct}
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+          isAuthenticated={isAuthenticated}
+          onRequireAuth={onRequireAuth}
+          onAddToCart={(product: ProductPostType) => { // Added explicit type here
+            toast.success(`${product.name} added to cart!`);
+            setSelectedProduct(null);
+          }}
+        />
       </div>
 
-      {/* Loading Sentinel */}
-      <div ref={bottomRef} className="py-12 text-center">
+      {/* Infinite Scroll Sentinel */}
+      <div ref={bottomRef} className="py-10 text-center">
         {isFetchingNextPage ? (
           <Loader2 className="w-6 h-6 animate-spin mx-auto text-orange-500" />
         ) : !hasNextPage ? (
-          <div className="pt-8 border-t border-gray-100 flex flex-col items-center gap-2">
-            <ShoppingBag size={16} className="text-gray-200" />
-            <p className="text-gray-300 text-[10px] font-black tracking-[0.2em] uppercase">
+          <div className="pt-6 border-t border-gray-100">
+            <p className="text-gray-300 text-[10px] font-bold tracking-widest uppercase">
               End of Catalog
             </p>
           </div>
         ) : null}
       </div>
 
-      {/* Floating Scroll Top (Shared ID logic) */}
+      {/* Floating Scroll Top */}
       <button
         onClick={scrollToTop}
         className={cn(
-          "fixed bottom-10 right-10 p-4 bg-gray-900 text-white rounded-full shadow-2xl transition-all duration-500 z-50 hover:bg-orange-600",
+          "fixed bottom-10 right-10 p-4 bg-orange-600 text-white rounded-full shadow-2xl transition-all duration-500 z-50 hover:scale-110 active:scale-90",
           showScrollTop ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0 pointer-events-none"
         )}
       >

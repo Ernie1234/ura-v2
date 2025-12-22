@@ -15,7 +15,7 @@ export const useFeed = (
 ) => {
   const { data, isLoading, isError, error, refetch } = useQuery<UnifiedPost[]>({
     // Adding userId to the queryKey ensures the feed refreshes when switching profiles
-    queryKey: ['posts-feed', userId || 'me'], 
+    queryKey: ['posts-feed', userId || 'me'],
     queryFn: () => fetchPostFeedQueryFn(userId), // Pass userId to your API function
     staleTime: 1000 * 60 * 5,
     ...options
@@ -49,12 +49,12 @@ export const useInfiniteFeed = (userId?: string) => {
 export const usePostsFeed = (targetId?: string, restrict: boolean = true) => {
   return useInfiniteQuery({
     queryKey: ["posts-feed", { targetId, restrict }],
-    queryFn: ({ pageParam = 1 }) => 
+    queryFn: ({ pageParam = 1 }) =>
       postService.getSocialPosts({ targetId, restrict, page: pageParam as number }),
     initialPageParam: 1,
-    getNextPageParam: (lastPage, allPages) => 
+    getNextPageParam: (lastPage, allPages) =>
       lastPage.length < 15 ? undefined : allPages.length + 1,
-    staleTime: 1000 * 60 * 5, 
+    staleTime: 1000 * 60 * 5,
   });
 };
 
@@ -62,10 +62,10 @@ export const usePostsFeed = (targetId?: string, restrict: boolean = true) => {
 export const useProductsFeed = (targetId?: string, restrict: boolean = true) => {
   return useInfiniteQuery({
     queryKey: ["products-feed", { targetId, restrict }],
-    queryFn: ({ pageParam = 1 }) => 
+    queryFn: ({ pageParam = 1 }) =>
       postService.getProductPosts({ targetId, restrict, page: pageParam as number }),
     initialPageParam: 1,
-    getNextPageParam: (lastPage, allPages) => 
+    getNextPageParam: (lastPage, allPages) =>
       lastPage.length < 15 ? undefined : allPages.length + 1,
     staleTime: 1000 * 60 * 5,
   });
@@ -77,7 +77,7 @@ export const useToggleWishlist = (productId: string) => {
 
   return useMutation({
     mutationFn: () => toggleWishlist(productId),
-    
+
     // 1. Optimistic Update Logic
     onMutate: async () => {
       // Cancel any outgoing refetches so they don't overwrite our optimistic update
@@ -91,10 +91,10 @@ export const useToggleWishlist = (productId: string) => {
         if (!old) return old;
         return {
           ...old,
-          pages: old.pages.map((page: any) => 
-            page.map((product: any) => 
-              product._id === productId 
-                ? { ...product, isWishlisted: !product.isWishlisted } 
+          pages: old.pages.map((page: any) =>
+            page.map((product: any) =>
+              product._id === productId
+                ? { ...product, isWishlisted: !product.isWishlisted }
                 : product
             )
           ),
@@ -119,18 +119,24 @@ export const useToggleWishlist = (productId: string) => {
 };
 
 
+/**
+ * HOOK: useToggleLike
+ * Handles instant liking of Posts or Products and syncs globally.
+ */
 export const useToggleLike = (targetId: string, targetType: 'post' | 'product') => {
   const queryClient = useQueryClient();
+  
+  // The primary list this mutation belongs to
   const queryKey = targetType === 'post' ? ["posts-feed"] : ["products-feed"];
 
   return useMutation({
     mutationFn: () => toggleLikeApi(targetId, targetType),
-    
+
     onMutate: async () => {
-      // 1. Cancel background refetches so they don't overwrite us
+      // 1. Cancel background refetches for this key so they don't overwrite us
       await queryClient.cancelQueries({ queryKey });
 
-      // 2. Save snapshot of current data
+      // 2. Snapshot the current data for rollback if it fails
       const previousData = queryClient.getQueryData(queryKey);
 
       // 3. Optimistically update the cache
@@ -139,21 +145,27 @@ export const useToggleLike = (targetId: string, targetType: 'post' | 'product') 
         return {
           ...old,
           pages: old.pages.map((page: any) => {
-            // Standardize: API might return { posts: [] } or just []
-            const items = Array.isArray(page) ? page : (page.posts || page.products || page.data);
-            
+            // Handle different API response structures (arrays or paginated objects)
+            const items = Array.isArray(page) 
+              ? page 
+              : (page.posts || page.products || page.data || []);
+
             const updatedItems = items.map((item: any) =>
               item._id === targetId
-                ? { 
-                    ...item, 
-                    isLiked: !item.isLiked, 
-                    likesCount: item.isLiked ? Math.max(0, item.likesCount - 1) : item.likesCount + 1 
+                ? {
+                    ...item,
+                    isLiked: !item.isLiked,
+                    likesCount: item.isLiked 
+                      ? Math.max(0, (item.likesCount || 0) - 1) 
+                      : (item.likesCount || 0) + 1
                   }
                 : item
             );
 
-            // Rebuild the page structure correctly
-            return Array.isArray(page) ? updatedItems : { ...page, [page.posts ? 'posts' : 'products']: updatedItems };
+            // Return the data in the same format it arrived
+            return Array.isArray(page) 
+              ? updatedItems 
+              : { ...page, [page.posts ? 'posts' : 'products']: updatedItems };
           }),
         };
       });
@@ -162,61 +174,73 @@ export const useToggleLike = (targetId: string, targetType: 'post' | 'product') 
     },
 
     onError: (err, variables, context) => {
-      // Rollback to original state if API fails
+      // If the API fails, roll back to the state before the click
       queryClient.setQueryData(queryKey, context?.previousData);
       toast.error("Failed to update like");
     },
 
-    onSettled: () => {
-      // Background sync to ensure local state matches server perfectly
-      queryClient.invalidateQueries({ queryKey });
-    },
+    onSuccess: () => {
+      // 4. GLOBAL SYNC: Tell React Query to refresh ALL feeds in the background.
+      // This ensures if the post exists in "Feeds" AND "Profile", both update.
+      queryClient.invalidateQueries({ queryKey: ["posts-feed"] });
+      queryClient.invalidateQueries({ queryKey: ["products-feed"] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      console.log("Like synced globally");
+    }
   });
 };
 
-
-export const useToggleBookmark = (targetId: string, targetType: 'Post' | 'Business', profileKey?: any[]) => {
+/**
+ * HOOK: useToggleBookmark
+ * Handles instant bookmarking and ensures the "Saved" status is updated everywhere.
+ */
+export const useToggleBookmark = (
+  targetId: string,
+  targetType: 'Post' | 'Business',
+  profileKey?: any[] // Optional key for profile-specific pages
+) => {
   const queryClient = useQueryClient();
   
-  // 1. Determine which list to update
+  // Primary key (Business list or Post feed)
   const listKey = targetType === 'Post' ? ["posts-feed"] : ["business-list"];
 
   return useMutation({
     mutationFn: () => toggleBookmarkApi(targetId, targetType),
 
     onMutate: async () => {
-      // Cancel outgoing fetches so they don't overwrite our optimistic update
+      // 1. Cancel outgoing fetches
       await queryClient.cancelQueries({ queryKey: listKey });
       if (profileKey) await queryClient.cancelQueries({ queryKey: profileKey });
 
+      // 2. Snapshot for rollback
       const previousListData = queryClient.getQueryData(listKey);
       const previousProfileData = profileKey ? queryClient.getQueryData(profileKey) : null;
 
-      // OPTIMISTIC UPDATE: The List (Feed)
+      // 3. Optimistic Update for Lists/Feeds
       queryClient.setQueryData(listKey, (old: any) => {
         if (!old) return old;
         return {
           ...old,
           pages: old.pages?.map((page: any) => {
-            const items = Array.isArray(page) ? page : (page.posts || page.businesses || page.data);
-            if (!items) return page;
+            const items = Array.isArray(page) 
+              ? page 
+              : (page.posts || page.businesses || page.data || []);
 
             const updatedItems = items.map((item: any) =>
               item._id === targetId ? { ...item, isBookmarked: !item.isBookmarked } : item
             );
 
-            if (Array.isArray(page)) return updatedItems;
-            const keyName = page.posts ? 'posts' : (page.businesses ? 'businesses' : 'data');
-            return { ...page, [keyName]: updatedItems };
+            return Array.isArray(page) 
+              ? updatedItems 
+              : { ...page, [page.posts ? 'posts' : 'data']: updatedItems };
           }),
         };
       });
 
-      // OPTIMISTIC UPDATE: The Individual Profile (Detail Page)
+      // 4. Optimistic Update for Profile Page (The "related" block)
       if (profileKey) {
         queryClient.setQueryData(profileKey, (old: any) => {
           if (!old) return old;
-          // Matches your ProfileInfo logic: related.isBookmarked
           return {
             ...old,
             related: {
@@ -231,17 +255,23 @@ export const useToggleBookmark = (targetId: string, targetType: 'Post' | 'Busine
     },
 
     onError: (err, variables, context) => {
-      // Rollback both caches if the API fails
+      // Rollback on error
       queryClient.setQueryData(listKey, context?.previousListData);
       if (profileKey) queryClient.setQueryData(profileKey, context?.previousProfileData);
-      toast.error("Failed to update bookmark");
+      toast.error("Failed to save bookmark");
     },
 
-    onSettled: () => {
-      // Final sync with server
-      queryClient.invalidateQueries({ queryKey: listKey });
-      if (profileKey) queryClient.invalidateQueries({ queryKey: profileKey });
-    },
+    onSuccess: () => {
+      // 5. GLOBAL SYNC: Refresh all saved data stores in background
+      queryClient.invalidateQueries({ queryKey: ["business-list"] });
+      queryClient.invalidateQueries({ queryKey: ["posts-feed"] });
+      queryClient.invalidateQueries({ queryKey: ["bookmarked-items"] });
+      
+      if (profileKey) {
+        queryClient.invalidateQueries({ queryKey: profileKey });
+      }
+      console.log("Bookmark synced globally");
+    }
   });
 };
 

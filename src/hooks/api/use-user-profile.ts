@@ -31,8 +31,8 @@ export const useUpdateProfile = () => {
   return useMutation({
     mutationFn: updateProfileMutationFn,
     onMutate: () => {
-       // Optional: This fires the MOMENT the button is clicked
-       // toast.loading("Uploading images and saving..."); 
+      // Optional: This fires the MOMENT the button is clicked
+      // toast.loading("Uploading images and saving..."); 
     },
     onSuccess: (data) => {
       toast.success("Profile updated successfully!"); // Ensure this is imported from 'sonner'
@@ -61,19 +61,25 @@ export const useUpdateBusiness = () => {
 
 
 
+// src/hooks/use-profile-actions.ts
 export const useProfileActions = (targetId: string, isBusiness: boolean) => {
   const queryClient = useQueryClient();
 
   const followMutation = useMutation({
-    mutationFn: () => toggleFollowUser(targetId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["profile", targetId] });
-    queryClient.invalidateQueries({ queryKey: ["socialList"] });
-    toast.success("Success!");
+    // Pass both variables to the API call
+    mutationFn: () => toggleFollowUser(targetId, isBusiness),
 
+    onSuccess: (data) => {
+      // data contains the { message, isFollowing } from your backend
+      queryClient.invalidateQueries({ queryKey: ["profile", targetId] });
+      queryClient.invalidateQueries({ queryKey: ["socialList"] });
+
+      // Personalized toast based on the server response
+      toast.success(data.isFollowing ? "Followed!" : "Unfollowed");
     },
-    onError: () => toast.error("Follow action failed"),
+    onError: () => toast.error("Action failed. Please try again."),
   });
+
   return {
     follow: followMutation.mutate,
     isFollowingLoading: followMutation.isPending,
@@ -81,24 +87,23 @@ export const useProfileActions = (targetId: string, isBusiness: boolean) => {
 };
 
 
+export const useBookmark = (targetId: string, profileKey: any[]) => {
+  const queryClient = useQueryClient();
 
-export  const useBookmark = (targetId: string, profileKey: any[]) => {
-    const queryClient = useQueryClient();
+  return useMutation({
+    // Using the separate mutation function here
+    mutationFn: (targetType: "Business" | "Post") => toggleBookmarkApi(targetId, targetType),
 
-    return useMutation({
-      // Using the separate mutation function here
-      mutationFn: (targetType: "Business" | "Post") => toggleBookmarkApi(targetId, targetType),
-
-      onSuccess: (data) => {
-        queryClient.invalidateQueries({ queryKey: profileKey });
-        toast.success(data.isBookmarked ? "Saved to bookmarks" : "Removed from bookmarks");
-      },
-      onError: (error: any) => {
-        const message = error.response?.data?.message || "Bookmark action failed";
-        toast.error(message);
-      },
-    });
-  };
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: profileKey });
+      toast.success(data.isBookmarked ? "Saved to bookmarks" : "Removed from bookmarks");
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.message || "Bookmark action failed";
+      toast.error(message);
+    },
+  });
+};
 
 
 

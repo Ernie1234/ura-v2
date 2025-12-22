@@ -125,7 +125,7 @@ useEffect(() => {
   }
 
   return (
-    <div className="relative grid gap-6 max-w-2xl mx-auto pb-10">
+    <div className="relative grid gap-6 mx-auto pb-10">
       {/* Updating Indicator */}
       {isRefetching && !isFetchingNextPage && (
         <div className="flex justify-center py-2 sticky top-0 z-10 animate-bounce">
@@ -136,12 +136,13 @@ useEffect(() => {
       )}
 
       {/* Feed List */}
+      <div className="grid gap-6">
       {allPosts.map((post) => (
         post?.type === 'PRODUCT'
           ? <ProductPostCard key={post._id} post={post} onRequireAuth={onRequireAuth} />
           : <SocialPostCard key={post._id} post={post} onRequireAuth={onRequireAuth} />
       ))}
-
+      </div>
       {/* Load More / Footer */}
       <div ref={bottomRef} className="py-10 text-center">
         {isFetchingNextPage ? (

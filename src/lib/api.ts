@@ -154,7 +154,7 @@ interface FetchParams {
 
 export const postService = {
   // Fetch Social Content
-  getSocialPosts: async ({ targetId, restrict, page }: FetchParams): Promise<SocialPostType[]> => {
+  getSocialPosts: async ({ targetId, restrict, page }: FetchParams): Promise<UnifiedPost[]> => {
     const { data } = await API.get("/post/social", {
       params: { authorId: targetId, restrict, page, limit: 15 }
     });
@@ -163,7 +163,7 @@ export const postService = {
 
   // Fetch Business Content
   getProductPosts: async ({ targetId, restrict, page }: FetchParams): Promise<ProductPostType[]> => {
-    const { data } = await API.get("/post/products", {
+    const { data } = await API.get("/post/product", {
       params: { businessId: targetId, restrict, page, limit: 15 }
     });
     return data.posts;
@@ -193,10 +193,12 @@ export const createPostMutationFn = async ({ data, files }: { data: any; files: 
 
 
 // --- api.service.ts ---
-export const toggleFollowUser = async (targetId: string) => {
-  const response = await API.post(`/user/follow/${targetId}`);
+export const toggleFollowUser = async (targetId: string, isBusiness: boolean) => {
+  // We pass isBusiness in the body as your controller expects
+  const response = await API.post(`/user/follow/${targetId}`, { isBusiness });
   return response.data;
 };
+
 
 export const toggleBookmarkApi = async (targetId: string, targetType: "Business" | "Post") => {
   const { data } = await API.post(`/user/bookmarks/toggle/${targetId}`, {

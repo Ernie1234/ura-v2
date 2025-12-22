@@ -1,23 +1,25 @@
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import { Loader2, RefreshCcw, FileText, ArrowUp } from "lucide-react";
-import { useInfiniteFeed, usePostsFeed } from "@/hooks/api/use-feed"; 
+import { useInfiniteFeed, usePostsFeed } from "@/hooks/api/use-feed";
 import { useAuthContext } from "@/context/auth-provider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import SocialPostCard from "./SocialPostCard";
+import ProductPostCard from "./ProductPostCard";
 
 interface PostsFeedProps {
   targetId?: string; // Passed from the Profile Page
   onRequireAuth?: () => void;
+  type: string;
 }
 
-export default function PostsFeed({ targetId, onRequireAuth }: PostsFeedProps) {
+export default function PostsFeed({ targetId, onRequireAuth, type="feed" }: PostsFeedProps) {
   const { user: currentUser } = useAuthContext();
-  
+
   // 1. Determine which ID to use: targetId from params OR the logged-in user's ID
   const effectiveUserId = targetId || currentUser?._id;
-
+  const isPostType = type === 'post'
   // 2. Fetch only 'POST' type for this specific author
   const {
     data,
@@ -27,7 +29,7 @@ export default function PostsFeed({ targetId, onRequireAuth }: PostsFeedProps) {
     status,
     refetch,
     isRefetching,
-  } = usePostsFeed(effectiveUserId, true); 
+  } = usePostsFeed(effectiveUserId, isPostType);
 
   const [showScrollTop, setShowScrollTop] = useState(false);
   const { ref: bottomRef, inView: isBottomInView } = useInView();
@@ -84,8 +86,8 @@ export default function PostsFeed({ targetId, onRequireAuth }: PostsFeedProps) {
         </div>
         <h3 className="text-base font-bold text-gray-900">No posts yet</h3>
         <p className="text-gray-400 text-xs max-w-[200px]">
-          {targetId === currentUser?._id 
-            ? "You haven't shared any posts yet." 
+          {targetId === currentUser?._id
+            ? "You haven't shared any posts yet."
             : "This user hasn't posted anything."}
         </p>
       </div>
@@ -106,14 +108,11 @@ export default function PostsFeed({ targetId, onRequireAuth }: PostsFeedProps) {
       {/* Post List */}
       <div className="grid gap-6">
         {allPosts.map((post) => (
-          <SocialPostCard 
-            key={post._id} 
-            post={post} 
-            onRequireAuth={onRequireAuth} 
-          />
+          post?.type === 'PRODUCT'
+            ? <ProductPostCard key={post._id} post={post} onRequireAuth={onRequireAuth} />
+            : <SocialPostCard key={post._id} post={post} onRequireAuth={onRequireAuth} />
         ))}
       </div>
-
       {/* Infinite Scroll Sentinel */}
       <div ref={bottomRef} className="py-10 text-center">
         {isFetchingNextPage ? (

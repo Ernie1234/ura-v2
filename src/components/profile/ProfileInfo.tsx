@@ -1,8 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   MapPin, Phone, Globe, Pencil, UserPlus,
   MessageCircle, Briefcase, Share2, Bookmark,
-  UserCheck, PlusCircle, User
+  UserCheck, PlusCircle, User,
+  Settings,
+  BarChart3,
+  Star,
+  Loader2
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import type { UserType, BusinessType } from "@/types/api.types";
@@ -11,6 +15,7 @@ import { toast } from "sonner";
 import { useBookmark, useProfileActions } from "@/hooks/api/use-user-profile";
 import { UnfollowDialog } from "./UnfollowDialog";
 import { useToggleBookmark } from "@/hooks/api/use-feed";
+import { BusinessContactInfo } from "./BusinessContactInfo";
 
 type Props = {
   user: UserType;
@@ -23,21 +28,60 @@ const ProfileInfo: React.FC<Props> = ({ user, business, related, isMe }) => {
   const location = useLocation();
   const isBusinessRoute = location.pathname.includes("/business/");
   const [showUnfollowDialog, setShowUnfollowDialog] = useState(false);
-
-  const isFollowing = related?.isFollowing;
   const isSaved = related?.isBookmarked;
+  const isFollowing = related?.isFollowing;
   const displayName = (isBusinessRoute ? business?.businessName : user?.firstName) || "User";
   const targetId = isBusinessRoute ? business?._id : user._id;
 
+  const [localIsSaved, setLocalIsSaved] = useState(isSaved);
+
+  const [localFollowerCount, setLocalFollowerCount] = useState(related?.counts?.followers || 0);
+  const [localIsFollowing, setLocalIsFollowing] = useState(related?.isFollowing);
   const { follow, isFollowingLoading } = useProfileActions(targetId!, isBusinessRoute);
+
+  // 2. Sync local state if the 'related' prop updates (e.g., after a fresh fetch)
+  useEffect(() => {
+    setLocalIsSaved(related?.isBookmarked);
+    setLocalIsFollowing(related?.isFollowing);
+    setLocalFollowerCount(related?.counts?.followers || 0);
+  }, [related]);
 
   const profileKey = ["profile", isBusinessRoute ? business?._id : user.username];
 
-  const { mutate: handleBookmark, isPending: isBookmarkLoading } = useToggleBookmark(
-    targetId!,
-    'Business',
-    profileKey
-  );
+  // 3. Handle Bookmark Toggle
+  const { mutate: toggleBookmarkRequest } = useToggleBookmark(targetId!, 'Business');
+
+  const handleBookmarkToggle = () => {
+    // Instant UI Change
+    setLocalIsSaved(!localIsSaved);
+
+    // Fire API request in background
+    toggleBookmarkRequest();
+  };
+
+  // 4. Handle Follow Toggle
+  const { follow: followRequest } = useProfileActions(targetId!, isBusinessRoute);
+
+  const handleFollowClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (localIsFollowing) {
+      setShowUnfollowDialog(true);
+    } else {
+      // Instant UI Change
+      setLocalIsFollowing(true);
+      setLocalFollowerCount((prev: number) => prev + 1);
+      followRequest();
+    }
+  };
+
+
+  const confirmUnfollow = () => {
+    // Instant UI Change
+    setLocalIsFollowing(false);
+    setLocalFollowerCount((prev: number) => Math.max(0, prev - 1));
+    followRequest();
+    setShowUnfollowDialog(false);
+  };
 
   const handleShare = async () => {
     try {
@@ -79,8 +123,40 @@ const ProfileInfo: React.FC<Props> = ({ user, business, related, isMe }) => {
     <div className="flex flex-col gap-6 p-5">
       {/* Identity Section */}
       <div>
-        <h2 className="text-2xl font-black text-gray-900 tracking-tight">{title}</h2>
-        <p className="text-orange-600 font-bold text-sm mt-0.5">{subTitle}</p>
+        <div className="flex flex-col gap-1">
+          <h2 className="text-2xl font-black text-gray-900 tracking-tight">{title}</h2>
+
+          {/* RATING SECTION (Only for Business) */}
+          {isBusinessRoute && (
+            <div className="flex items-center gap-1.5 mt-1">
+              <div className="flex items-center">
+                {[1, 2, 3, 4, 5].map((star) => {
+                  // Logic: If rating is 3.5, stars 1, 2, 3 are filled. 
+                  // We'll use business.related.rating once available.
+                  const ratingValue = business?.rating || 0;
+                  return (
+                    <Star
+                      key={star}
+                      size={14}
+                      className={cn(
+                        "transition-colors",
+                        star <= Math.round(ratingValue)
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "text-gray-200"
+                      )}
+                    />
+                  );
+                })}
+              </div>
+              <span className="text-xs font-bold text-gray-500">
+                ({business?.related?.rating || "No ratings"})
+              </span>
+            </div>
+          )}
+        </div>
+
+        <p className="text-orange-600 font-bold text-sm mt-1">{subTitle}</p>
+
         <p className="mt-4 text-gray-500 leading-relaxed text-sm">
           {bio || "No bio description yet."}
         </p>
@@ -88,81 +164,111 @@ const ProfileInfo: React.FC<Props> = ({ user, business, related, isMe }) => {
 
       {/* Stats Table */}
       <div className="flex justify-between items-center py-4 border-y border-gray-100 mt-2">
-        <StatBlock label="Followers" value={related?.counts?.followers || 0} />
+        {/* Always show Followers */}
+        {/* <StatBlock label="Followers" value={related?.counts?.followers || 0} /> */}
+        {/* Updated StatBlock to use localFollowerCount */}
+        <StatBlock label="Followers" value={localFollowerCount} />
         <div className="w-[1px] h-6 bg-gray-100" />
-        <StatBlock label="Following" value={related?.counts?.following || 0} />
-        <div className="w-[1px] h-6 bg-gray-100" />
-        <StatBlock label="Posts" value={related?.counts?.posts || 0} />
+        {/* CONDITIONAL BLOCK: Show Products for Business, otherwise show Following */}
+        {isBusinessRoute ? (
+          <>
+            <StatBlock label="Posts" value={related?.counts?.posts || 0} />
+            <div className="w-[1px] h-6 bg-gray-100" />
+            <StatBlock label="Products" value={related?.counts?.products || 0} />
+          </>
+        ) : (
+          <>
+            <StatBlock label="Following" value={related?.counts?.following || 0} />
+            <div className="w-[1px] h-6 bg-gray-100" />
+            <StatBlock label="Posts" value={related?.counts?.posts || 0} />
+          </>
+        )}
       </div>
 
       {/* Primary Actions Grid */}
       <div className="grid grid-cols-3 gap-3 mt-2">
         {isMe ? (
           <>
-            {/* EDIT PROFILE */}
-            <Link to="/dashboard/settings/profile"
-              className={cn(btnBase, btnAction, "bg-orange-500 border-transparent text-white shadow-lg shadow-orange-100 hover:bg-orange-600")}
-
-            >
-              <Pencil size={20} strokeWidth={2.5} />
-              <span>Edit</span>
-            </Link>
-
-            {/* BOOKMARK (Only if on Business Page) */}
+            {/* 1. PRIMARY ACTION: EDIT (Personal) or MANAGE (Business) */}
             {isBusinessRoute ? (
-              <button
-                onClick={() => handleBookmark()}
-                disabled={isBookmarkLoading}
-                className={cn(btnBase, btnAction, "bg-white text-gray-700 border-gray-200 hover:bg-gray-50", isSaved && "bg-orange-50 border-orange-100")}
+              <Link
+                to="/dashboard/settings/profile?page=business"
+                className={cn(btnBase, btnAction, "bg-orange-500 text-white shadow-lg shadow-orange-100 hover:bg-orange-600")}
               >
-                <Bookmark size={20} className={isSaved ? "fill-orange-500 text-orange-500" : "text-gray-400"} strokeWidth={2.5} />
-                <span>{isSaved ? "Saved" : "Save"}</span>
-              </button>
+                <Settings size={20} strokeWidth={2.5} />
+                <span>Manage</span>
+              </Link>
             ) : (
-              /* If personal profile, replace Save with Settings or placeholder */
-              <Link to="/settings" className={cn(btnBase, btnAction, "bg-white text-gray-700 border-gray-200")}>
-                <PlusCircle size={20} className="text-gray-400" />
-                <span>Tools</span>
+              <Link
+                to="/dashboard/settings/profile?page=profile"
+                className={cn(btnBase, btnAction, "bg-orange-500 text-white shadow-lg shadow-orange-100 hover:bg-orange-600")}
+              >
+                <Pencil size={20} strokeWidth={2.5} />
+                <span>Edit</span>
               </Link>
             )}
 
-            <button onClick={handleShare} className={cn(btnBase, btnAction, "bg-white text-gray-700 border-gray-200 hover:bg-gray-50")}>
+            {/* 2. SECONDARY ACTION: TOOLS (Personal) or ANALYTICS/INSIGHTS (Business) */}
+            <Link
+              to={isBusinessRoute ? "/dashboard/business/insights" : "/dashboard/settings"}
+              className={cn(btnBase, btnAction, "bg-white text-gray-700 border-gray-200 hover:bg-gray-50")}
+            >
+              {isBusinessRoute ? (
+                <BarChart3 size={20} className="text-gray-400" />
+              ) : (
+                <PlusCircle size={20} className="text-gray-400" />
+              )}
+              <span>{isBusinessRoute ? "Insights" : "Tools"}</span>
+            </Link>
+
+            {/* 3. SHARE (Always present for owners) */}
+            <button
+              onClick={handleShare}
+              className={cn(btnBase, btnAction, "bg-white text-gray-700 border-gray-200 hover:bg-gray-50")}
+            >
               <Share2 size={20} className="text-orange-500" strokeWidth={2.5} />
               <span>Share</span>
             </button>
           </>
         ) : (
           <>
+            {/* VISITOR VIEW */}
+            {/* 1. FOLLOW */}
             <button
-              onClick={handleFollow}
-              disabled={isFollowingLoading}
-              className={cn(btnBase, btnAction, isFollowing ? "bg-gray-100 border-gray-200 text-gray-800" : "bg-orange-500 border-transparent text-white shadow-lg shadow-orange-100 hover:bg-orange-600")}
+              onClick={handleFollowClick}
+              className={cn(
+                btnBase, btnAction,
+                localIsFollowing ? "bg-gray-100 text-gray-800" : "bg-orange-500 text-white"
+              )}
             >
-              {isFollowing ? <UserCheck size={20} strokeWidth={2.5} /> : <UserPlus size={20} strokeWidth={2.5} />}
-              <span>{isFollowing ? "Following" : "Follow"}</span>
+              {localIsFollowing ? <UserCheck size={20} /> : <UserPlus size={20} />}
+              <span>{localIsFollowing ? "Following" : "Follow"}</span>
             </button>
-
-            {/* ONLY SHOW BOOKMARK ON BUSINESS PAGES */}
-            {isBusinessRoute && (
-              <button
-                onClick={() => handleBookmark()}
-                disabled={isBookmarkLoading}
-                className={cn(btnBase, btnAction, "bg-white text-gray-700 border-gray-200", isSaved && "bg-orange-50 border-orange-100")}
-              >
-                <Bookmark size={20} className={isSaved ? "fill-orange-500 text-orange-500" : "text-gray-400"} strokeWidth={2.5} />
-                <span>Save</span>
-              </button>
-            )}
-
-            <Link to={`/dashboard/chats/${user._id}`} className={cn(btnBase, btnAction, "bg-white text-gray-700 border-gray-200", !isBusinessRoute && "col-span-1")}>
-              <MessageCircle size={20} className="text-orange-500" strokeWidth={2.5} />
+            {/* 2. MESSAGE (Standard for everyone) */}
+            <Link to={`/dashboard/chats/${user._id}`} className={cn(btnBase, btnAction, "bg-white text-gray-700 border-gray-200")}>
+              <MessageCircle size={20} className="text-orange-500" />
               <span>Message</span>
             </Link>
 
-            {/* If Not Business, Share takes the 3rd spot */}
-            {!isBusinessRoute && (
+            {/* 3. CONTEXTUAL ACTION: SAVE (Business) or SHARE (User) */}
+            {isBusinessRoute ? (
+              <button
+                onClick={handleBookmarkToggle}
+                className={cn(
+                  btnBase, btnAction,
+                  "bg-white text-gray-700 border-gray-200",
+                  localIsSaved && "bg-orange-50 border-orange-100"
+                )}
+              >
+                <Bookmark
+                  size={20}
+                  className={localIsSaved ? "fill-orange-500 text-orange-500" : "text-gray-400"}
+                />
+                <span>{localIsSaved ? "Saved" : "Save"}</span>
+              </button>
+            ) : (
               <button onClick={handleShare} className={cn(btnBase, btnAction, "bg-white text-gray-700 border-gray-200")}>
-                <Share2 size={20} className="text-gray-400" strokeWidth={2.5} />
+                <Share2 size={20} className="text-gray-400" />
                 <span>Share</span>
               </button>
             )}
@@ -170,34 +276,16 @@ const ProfileInfo: React.FC<Props> = ({ user, business, related, isMe }) => {
         )}
       </div>
 
-      {/* Secondary Actions / Prompts */}
+      {/* Secondary Prompts */}
       <div className="flex flex-col gap-3 mt-4">
-        {/* ADD BUSINESS PROMPT (If Me and No Business yet) */}
-        {isMe && !user.isBusinessOwner && (
-          <Link
-            to="/business/onboarding"
-            className="group flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-orange-100/50 border border-orange-100 rounded-2xl hover:border-orange-200 transition-all"
-          >
-            <div className="flex items-center gap-3">
-              <div className="bg-orange-500 p-2 rounded-xl text-white">
-                <Briefcase size={18} />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-gray-900">Start Selling</p>
-                <p className="text-[11px] text-orange-700 font-medium">Create your business page</p>
-              </div>
-            </div>
-            <PlusCircle size={20} className="text-orange-500 group-hover:scale-110 transition-transform" />
-          </Link>
-        )}
-
-        {/* View Alternate Page Buttons */}
+        {/* Link to Alternate Page - Personalized Labels */}
         {!isBusinessRoute && user.isBusinessOwner && business && (
           <Link
             to={`/dashboard/profile/business/${business._id}`}
             className="flex items-center justify-center gap-2 py-3.5 bg-gray-50 text-gray-700 rounded-2xl text-xs font-bold border border-gray-100 hover:bg-gray-100 transition-colors"
           >
-            <Briefcase size={16} /> View Business Page
+            <Briefcase size={16} />
+            {isMe ? "View My Business Page" : "View Business Page"}
           </Link>
         )}
 
@@ -206,34 +294,25 @@ const ProfileInfo: React.FC<Props> = ({ user, business, related, isMe }) => {
             to={`/dashboard/profile/user/${user._id}`}
             className="flex items-center justify-center gap-2 py-3.5 bg-gray-50 text-gray-700 rounded-2xl text-xs font-bold border border-gray-100 hover:bg-gray-100 transition-colors"
           >
-            <User size={16} /> View Owner Profile
+            <User size={16} />
+            {isMe ? "View My Personal Profile" : "View Owner Profile"}
           </Link>
         )}
       </div>
 
       {/* Contact Info (Only for Business) */}
+
+
+
       {isBusinessRoute && business && (
-        <div className="space-y-4 pt-6 border-t border-gray-100 mt-2">
-          <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[2px]">Reach Us</h4>
-          <div className="space-y-3">
-            {business.address?.fullAddress && <InfoRow icon={<MapPin size={16} />} text={business.address.fullAddress} />}
-            {business.contact?.phone && <InfoRow icon={<Phone size={16} />} text={business.contact.phone} />}
-            {business.contact?.website && (
-              <InfoRow
-                icon={<Globe size={16} />}
-                text={business.contact.website.replace(/^https?:\/\//, '')}
-                link={business.contact.website}
-              />
-            )}
-          </div>
-        </div>
+        <BusinessContactInfo business={business} />
       )}
 
       {/* Unfollow Confirmation */}
       <UnfollowDialog
         isOpen={showUnfollowDialog}
         onClose={() => setShowUnfollowDialog(false)}
-        onConfirm={follow}
+        onConfirm={confirmUnfollow}
         displayName={displayName}
       />
     </div>

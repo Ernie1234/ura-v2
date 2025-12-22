@@ -5,6 +5,7 @@ import { CommentDrawer } from "./CommentDrawer";
 import { useToggleLike, useToggleBookmark } from "@/hooks/api/use-feed";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface PostActionsProps {
   postId: string;
@@ -27,21 +28,51 @@ export const PostActions = ({
   onRequireAuth,
   isAuthenticated
 }: PostActionsProps) => {
-  const [bookmarked, setBookmarked] = useState(isBookmarked);
-  const [isCommentOpen, setIsCommentOpen] = useState(false);
-  const { mutate: toggleBookmark } = useToggleBookmark(postId, 'Post');
-  const { mutate: toggleLike } = useToggleLike(postId, 'post');
+  // 1. Local states for INSTANT reflection
+  const [localIsLiked, setLocalIsLiked] = useState(isLiked);
+  const [localLikesCount, setLocalLikesCount] = useState(initialLikes);
+  const [localIsBookmarked, setLocalIsBookmarked] = useState(isBookmarked);
 
-  const handleLike = (e: React.MouseEvent) => {
-    e.preventDefault(); // Stop navigation if inside a Link
+  const [isCommentOpen, setIsCommentOpen] = useState(false);
+
+  const { mutate: toggleLike } = useToggleLike(postId, 'post');
+  const { mutate: toggleBookmark } = useToggleBookmark(postId, 'Post');
+
+  const handleLike = async (e: React.MouseEvent) => {
+    e.preventDefault();
     if (!isAuthenticated) return onRequireAuth?.();
-    toggleLike();
+
+    // --- INSTANT UI CHANGE ---
+    const wasLiked = localIsLiked;
+    setLocalIsLiked(!wasLiked);
+    setLocalLikesCount(prev => wasLiked ? prev - 1 : prev + 1);
+
+    // --- BACKEND CALL ---
+    toggleLike(undefined, {
+      onError: () => {
+        // REVERT if backend fails
+        setLocalIsLiked(wasLiked);
+        setLocalLikesCount(prev => wasLiked ? prev + 1 : prev - 1);
+      }
+      // If success, we do nothing. The UI is already correct.
+    });
   };
 
   const handleBookmark = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!isAuthenticated) return onRequireAuth?.();
-    toggleBookmark();
+
+    // --- INSTANT UI CHANGE ---
+    const wasBookmarked = localIsBookmarked;
+    setLocalIsBookmarked(!wasBookmarked);
+
+    // --- BACKEND CALL ---
+    toggleBookmark(undefined, {
+      onError: () => {
+        // REVERT if backend fails
+        setLocalIsBookmarked(wasBookmarked);
+      }
+    });
   };
 
   const handleShare = async () => {
@@ -69,31 +100,32 @@ export const PostActions = ({
         {/* Like Button */}
         <button onClick={handleLike} className="flex items-center gap-1.5 group outline-none">
           <motion.div
-            key={isLiked ? "liked" : "unliked"}
-            animate={{ scale: isLiked ? [1, 1.4, 1] : 1 }}
+            key={localIsLiked ? "liked" : "unliked"}
+            animate={{ scale: localIsLiked ? [1, 1.4, 1] : 1 }}
             transition={{ duration: 0.2 }}
           >
             <Heart
               className={cn(
                 "w-6 h-6 transition-colors duration-200",
-                isLiked ? "fill-red-500 text-red-500" : "text-gray-700"
+                localIsLiked ? "fill-red-500 text-red-500" : "text-gray-700"
               )}
             />
           </motion.div>
 
           <AnimatePresence mode="wait">
             <motion.span
-              key={initialLikes} // Number slides when it changes
+              key={localLikesCount}
               initial={{ y: 5, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -5, opacity: 0 }}
               transition={{ duration: 0.1 }}
               className="text-xs font-black text-gray-700"
             >
-              {initialLikes}
+              {localLikesCount}
             </motion.span>
           </AnimatePresence>
         </button>
+
         {/* Comment Button */}
         <button
           onClick={() => setIsCommentOpen(true)}
@@ -123,14 +155,11 @@ export const PostActions = ({
 
       {/* Bookmark Button */}
       <button onClick={handleBookmark} className="p-2 -mr-2 outline-none group">
-        <motion.div
-          animate={{ scale: isBookmarked ? [1, 1.2, 1] : 1 }}
-          transition={{ duration: 0.2 }}
-        >
+        <motion.div animate={{ scale: localIsBookmarked ? [1, 1.2, 1] : 1 }}>
           <Bookmark
             className={cn(
               "w-6 h-6 transition-colors duration-200",
-              isBookmarked ? "fill-orange-500 text-orange-500" : "text-gray-700 hover:text-orange-400"
+              localIsBookmarked ? "fill-orange-500 text-orange-500" : "text-gray-700 hover:text-orange-400"
             )}
           />
         </motion.div>

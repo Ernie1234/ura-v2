@@ -1,99 +1,184 @@
 import React from "react";
-import { MapPin, Phone, Globe, Clock, Info } from "lucide-react";
-import type { ProfileResponse } from "@/types/api.types";
+import { MapPin, Phone, Globe, Clock, Info, User, Store, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
-// Using the typed ProfileResponse we established earlier
-const ProfileAbout: React.FC<{ profile: ProfileResponse }> = ({ profile }) => {
+interface ProfileAboutProps {
+  profile: any; // Using the ProfileResponse structure
+  isBusinessPage: boolean; // Explicitly pass the context of the current view
+}
+
+const ProfileAbout: React.FC<ProfileAboutProps> = ({ profile, isBusinessPage }) => {
   const { user, business } = profile;
 
-  // If there's no business, we can show a simple user bio instead of an empty business section
-  if (!business) {
+  // VIEW A: USER PROFILE CONTEXT
+  if (!isBusinessPage) {
     return (
-      <section className="bg-white rounded-xl p-6 shadow-sm lg:hidden">
-        <h3 className="font-semibold text-lg flex items-center gap-2">
-          <Info size={20} className="text-orange-500" />
-          About {user.firstName}
-        </h3>
-        <p className="mt-3 text-gray-700 leading-relaxed">
-          {(user as any).bio || "This user hasn't added a bio yet."}
-        </p>
-      </section>
+      <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+        {/* User Bio Card */}
+        <section className="bg-white rounded-2xl p-6 border border-gray-100">
+          <div className="flex items-center gap-2 mb-3 text-gray-900 font-bold">
+            <User size={18} className="text-orange-500" />
+            <h3>Personal Bio</h3>
+          </div>
+          <p className="text-gray-600 leading-relaxed text-sm lg:text-base">
+            {user?.bio || "No bio added yet."}
+          </p>
+        </section>
+
+        {/* Business Link (Only if viewing a user who happens to own a business) */}
+        {user?.isBusinessOwner && business && (
+          <button className="w-full flex items-center justify-between p-4 bg-orange-50 rounded-2xl border border-orange-100 group transition-all hover:bg-orange-100">
+            <div className="flex items-center gap-3 text-left">
+              <div className="p-2 bg-white rounded-xl shadow-sm">
+                <Store size={20} className="text-orange-600" />
+              </div>
+              <div>
+
+                <p className="text-[10px] font-black text-orange-400 uppercase tracking-tighter">View Official Business</p>
+                <p className="text-sm font-bold text-gray-900">{business.businessName}</p>
+
+
+              </div>
+            </div>
+            <Link
+              to={`/dashboard/profile/business/${business._id}`}
+            >
+              <ChevronRight size={18} className="text-orange-400 group-hover:translate-x-1 transition-transform" />
+
+            </Link>
+          </button>
+        )}
+      </div>
     );
   }
 
+  // VIEW B: BUSINESS PAGE CONTEXT
   return (
-    <section className="bg-white rounded-xl p-6 shadow-sm space-y-5 lg:hidden animate-in slide-in-from-bottom-4 duration-300">
-      {/* Business Identity */}
-      <div className="space-y-2">
-        <h3 className="font-semibold text-lg">About {business.businessName}</h3>
-        <p className="text-gray-700 leading-relaxed text-sm">{business.about}</p>
-      </div>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+      {/* About Section */}
+      <section className="bg-white rounded-2xl p-6 border border-gray-100">
+        <h3 className="font-bold text-gray-900 mb-3 uppercase text-[11px] tracking-widest text-orange-500">
+          About the Business
+        </h3>
+        <p className="text-gray-700 leading-relaxed text-sm italic">
+          "{business?.about || "Welcome to our store. We provide quality service and products."}"
+        </p>
+      </section>
 
-      {/* Contact Details */}
-      <div className="py-4 space-y-4 border-t border-b border-gray-50">
+      {/* Details Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Address */}
-        {business.address?.fullAddress && (
-          <div className="flex items-start gap-3 text-sm text-gray-700">
-            <MapPin size={18} className="text-orange-500 shrink-0 mt-0.5" />
-            <span>{business.address.fullAddress}</span>
-          </div>
+        {business?.address?.fullAddress && (
+          <DetailItem
+            icon={<MapPin size={18} />}
+            label="Location"
+            content={business.address.fullAddress}
+          />
         )}
 
-        {/* Operating Hours (Assuming array or string based on your schema) */}
-        {business.operatingHours && (
-          <div className="flex items-start gap-3 text-sm text-gray-700">
-            <Clock size={18} className="text-orange-500 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium">Operating Hours</p>
-              {/* Example: "9:00 AM - 6:00 PM" or mapping an array */}
-              <p className="text-gray-500">Check business schedule</p>
-            </div>
-          </div>
-        )}
-
-        {/* Phone */}
-        {business.contact?.phone && (
-          <div className="flex items-center gap-3 text-sm text-gray-700">
-            <Phone size={18} className="text-orange-500 shrink-0" />
-            <a href={`tel:${business.contact.phone}`} className="hover:text-orange-600">
-              {business.contact.phone}
-            </a>
-          </div>
+        {/* Contact */}
+        {business?.contact?.phone && (
+          <DetailItem
+            icon={<Phone size={18} />}
+            label="Phone"
+            content={business.contact.phone}
+            isLink
+            href={`tel:${business.contact.phone}`}
+          />
         )}
 
         {/* Website */}
-        {business.contact?.website && (
-          <div className="flex items-center gap-3 text-sm text-gray-700">
-            <Globe size={18} className="text-orange-500 shrink-0" />
-            <a
-              href={business.contact.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:underline text-orange-600 truncate"
-            >
-              {business.contact.website.replace(/^https?:\/\//, '')}
-            </a>
-          </div>
+        {business?.contact?.website && (
+          <DetailItem
+            icon={<Globe size={18} />}
+            label="Website"
+            content={business.contact.website.replace(/^https?:\/\//, '')}
+            isLink
+            href={business.contact.website}
+          />
+        )}
+
+        {/* Operating Hours */}
+        {business?.operatingHours && (
+          <DetailItem
+            icon={<Clock size={18} />}
+            label="Business Hours"
+            content="Check full schedule below"
+          />
         )}
       </div>
 
-      {/* Google Map Preview */}
-      {business.address?.fullAddress && (
-        <div className="rounded-xl overflow-hidden h-48 border border-gray-100 shadow-inner">
-          <iframe
-            width="100%"
-            height="100%"
-            className="border-0 grayscale contrast-125"
-            loading="lazy"
-            allowFullScreen
-            src={`https://www.google.com/maps/embed/v1/place?key=YOUR_GOOGLE_MAPS_API_KEY&q=${encodeURIComponent(
-              business.address.fullAddress
-            )}`}
-          />
+      {/* Operating Hours List (Detailed) */}
+      {business?.operatingHours?.length > 0 && (
+        <div className="bg-white rounded-2xl p-6 border border-gray-100">
+          <h3 className="font-bold text-[11px] uppercase tracking-widest text-gray-400 mb-4 flex items-center gap-2">
+            <Clock size={14} /> Daily Schedule
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
+            {business.operatingHours.map((slot: any) => (
+              <div key={slot._id} className="flex justify-between text-xs py-1 border-b border-gray-50 last:border-0">
+                <span className="font-medium text-gray-500">{slot.day}</span>
+                <span className={cn("font-bold", slot.open === "Closed" ? "text-red-400" : "text-gray-900")}>
+                  {slot.open === "Closed" ? "Closed" : `${slot.open} - ${slot.close}`}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
-    </section>
+
+      {/* Map Preview */}
+      {/* Google Map Preview - No API Key Version */}
+      {business?.address?.fullAddress && (
+        <div className="space-y-3">
+          <div className="rounded-2xl overflow-hidden h-60 border border-gray-100 shadow-sm relative group">
+            <iframe
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              referrerPolicy="no-referrer-when-downgrade"
+              src={`https://www.google.com/maps?q=${encodeURIComponent(
+                business.address.fullAddress
+              )}&output=embed`}
+              title="Business Location"
+              className="grayscale hover:grayscale-0 transition-all duration-700 contrast-110"
+            />
+          </div>
+
+          {/* Action Button for Mobile Users */}
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(business.address.fullAddress)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full py-3 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-xl text-xs font-bold transition-colors"
+          >
+            <MapPin size={14} />
+            OPEN IN GOOGLE MAPS APP
+          </a>
+        </div>
+      )}
+
+
+    </div>
   );
 };
+
+// Internal Helper Component
+const DetailItem = ({ icon, label, content, isLink, href }: any) => (
+  <div className="bg-white p-4 rounded-xl border border-gray-50 flex items-start gap-3">
+    <div className="text-orange-500 mt-1">{icon}</div>
+    <div className="overflow-hidden">
+      <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">{label}</p>
+      {isLink ? (
+        <a href={href} target="_blank" className="text-sm font-bold text-gray-900 hover:text-orange-600 truncate block">
+          {content}
+        </a>
+      ) : (
+        <p className="text-sm font-bold text-gray-900 leading-tight">{content}</p>
+      )}
+    </div>
+  </div>
+);
 
 export default ProfileAbout;
