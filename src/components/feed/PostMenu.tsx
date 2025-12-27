@@ -26,9 +26,12 @@ export const PostMenu = ({ actions, triggerClassName }: PostMenuProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
+                  {/* <button className="p-2 text-gray-400 hover:bg-gray-50 rounded-full transition-colors">
+            <MoreHorizontal size={20} />
+          </button> */}
         <button 
           className={cn(
-            "text-gray-400 p-1.5 hover:bg-gray-100 rounded-full transition-colors outline-none",
+            "text-gray-400 p-1.5 hover:bg-gray-100 rounded-full transition-colors",
             triggerClassName
           )}
         >

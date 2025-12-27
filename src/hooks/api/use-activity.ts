@@ -1,32 +1,32 @@
-// src/hooks/api/use-activity.ts
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import API from '@/lib/axios-client'; // Your API instance
 
-import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
-import type { Activity } from '@/types/api.types'; // Define Activity type accordingly
-import { fetchActivityList } from '@/lib/api';
+export const useActivity = (options = {}) => {
+  const queryClient = useQueryClient();
 
-/**
- * Custom hook to fetch the list of recent user activities.
- */
-type ActivityQueryOptions = Omit<UseQueryOptions<Activity[]>, 'queryKey' | 'queryFn'>;
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['activityList'],
+    queryFn: async () => {
+      const response = await API.get('/log/activities');
+      return response.data;
+    },
+    refetchInterval: 60000,
+    ...options
+  });
 
-export const useActivity = (options: ActivityQueryOptions = {}) => {
-    const {
-        data,
-        isLoading,
-        isError,
-        error
-    } = useQuery<Activity[]>({
-        queryKey: ['activityList'],
-        queryFn: fetchActivityList,
-        refetchInterval: 60000, 
-        ...options // <-- Spread the options here
-    });
-    console.log("Activity Data:", data);
+  const clearMutation = useMutation({
+    mutationFn: () => API.delete('/log/activities/clear-all'),
+    onSuccess: () => {
+      // Refresh the list immediately
+      queryClient.invalidateQueries({ queryKey: ['activityList'] });
+    },
+  });
 
-    return {
-        activities: data ?? [], 
-        isLoading,
-        isError,
-        error,
-    };
+  return {
+    activities: data ?? [],
+    isLoading,
+    isError,
+    clearAll: clearMutation.mutate,
+    isClearing: clearMutation.isPending
+  };
 };

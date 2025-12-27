@@ -1,20 +1,22 @@
 // src/pages/dashboard/MenuPage.tsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  CreditCard, Calendar, Tag, BadgePercent, HelpCircle, 
-  Settings, LogOut, ChevronRight, Bookmark, Bell, 
-  MessageCircle, ShoppingCart, ShoppingBag, Store, 
-  PlusCircle, Wallet 
+import {
+  CreditCard, Calendar, Tag, BadgePercent, HelpCircle,
+  Settings, LogOut, ChevronRight, Bookmark, Bell,
+  MessageCircle, ShoppingCart, ShoppingBag, Store,
+  PlusCircle, Wallet
 } from 'lucide-react';
 import { useAuthContext } from '@/context/auth-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import LogoutDialog from '@/components/shared/LogoutDialog';
+import { useCartContext } from '@/context/cart-provider';
 
 const MenuPage = () => {
   const { user } = useAuthContext();
   const navigate = useNavigate();
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
+  const { totalItems: cartItem} = useCartContext();
 
   // Grouped Navigation Items
   const sections = [
@@ -30,10 +32,10 @@ const MenuPage = () => {
     {
       label: "Shopping & Savings",
       items: [
-        { title: 'My Cart', icon: ShoppingCart, path: '/dashboard/cart', badge: 2 },
-        { title: 'My Orders', icon: ShoppingBag, path: '/dashboard/orders' },
-        { title: 'Deals & Offers', icon: Tag, path: '/dashboard/deals' },
-        { title: 'Events', icon: Calendar, path: '/dashboard/events' },
+        { title: 'My Cart', icon: ShoppingCart, path: '/dashboard/product/cart', badge: cartItem },
+        { title: 'My Orders', icon: ShoppingBag, path: '/dashboard/my-orders' },
+        { title: 'Deals & Offers', icon: Tag, path: '/dashboard/deal-offer' },
+        // { title: 'Events', icon: Calendar, path: '/dashboard/events' },
       ]
     }
   ];
@@ -57,7 +59,7 @@ const MenuPage = () => {
 
       {/* User Profile Card */}
       <div className="px-4 py-6">
-        <div 
+        <div
           className="p-4 flex items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-100 active:scale-[0.98] transition-all"
           onClick={() => navigate(`/dashboard/profile/user/${user?._id}`)}
         >
@@ -91,9 +93,8 @@ const MenuPage = () => {
                 <button
                   key={iIdx}
                   onClick={() => navigate(item.path)}
-                  className={`w-full flex items-center justify-between p-4 active:bg-orange-50 transition-colors ${
-                    iIdx !== section.items.length - 1 ? 'border-b border-gray-50' : ''
-                  }`}
+                  className={`w-full flex items-center justify-between p-4 active:bg-orange-50 transition-colors ${iIdx !== section.items.length - 1 ? 'border-b border-gray-50' : ''
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-orange-50 rounded-lg">
@@ -131,7 +132,7 @@ const MenuPage = () => {
               </div>
               <ChevronRight className="text-gray-300" size={16} />
             </button>
-            
+
             <button
               onClick={() => setIsLogoutOpen(true)}
               className="w-full flex items-center gap-3 p-4 text-red-600 active:bg-red-50"

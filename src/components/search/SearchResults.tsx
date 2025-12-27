@@ -1,209 +1,164 @@
-// src/components/search/SearchResults.tsx
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Star, MapPin, Search as SearchIcon, SlidersHorizontal } from 'lucide-react';
-import { mockApi } from '@/services/mockApi';
-
-// Type definitions (assuming MerchantBookmark is defined in types/bookmark.ts)
-interface SearchResult {
-    id: string;
-    name: string;
-    rating: number;
-    reviewCount: number;
-    address: string;
-    snippet: string;
-    profileImageUrl: string;
-}
-
-// Sub-component for the Filters Panel (Mobile Modal or Desktop Sidebar)
-const SearchFilters: React.FC<{ onFilterChange?: (filters: any) => void }> = () => (
-    <div className="p-4 space-y-6 lg:p-0">
-        <h3 className="text-xl font-bold text-gray-800 hidden lg:block mb-4">Filters</h3>
-
-        {/* Categories */}
-        <section>
-            <h4 className="font-semibold text-gray-700 mb-2">Categories</h4>
-            <div className="flex flex-wrap gap-2">
-                {['Snacks & Street Food', 'Breakfast', 'Local Delicacies', 'Soups & Stews', 'Intercontinental', 'Staple'].map(cat => (
-                    <button key={cat} className="px-4 py-2 border border-gray-300 rounded-full text-sm text-gray-700 bg-gray-50 hover:bg-orange-50 hover:border-orange-500 transition-colors">
-                        {cat}
-                    </button>
-                ))}
-            </div>
-        </section>
-
-        {/* Service Options */}
-        <section>
-            <h4 className="font-semibold text-gray-700 mb-2">Service Options</h4>
-            <div className="flex flex-wrap gap-2">
-                {['Dine - In', 'Takeaway', 'Delivery'].map(opt => (
-                    <button key={opt} className="px-4 py-2 border border-gray-300 rounded-full text-sm text-gray-700 hover:bg-orange-50">
-                        {opt}
-                    </button>
-                ))}
-            </div>
-        </section>
-
-        {/* Open Now / Hours (Simplified) */}
-        <section>
-            <h4 className="font-semibold text-gray-700 mb-2">Open Now / Hours</h4>
-            <div className="flex gap-2">
-                {['Open Now', '24 Hours', 'Popular Times'].map(time => (
-                    <button key={time} className="px-4 py-2 border border-gray-300 rounded-full text-sm text-gray-700 hover:bg-orange-50">
-                        {time}
-                    </button>
-                ))}
-            </div>
-        </section>
-        
-        {/* Distance, Rate, Price Range (Using design inputs) */}
-        <section>
-            <h4 className="font-semibold text-gray-700 mb-2">Distance</h4>
-            <div className="flex items-center space-x-2">
-                <button className="w-8 h-8 flex items-center justify-center border border-gray-400 rounded-full">-</button>
-                <span className="text-base text-gray-700">2km</span>
-                <button className="w-8 h-8 flex items-center justify-center border border-gray-400 rounded-full">+</button>
-            </div>
-        </section>
-
-        <section>
-            <h4 className="font-semibold text-gray-700 mb-2">Rate</h4>
-            <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map(star => (
-                    <button key={star} className={`flex items-center justify-center w-8 h-8 border rounded-lg text-sm transition-colors ${star === 4 || star === 5 ? 'bg-orange-100 border-orange-500 text-orange-500' : 'border-gray-300 text-gray-500'}`}>
-                        {star}<Star className={`w-3 h-3 ml-0.5 ${star === 4 || star === 5 ? 'fill-orange-500' : 'fill-gray-300'}`} />
-                    </button>
-                ))}
-            </div>
-        </section>
-        
-        <section>
-            <h4 className="font-semibold text-gray-700 mb-2">Price Range</h4>
-            <div className="flex items-center space-x-2">
-                <button className="w-8 h-8 flex items-center justify-center border border-gray-400 rounded-full">-</button>
-                <span className="text-base text-gray-700">₦500</span>
-                <button className="w-8 h-8 flex items-center justify-center border border-gray-400 rounded-full">+</button>
-            </div>
-        </section>
-    </div>
-);
-
+import React, { useState } from 'react';
+import { ArrowLeft, Search as SearchIcon, SlidersHorizontal, X } from 'lucide-react';
+import { BusinessItem, UserItem, ProductItem, PostItem } from './SearchItems';
+import { SearchFilters } from './SearchFilter';
 
 interface SearchResultsProps {
     query: string;
+    setQuery: (q: string) => void;
+    results: any;
+    isLoading: boolean;
+    activeType: 'all' | 'user' | 'business' | 'post' | 'product';
+    setActiveType: (type: any) => void;
     onBack: () => void;
+    onResultClick: (itemQuery: string, targetUrl: string) => void;
     onFilterToggle: () => void;
     isFilterVisible: boolean;
+    filters: any;       // New
+    setFilters: any;    // New
 }
 
-const SearchResults: React.FC<SearchResultsProps> = ({ query, onBack, onFilterToggle, isFilterVisible }) => {
-    const [results, setResults] = useState<SearchResult[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+const SearchResults: React.FC<SearchResultsProps> = ({
+    query, setQuery, results, isLoading, activeType, setActiveType,
+    onBack, onResultClick, onFilterToggle, isFilterVisible,
+    filters, setFilters // Destructure new props
+}) => {
 
-    useEffect(() => {
-        const fetchResults = async () => {
-            setIsLoading(true);
-            // Simulate fetching results based on the search type (e.g., 'Restaurants')
-            const data = await mockApi.get('searchResults/restaurants');
-            if (data && data.results) {
-                setResults(data.results as SearchResult[]);
-            }
-            setIsLoading(false);
-        };
-        fetchResults();
-    }, [query]);
+    const searchData = results?.data || results || {};
 
-    // The results list item component
-    const ResultItem: React.FC<SearchResult> = (item) => (
-        <div className="flex items-start p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors last:border-b-0">
-            <img 
-                src={item.profileImageUrl} 
-                alt={item.name} 
-                className="w-16 h-16 rounded-full object-cover mr-4 flex-shrink-0" 
-            />
-            <div className="flex-grow">
-                <h3 className="text-lg font-semibold text-gray-800">{item.name}</h3>
-                <div className="flex items-center text-sm text-gray-500 my-0.5">
-                    <Star className="w-4 h-4 text-yellow-400 mr-1 fill-yellow-400" />
-                    <span>{item.rating.toFixed(1)} ({item.reviewCount} reviews)</span>
-                </div>
-                <div className="flex items-center text-sm text-gray-600 mb-2">
-                    <MapPin className="w-3 h-3 mr-1 text-orange-500" />
-                    <span>{item.address}</span>
-                </div>
-                <p className="text-sm text-gray-500 line-clamp-2">{item.snippet} <span className="text-orange-500 font-medium">See more</span></p>
-            </div>
-        </div>
+    const hasResults = (
+        (searchData.businesses?.length > 0) ||
+        (searchData.users?.length > 0) ||
+        (searchData.products?.length > 0) ||
+        (searchData.posts?.length > 0)
     );
 
 
+
     return (
-        <div className="w-full min-h-screen bg-white lg:min-h-0 lg:rounded-xl lg:shadow-xl">
-            
-            {/* Header/Search Input - Unified across mobile/desktop */}
-            <div className="flex items-center space-x-2 p-4 lg:p-6 border-b lg:border-none">
-                <button onClick={onBack} className="p-1 text-gray-600 hover:text-gray-900">
-                    <ArrowLeft className="w-6 h-6" />
-                </button>
-                <div className="flex-grow relative">
-                    <input
-                        type="text"
-                        defaultValue={query} // Display current query
-                        placeholder="Restaurants"
-                        className="w-full py-3 pl-4 pr-16 border border-gray-300 rounded-full focus:outline-none focus:ring-1 focus:ring-orange-500 text-base"
-                    />
-                    <button className="absolute right-4 top-1/2 transform -translate-y-1/2 p-2 text-gray-500 hover:text-gray-700">
-                        <SearchIcon className="w-5 h-5" />
+        <div className="w-full min-h-screen bg-white flex flex-col relative">
+
+            {/* 1. HEADER */}
+            <div className="sticky top-0 bg-white z-30 border-b">
+                <div className="flex items-center space-x-2 p-4">
+                    <button onClick={onBack} className="p-1"><ArrowLeft /></button>
+                    <div className="flex-grow relative">
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            className="w-full py-2 pl-4 pr-10 border rounded-full outline-none focus:border-orange-500"
+                        />
+                        <SearchIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    </div>
+                    {/* Filter Button - Now visible on all screens */}
+                    <button
+                        onClick={onFilterToggle}
+                        className={`p-2 rounded-full transition-colors ${isFilterVisible ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600'}`}
+                    >
+                        <SlidersHorizontal className="w-5 h-5" />
                     </button>
                 </div>
-                <button onClick={onFilterToggle} className="p-1 text-gray-600 hover:text-gray-900 lg:hidden">
-                    <SlidersHorizontal className="w-6 h-6" /> {/* Filter Icon visible on mobile */}
-                </button>
+
+                {/* TABS */}
+                <div className="flex space-x-6 px-6 overflow-x-auto no-scrollbar border-t">
+                    {['all', 'business', 'user', 'product', 'post'].map((tab) => (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveType(tab)}
+                            className={`py-3 text-sm font-medium capitalize border-b-2 transition-colors whitespace-nowrap ${activeType === tab ? 'border-orange-500 text-orange-500' : 'border-transparent text-gray-500'
+                                }`}
+                        >
+                            {tab}
+                        </button>
+                    ))}
+                </div>
             </div>
-            
-            {/* Main Content: Filters + Results */}
-            <div className="lg:grid lg:grid-cols-4 lg:gap-8 lg:p-6">
-                
-                {/* Desktop Filters (Left Column) - image_691f72.jpg */}
-                <div className="lg:col-span-1 hidden lg:block border-r lg:pr-6">
-                    <SearchFilters />
+
+            <div className="flex-grow flex">
+                {/* ... inside the SIDEBAR FILTERS (Desktop) ... */}
+                <div className={`hidden lg:block border-r transition-all duration-300 ${isFilterVisible ? 'w-64 p-6' : 'w-0 overflow-hidden border-none'}`}>
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-bold">Filters</h3>
+                        <button onClick={() => setFilters({})} className="text-xs text-orange-500">Reset</button>
+                    </div>
+                    <SearchFilters
+                        activeType={activeType}
+                        filters={filters}
+                        setFilters={setFilters}
+                    />
                 </div>
 
-                {/* Results List (Right Columns) */}
-                <div className="lg:col-span-3">
-                    <h2 className="text-xl font-bold text-gray-800 p-4 lg:p-0 mb-4">
-                        Search Results for <span className="text-orange-500">{query}</span>
-                    </h2>
-                    
+                {/* 3. MAIN RESULTS AREA */}
+                <div className="flex-grow p-4 lg:p-6 overflow-y-auto">
                     {isLoading ? (
-                        <div className="text-center py-10 text-gray-500">Searching for results...</div>
+                        <div className="flex flex-col items-center py-20 text-gray-400">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mb-2" />
+                            <p>Loading...</p>
+                        </div>
+                    ) : !hasResults ? (
+                        <div className="text-center py-20">
+                            <SearchIcon className="mx-auto text-gray-200 w-16 h-16 mb-4" />
+                            <h3 className="text-gray-800 font-bold">No results found</h3>
+                            <p className="text-gray-500 text-sm">Try adjusting your search for "{query}"</p>
+                        </div>
                     ) : (
-                        <div className="divide-y divide-gray-100">
-                            {results.map(item => <ResultItem key={item.id} {...item} />)}
-                            {results.length === 0 && (
-                                <p className="text-center text-gray-500 py-10">No results found for "{query}".</p>
-                            )}
+                        <div className="max-w-3xl mx-auto space-y-8">
+                            {/* BUSINESSES */}
+                            {(activeType === 'all' || activeType === 'business') && searchData.businesses?.map((b: any) => (
+                                <BusinessItem key={b._id} biz={b} onClick={() => onResultClick(b.businessName, `/dashboard/profile/business/${b._id}`)} />
+                            ))}
+
+                            {/* USERS */}
+                            {(activeType === 'all' || activeType === 'user') && searchData.users?.map((u: any) => (
+                                <UserItem key={u._id} user={u} onClick={() => onResultClick(u.username, `/dashboard/profile/user/${u._id}`)} />
+                            ))}
+
+                            {/* PRODUCTS */}
+                            {(activeType === 'all' || activeType === 'product') && searchData.products?.map((p: any) => (
+                                <ProductItem key={p._id} prod={p} onClick={() => onResultClick(p.name, `/dashboard/product/${p._id}`)} />
+                            ))}
+
+                            {/* POSTS (Added this section) */}
+                            {(activeType === 'all' || activeType === 'post') && searchData.posts?.map((post: any) => (
+                                <PostItem key={post._id} post={post} onClick={() => onResultClick(post.caption, `/post/${post._id}`)} />
+                            ))}
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Mobile Filter Modal (if isFilterVisible is true) */}
+            {/* 4. MOBILE FILTER OVERLAY */}
             {isFilterVisible && (
-                <div className="fixed inset-0 z-40 bg-white lg:hidden overflow-y-auto">
-                    <div className="flex items-center justify-between p-4 border-b">
-                        <h2 className="text-xl font-bold">Filters</h2>
-                        <button onClick={onFilterToggle} className="p-2 text-gray-600">
-                            <ArrowLeft className="w-6 h-6" />
-                        </button>
-                    </div>
-                    <SearchFilters />
-                    <div className="p-4 border-t sticky bottom-0 bg-white">
-                        <button 
-                            className="w-full py-3 bg-orange-500 text-white font-bold rounded-lg hover:bg-orange-600 transition-colors"
-                            onClick={onFilterToggle} // Close modal/Apply button action
-                        >
-                            Apply Filters
-                        </button>
+                <div className="fixed inset-0 z-50 lg:hidden">
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onFilterToggle} />
+
+                    {/* Changed h-[60vh] to max-h-[85vh] and added flex-col */}
+                    <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 max-h-[85vh] flex flex-col shadow-2xl">
+                        <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6" /> {/* Pull-down handle UI */}
+
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-bold text-gray-900">Filters</h3>
+                            <button onClick={onFilterToggle} className="p-2 bg-gray-50 rounded-full"><X size={20} /></button>
+                        </div>
+
+                        {/* The filter component itself is now scrollable inside this flex container */}
+                        <div className="flex-grow overflow-y-auto">
+                            <SearchFilters
+                                activeType={activeType}
+                                filters={filters}
+                                setFilters={setFilters}
+                            />
+                        </div>
+
+                        <div className="pt-4 mt-2 border-t border-gray-100">
+                            <button
+                                onClick={onFilterToggle}
+                                className="w-full bg-orange-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-orange-200 active:scale-95 transition-transform"
+                            >
+                                Apply Filters
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

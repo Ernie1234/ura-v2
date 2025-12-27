@@ -8,17 +8,23 @@ export const AUTH_ROUTES = {
 
 export const PROTECTED_ROUTES = {
   DASHBOARD: '/dashboard',
+  DEALS_OFFER: '/dashboard/deal-offer',
   SETTINGS: '/dashboard/settings',
   SETTINGS_PROFILE: '/dashboard/settings/profile',
   SETTINGS_SECURITY: '/dashboard/settings/security',
   SETTINGS_ACTIVITY: '/dashboard/settings/activities',
-  BOOKMARK: '/dashboard/bookmark',
+  NOTIFICATION: '/dashboard/notifications',
+  BOOKMARK: '/dashboard/bookmarks',
   USER_PROFILE: '/dashboard/profile/user/:userId',
   BUSINESS_PROFILE: '/dashboard/profile/business/:userId',
   CREATE_PRODUCT: 'dashboard/post/create',
   MENU: '/dashboard/menu',
-  CHAT: '/dashboard/chats',
-  PRODUCT_DETAIL: '/product/:productId',
+  CHAT: '/dashboard/chat',
+  CART: '/dashboard/product/cart',
+  CHECKOUT: '/dashboard/checkout',
+  ORDER: '/dashboard/my-orders',
+  CHAT_CONVERSATION: '/dashboard/chat/:conversationId',
+  PRODUCT_DETAIL: '/dashboard/product/:productId',
 };
 
 export const BASE_ROUTE = {

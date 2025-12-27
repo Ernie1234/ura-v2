@@ -17,6 +17,16 @@ export const NavBar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, to: string) => {
+  if (to.startsWith('#')) {
+    e.preventDefault(); // Stop React Router from trying to change the URL path
+    const element = document.getElementById(to.replace('#', ''));
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+    setMenuState(false); // Close mobile menu if open
+  }
+};
   return (
     <header>
       <nav data-state={menuState && 'active'} className="fixed z-20 w-full px-2">
@@ -52,6 +62,7 @@ export const NavBar = () => {
                     <li key={to}>
                       <Link
                         to={to}
+                        onClick={(e) => handleNavClick(e, to)}
                         className={cn(
                           'flex items-center gap-1 duration-150',
                           isActive

@@ -25,6 +25,8 @@ import {
 } from '@/components/ui/sidebar';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthContext } from '@/context/auth-provider';
+import { useCartContext } from '@/context/cart-provider';
+import { useNotificationContext } from '@/context/notification-provider';
 
 type NavItem = {
   title: string;
@@ -36,24 +38,38 @@ type NavItem = {
 
 export function NavMain() {
   const { user } = useAuthContext();
+  const { unreadCount } = useNotificationContext();
   const location = useLocation();
   const pathname = location.pathname;
 
+  const { totalItems } = useCartContext();
   // 1. Shared Items
   const mainItems: NavItem[] = [
     { title: 'Feed', url: '/dashboard', icon: LayoutDashboard },
     { title: 'Chat', url: '/dashboard/chat', icon: MessageCircle, showBadge: true, badgeValue: 5 },
     { title: 'Bookmarks', url: '/dashboard/bookmarks', icon: Bookmark }, // 🚨 Added Bookmarks here
-    { title: 'Notifications', url: '/dashboard/notifications', icon: Bell, showBadge: true, badgeValue: 3 },
+    { 
+    title: 'Notifications', 
+    url: '/dashboard/notifications', 
+    icon: Bell, 
+    showBadge: unreadCount > 0, 
+    badgeValue: unreadCount 
+  },
     // { title: 'Wallet', url: '/dashboard/wallet', icon: Wallet },
 
   ];
 
   // 2. Shopping & Savings Items
   const shoppingItems: NavItem[] = [
-    { title: 'Cart', url: '/dashboard/cart', icon: ShoppingCart, showBadge: true, badgeValue: 2 },
-    { title: 'My Orders', url: '/dashboard/orders', icon: ShoppingBag },
-    { title: 'Deals', url: '/dashboard/deals', icon: Tag },
+    {
+      title: 'Cart',
+      url: '/dashboard/product/cart',
+      icon: ShoppingCart,
+      showBadge: totalItems > 0,
+      badgeValue: totalItems
+    },
+    { title: 'My Orders', url: '/dashboard/my-orders', icon: ShoppingBag },
+    { title: 'Deals', url: '/dashboard/deal-offer', icon: Tag },
     { title: 'Events', url: '/dashboard/events', icon: Calendar },
   ];
 

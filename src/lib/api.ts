@@ -13,15 +13,15 @@ import type { UnifiedPost, SocialPostType, ProductPostType } from '@/types/feed.
 
 
 export const checkUsernameAvailability = async (username: string): Promise<UsernameCheckResponse> => {
-    // Only call the API if the username is not empty
-    if (!username) {
-        return { available: true, message: '' };
-    }
-    
-    const response = await API.get(`/auth/check-username`, {
-        params: { username }
-    });
-    return response.data;
+  // Only call the API if the username is not empty
+  if (!username) {
+    return { available: true, message: '' };
+  }
+
+  const response = await API.get(`/auth/check-username`, {
+    params: { username }
+  });
+  return response.data;
 };
 
 
@@ -100,10 +100,10 @@ export const updateBusinessMutationFn = async (data: any) => {
       return await uploadImageToCloudinary(value);
     } else if (value === "DELETE_IMAGE") {
       // User explicitly wants to remove the photo
-      return null; 
+      return null;
     } else {
       // No change made (value is undefined or the existing URL)
-      return undefined; 
+      return undefined;
     }
   };
 
@@ -120,26 +120,34 @@ export const updateBusinessMutationFn = async (data: any) => {
 
 
 export const fetchChatList = async () => {
-    const response = await API.get('/chat/conversations/list'); 
-    return response.data.data; // Assuming response.data is { success: true, data: [...] }
+  const response = await API.get('/chat/conversations/list');
+  return response.data.data; // Assuming response.data is { success: true, data: [...] }
 };
 
 export const fetchActivityList = async () => {
-    const response = await API.get('/activity/list'); 
-    return response.data.activities;
+  const response = await API.get('/log/activities');
+  console.log('response', response);
+  return response.data;
 }
 
 export const fetchBookmarkList = async () => {
-    const response = await API.get('/bookmark/list'); 
-    return response.data.bookmarks;
+  const response = await API.get('/bookmark/list');
+  return response.data.bookmarks;
 }
 
+
+export const fetchBookmarksLoad = async (type: 'Post' | 'Business') => {
+  // We pass the type as a query parameter as expected by our controller
+  const response = await API.get(`/bookmark/load?type=${type}`);
+  return response.data;
+};
+
 export const fetchPostFeedQueryFn = async (userId?: string, page: number = 1): Promise<UnifiedPost[]> => {
-  const url = userId 
-    ? `/post/feed?userId=${userId}&page=${page}` 
+  const url = userId
+    ? `/post/feed?userId=${userId}&page=${page}`
     : `/post/feed?page=${page}`;
-  
-  const response = await API.get(url); 
+
+  const response = await API.get(url);
   return response.data.posts;
 };
 
@@ -225,4 +233,99 @@ export const fetchFollowList = async (targetId: string, type: "followers" | "fol
     params: { type }
   });
   return data.users; // Returning the 'users' array from your controller's res.json
+};
+
+
+export const searchAPI = {
+  getGlobalSearch: (params: {
+    q: string;
+    type?: 'all' | 'business' | 'user' | 'product' | 'post';
+    category?: string;
+    city?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    tags?: string;       // Added for Post filtering
+    isBusiness?: boolean;
+    inStock?: boolean;   // Added for Product filtering
+    openNow?: boolean;   // Added for Business filtering
+    rating?: number;     // Added for Business/Product filtering
+  }) => API.get('/search', { params }),
+
+  // History Management
+  getRecentSearches: () => API.get('/search/recent'),
+
+  saveToHistory: (query: string) => API.post('/search/history', { query }),
+
+  deleteHistoryItem: (id: string) => API.delete(`/search/history/${id}`),
+
+  clearAllHistory: () => API.delete('/search/history'),
+};
+
+
+// src/services/category-service.ts
+
+export const fetchProductCategories = async (): Promise<string[]> => {
+  const { data } = await API.get('/product/product-categories'); // Update with your actual base URL
+
+  return data.data; // This is the array of strings from your backend
+};
+
+export const cartAPI = {
+  // Get current user's cart
+  getCart: () => API.get('/cart'),
+
+  // Add item: { productId, quantity }
+  addToCart: (data: { productId: string; quantity: number }) => 
+    API.post('/cart/add', data),
+
+  // Update quantity: { productId, quantity }
+  updateQuantity: (data: { productId: string; quantity: number }) => 
+    API.put('/cart/update', data),
+
+  // Remove item
+  removeFromCart: (productId: string) => 
+    API.delete(`/cart/remove/${productId}`),
+};
+
+export const orderAPI = {
+  // Checkout: { shippingAddress: { fullAddress, city, phone }, paymentMethod }
+  checkout: (data: { 
+    shippingAddress: { fullAddress: string; city: string; phone: string }; 
+    paymentMethod: string;
+  }) => API.post('/order/checkout', data),
+
+  // Get all user orders
+  getMyOrders: () => API.get('/order/my-orders'),
+
+  // Get specific order
+  getOrderById: (id: string) => API.get(`/order/${id}`),
+};
+
+
+export interface CreateReviewData {
+  reviewedItem: string;
+  reviewedItemModel: 'Business' | 'Product';
+  rating: number;
+  comment?: string;
+}
+
+export const reviewAPI = {
+  // Get reviews for a specific item
+  getItemReviews: (itemId: string) => API.get(`/reviews/item/${itemId}`),
+
+  // Create a new review
+  createReview: (data: CreateReviewData) => API.post('/reviews', data),
+
+  // Update an existing review
+  updateReview: (id: string, data: { rating?: number; comment?: string }) => 
+    API.patch(`/reviews/${id}`, data),
+
+  // Delete a review
+  deleteReview: (id: string) => API.delete(`/reviews/${id}`),
+
+  // Toggle Like
+  likeReview: (id: string) => API.post(`/reviews/${id}/like`),
+
+  // Toggle Dislike
+  dislikeReview: (id: string) => API.post(`/reviews/${id}/dislike`),
 };

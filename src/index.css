@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
@@ -114,6 +115,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -123,6 +125,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -134,47 +137,50 @@
 }
 
 
-/* Add to your global CSS file */
+@layer base {
+  html {
+    /* Set Urbanist as the base font for the entire app */
+    font-family: 'Urbanist', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv02", "cv03", "cv04"; /* Improves Urbanist legibility */
+  }
+}
+
 @layer utilities {
-  .scrollbar-hide::-webkit-scrollbar {
+
+  /* The ultimate "Hide Scrollbar" utility */
+  .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
   }
-}
+  
+  /* Fix: Scrollbar thumb was invisible; now uses your Secondary Key Color #d1d5db / #e5e7eb */
+  .scrollbar-base::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 100px;
+    border: 3px solid transparent; /* Acts as padding */
+    background-clip: content-box;
+    transition: all 0.4s ease-in-out;
+  }
 
-/* src/index.css */
+  .scrollbar-main::-webkit-scrollbar { width: 10px; }
+  .scrollbar-slim::-webkit-scrollbar { width: 5px; height: 5px; }
 
-/* Custom scrollbar for the main feed */
-#main-feed-container {
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: #e5e7eb transparent; /* Firefox (thumb, track) */
-}
+  /* Visible on hover for that "Mac-style" interaction */
+  .scrollbar-base:hover::-webkit-scrollbar-thumb {
+    background-color: #d1d5db; /* Matches your Secondary Key palette */
+  }
 
-#main-feed-container::-webkit-scrollbar {
-  width: 6px; /* Width of the scrollbar */
-}
-
-#main-feed-container::-webkit-scrollbar-track {
-  background: transparent; /* Makes the track invisible */
-}
-
-#main-feed-container::-webkit-scrollbar-thumb {
-  background-color: #d1d5db; /* Light gray thumb */
-  border-radius: 20px; /* Rounded pill shape */
-  border: 2px solid transparent; /* Adds padding effect */
-}
-
-#main-feed-container::-webkit-scrollbar-thumb:hover {
-  background-color: #9ca3af; /* Darker gray on hover */
-}
-
-#main-feed-container::-webkit-scrollbar-thumb {
-  background-color: transparent; /* Hidden by default */
-}
-
-#main-feed-container:hover::-webkit-scrollbar-thumb {
-  background-color: #d1d5db; /* Shows up on hover */
+  /* Your Brand Orange on Active/Drag */
+  .scrollbar-base::-webkit-scrollbar-thumb:active {
+    background-color: #f97316 !important; 
+  }
 }

@@ -1,7 +1,7 @@
 // src/hooks/api/use-bookmarks.ts
 
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
-import { fetchBookmarkList } from '@/lib/api';
+import { fetchBookmarkList, fetchBookmarksLoad } from '@/lib/api';
 
 import type { Bookmark } from '@/types/api.types';
 
@@ -21,4 +21,15 @@ export const useBookmarks = (options: BookmarkQueryOptions = {}) => {
     isError,
     error,
   };
+};
+
+
+export const useBookmarkedItems = (type: 'Post' | 'Business') => {
+  return useQuery({
+    // The key changes based on type: ['bookmarks', 'Post'] or ['bookmarks', 'Business']
+    queryKey: ['bookmarks', type],
+    queryFn: () => fetchBookmarksLoad(type),
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes to prevent redundant loads
+    refetchOnWindowFocus: false,
+  });
 };

@@ -45,16 +45,18 @@ export const useInfiniteFeed = (userId?: string) => {
   });
 };
 
-
-export const usePostsFeed = (targetId?: string, restrict: boolean = true) => {
+export const usePostsFeed = (targetId?: string, restrict: boolean = false) => { // Default to false for Home
   return useInfiniteQuery({
     queryKey: ["posts-feed", { targetId, restrict }],
     queryFn: ({ pageParam = 1 }) =>
       postService.getSocialPosts({ targetId, restrict, page: pageParam as number }),
     initialPageParam: 1,
-    getNextPageParam: (lastPage, allPages) =>
-      lastPage.length < 15 ? undefined : allPages.length + 1,
-    staleTime: 1000 * 60 * 5,
+    // Optimization: Standardize the page limit check
+    getNextPageParam: (lastPage, allPages) => {
+      const limit = 15;
+      return lastPage.length < limit ? undefined : allPages.length + 1;
+    },
+    staleTime: 1000 * 60 * 5, // 5 mins is good for marketplace data
   });
 };
 
@@ -125,7 +127,7 @@ export const useToggleWishlist = (productId: string) => {
  */
 export const useToggleLike = (targetId: string, targetType: 'post' | 'product') => {
   const queryClient = useQueryClient();
-  
+
   // The primary list this mutation belongs to
   const queryKey = targetType === 'post' ? ["posts-feed"] : ["products-feed"];
 
@@ -146,25 +148,25 @@ export const useToggleLike = (targetId: string, targetType: 'post' | 'product') 
           ...old,
           pages: old.pages.map((page: any) => {
             // Handle different API response structures (arrays or paginated objects)
-            const items = Array.isArray(page) 
-              ? page 
+            const items = Array.isArray(page)
+              ? page
               : (page.posts || page.products || page.data || []);
 
             const updatedItems = items.map((item: any) =>
               item._id === targetId
                 ? {
-                    ...item,
-                    isLiked: !item.isLiked,
-                    likesCount: item.isLiked 
-                      ? Math.max(0, (item.likesCount || 0) - 1) 
-                      : (item.likesCount || 0) + 1
-                  }
+                  ...item,
+                  isLiked: !item.isLiked,
+                  likesCount: item.isLiked
+                    ? Math.max(0, (item.likesCount || 0) - 1)
+                    : (item.likesCount || 0) + 1
+                }
                 : item
             );
 
             // Return the data in the same format it arrived
-            return Array.isArray(page) 
-              ? updatedItems 
+            return Array.isArray(page)
+              ? updatedItems
               : { ...page, [page.posts ? 'posts' : 'products']: updatedItems };
           }),
         };
@@ -200,7 +202,7 @@ export const useToggleBookmark = (
   profileKey?: any[] // Optional key for profile-specific pages
 ) => {
   const queryClient = useQueryClient();
-  
+
   // Primary key (Business list or Post feed)
   const listKey = targetType === 'Post' ? ["posts-feed"] : ["business-list"];
 
@@ -222,16 +224,16 @@ export const useToggleBookmark = (
         return {
           ...old,
           pages: old.pages?.map((page: any) => {
-            const items = Array.isArray(page) 
-              ? page 
+            const items = Array.isArray(page)
+              ? page
               : (page.posts || page.businesses || page.data || []);
 
             const updatedItems = items.map((item: any) =>
               item._id === targetId ? { ...item, isBookmarked: !item.isBookmarked } : item
             );
 
-            return Array.isArray(page) 
-              ? updatedItems 
+            return Array.isArray(page)
+              ? updatedItems
               : { ...page, [page.posts ? 'posts' : 'data']: updatedItems };
           }),
         };
@@ -266,7 +268,7 @@ export const useToggleBookmark = (
       queryClient.invalidateQueries({ queryKey: ["business-list"] });
       queryClient.invalidateQueries({ queryKey: ["posts-feed"] });
       queryClient.invalidateQueries({ queryKey: ["bookmarked-items"] });
-      
+
       if (profileKey) {
         queryClient.invalidateQueries({ queryKey: profileKey });
       }

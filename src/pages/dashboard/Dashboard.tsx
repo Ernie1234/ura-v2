@@ -3,7 +3,7 @@ import { useAuthContext } from '@/context/auth-provider';
 import { useIsDesktop } from '@/hooks/use-is-desktop';
 import { useChats } from '@/hooks/api/use-chat';
 import { useActivity } from '@/hooks/api/use-activity';
-import { useBookmarks } from '@/hooks/api/use-bookmark';
+import { useBookmarkedItems, useBookmarks } from '@/hooks/api/use-bookmark';
 
 import DashboardContainer from '@/layout/DashboardContainer';
 import { DashboardSkeleton } from '@/components/skeleton/DashboardSkeleton';
@@ -14,23 +14,48 @@ import ShareBox from '@/components/dashboard/ShareBox';
 import AllFeed from '@/components/feed/AllFeed';
 import ActivityPanel from '@/components/dashboard/ActivityPanel';
 import BookmarkList from '@/components/dashboard/BookmarkList';
+import { useChat } from '@/hooks/use-chat';
+import React from 'react';
 
 const Dashboard = () => {
   const { user, related, isLoading: isContextLoading } = useAuthContext();
   const isDesktop = useIsDesktop();
 
   // API Hooks
-  const { chats, isLoading: isChatsLoading, isError: chatError } = 
-    useChats(isDesktop ? { enabled: true } : { enabled: false });
-  
-  const { activities, isLoading: isActivitiesLoading, isError: isActivityError } = 
-    useActivity(isDesktop ? { enabled: true } : { enabled: false });
-  
-  const { bookmarks, isLoading: isBookmarksLoading, isError: isBookmarksError } = 
-    useBookmarks(isDesktop ? { enabled: true } : { enabled: false });
+  const activeProfileId = user?._id;
+  const {
+    conversations,
+    isLoading: isChatsLoading,
+    isError: chatError // This maps the hook's isError to the name chatError
+  } = useChat(activeProfileId!);
+
+  const {
+    activities,
+    isError: isActivityError,
+    clearAll
+  } = useActivity(isDesktop ? { enabled: true } : { enabled: false });
+
+  const {
+    data: posts,
+    isLoading: isPostsLoading,
+    isError: isBookmarksError
+  } = useBookmarkedItems('Post');
+
+  const {
+    data: businesses,
+    isLoading: isBizLoading,
+  } = useBookmarkedItems('Business');
+
+  // Combine them for a "Recent Saved" list
+  const allBookmarks = React.useMemo(() => {
+    return [...(posts || []), ...(businesses || [])].sort((a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [posts, businesses]);
+
 
   // 1. Loading State
-  if (isContextLoading || isChatsLoading || isActivitiesLoading || isBookmarksLoading) {
+  if (isContextLoading || isChatsLoading) {
     return <DashboardSkeleton />;
   }
 
@@ -39,44 +64,66 @@ const Dashboard = () => {
     return <Navigate to="/auth/login" replace />;
   }
 
+  // Inside Dashboard.tsx return statement:
+
   return (
     <DashboardContainer
       // --- LEFT SIDE ---
       leftColumn={
-        <>
+        <div className="flex flex-col gap-6">
+          {/* Ensure ProfileCard is bg-white/40 backdrop-blur internally */}
           <ProfileCard user={user} related={related} />
-          <SidebarWidget 
-            isDesktop={isDesktop} 
-            isError={chatError} 
-            errorTitle="Failed to load chats"
+
+          <SidebarWidget
+            isDesktop={isDesktop}
+            isError={chatError}
+            errorTitle="Messages"
+            // Use subtle headers for the widgets
+            className="bg-white/40 backdrop-blur-xl border-white/20 rounded-[24px] overflow-hidden"
           >
-            <ChatList chatList={chats} isError={chatError} />
+            <ChatList
+              chatList={conversations}
+              activeProfileId={activeProfileId!}
+            />
           </SidebarWidget>
-        </>
+        </div>
       }
       // --- RIGHT SIDE ---
       rightColumn={
-        <>
-          <SidebarWidget 
-            isDesktop={isDesktop} 
-            isError={isActivityError} 
-            errorTitle="Failed to load activity"
+        <div className="flex flex-col gap-6">
+          <SidebarWidget
+            isDesktop={isDesktop}
+            isError={isActivityError}
+            errorTitle="Recent Activity"
+            className="bg-white/40 backdrop-blur-xl border-white/20 rounded-[24px]"
           >
-            <ActivityPanel activities={activities} isError={false} />
+            <ActivityPanel
+              activities={activities}
+              isError={isActivityError}
+              onClearAll={clearAll}
+            />
           </SidebarWidget>
 
-          <SidebarWidget 
-            isDesktop={isDesktop} 
-            isError={isBookmarksError} 
-            errorTitle="Failed to load bookmarks"
+          <SidebarWidget
+            isDesktop={isDesktop}
+            isError={isBookmarksError}
+            errorTitle="Saved Items"
+            className="bg-white/40 backdrop-blur-xl border-white/20 rounded-[24px]"
           >
-            <BookmarkList bookmarks={bookmarks} isLoading={false} isError={false} />
+            <BookmarkList
+              bookmarks={allBookmarks}
+              isLoading={isPostsLoading || isBizLoading}
+              isError={isBookmarksError}
+            />
           </SidebarWidget>
-        </>
+        </div>
       }
     >
-      <ShareBox />
-      <AllFeed />
+      {/* Feed section spacing improved for the Urbanist font flow */}
+      <div className="space-y-8">
+        <ShareBox />
+        <AllFeed />
+      </div>
     </DashboardContainer>
   );
 };

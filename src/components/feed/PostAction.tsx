@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { Heart, MessageCircle, Share2, Bookmark } from "lucide-react";
-import API from "@/lib/axios-client";
 import { CommentDrawer } from "./CommentDrawer";
 import { useToggleLike, useToggleBookmark } from "@/hooks/api/use-feed";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+import { AuthPromptModal } from "@/components/shared/AuthPromptModel"; // Import the modal
 
 interface PostActionsProps {
   postId: string;
@@ -28,142 +27,177 @@ export const PostActions = ({
   onRequireAuth,
   isAuthenticated
 }: PostActionsProps) => {
-  // 1. Local states for INSTANT reflection
   const [localIsLiked, setLocalIsLiked] = useState(isLiked);
   const [localLikesCount, setLocalLikesCount] = useState(initialLikes);
   const [localIsBookmarked, setLocalIsBookmarked] = useState(isBookmarked);
-
   const [isCommentOpen, setIsCommentOpen] = useState(false);
+  
+  // Local state to control the auth popup
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalConfig, setAuthModalConfig] = useState({ title: "", subtitle: "", action: "" });
 
   const { mutate: toggleLike } = useToggleLike(postId, 'post');
   const { mutate: toggleBookmark } = useToggleBookmark(postId, 'Post');
 
-  const handleLike = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (!isAuthenticated) return onRequireAuth?.();
+  // Helper to trigger auth check
+  const checkAuth = (action: 'like' | 'comment' | 'bookmark') => {
+    if (!isAuthenticated) {
+      const configs = {
+        like: { title: "Like this post?", subtitle: "Sign in to show your appreciation for this product.", action: "like" },
+        comment: { title: "Join the conversation", subtitle: "Please log in to ask questions or leave a review.", action: "comment" },
+        bookmark: { title: "Save for later", subtitle: "Login to save this item to your personal collection.", action: "bookmark" }
+      };
+      setAuthModalConfig(configs[action]);
+      setShowAuthModal(true);
+      return false;
+    }
+    return true;
+  };
 
-    // --- INSTANT UI CHANGE ---
+  const handleLike = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!checkAuth('like')) return;
+
     const wasLiked = localIsLiked;
     setLocalIsLiked(!wasLiked);
     setLocalLikesCount(prev => wasLiked ? prev - 1 : prev + 1);
 
-    // --- BACKEND CALL ---
     toggleLike(undefined, {
       onError: () => {
-        // REVERT if backend fails
         setLocalIsLiked(wasLiked);
         setLocalLikesCount(prev => wasLiked ? prev + 1 : prev - 1);
       }
-      // If success, we do nothing. The UI is already correct.
     });
+  };
+
+  const handleCommentClick = () => {
+    if (!checkAuth('comment')) return;
+    setIsCommentOpen(true);
   };
 
   const handleBookmark = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!isAuthenticated) return onRequireAuth?.();
+    if (!checkAuth('bookmark')) return;
 
-    // --- INSTANT UI CHANGE ---
     const wasBookmarked = localIsBookmarked;
     setLocalIsBookmarked(!wasBookmarked);
 
-    // --- BACKEND CALL ---
     toggleBookmark(undefined, {
-      onError: () => {
-        // REVERT if backend fails
-        setLocalIsBookmarked(wasBookmarked);
-      }
+      onError: () => setLocalIsBookmarked(wasBookmarked)
     });
   };
 
   const handleShare = async () => {
+    // Share remains PUBLIC - no auth check needed
     const shareData = {
-      title: 'Check out this post!',
-      text: 'I found this interesting post on the app.',
+      title: 'Check out this product!',
       url: `${window.location.origin}/posts/${postId}`,
     };
     try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
+      if (navigator.share) await navigator.share(shareData);
+      else {
         await navigator.clipboard.writeText(shareData.url);
-        alert('Link copied to clipboard!');
+        // Using a simple alert or toast if available
       }
-    } catch (err) {
-      console.error('Error sharing:', err);
-    }
+    } catch (err) { console.error('Error sharing:', err); }
   };
 
-  // --- RENDER ---
-  return (
-    <div className="flex items-center justify-between px-4 py-3 border-t border-gray-50">
-      <div className="flex items-center gap-6">
-        {/* Like Button */}
-        <button onClick={handleLike} className="flex items-center gap-1.5 group outline-none">
-          <motion.div
-            key={localIsLiked ? "liked" : "unliked"}
-            animate={{ scale: localIsLiked ? [1, 1.4, 1] : 1 }}
-            transition={{ duration: 0.2 }}
+return (
+    <div className="bg-white border-t border-gray-50">
+      {/* Added 'lg:px-12' to pull buttons inward on desktop 
+          Added 'max-w-screen-xl mx-auto' to prevent them from spreading too far on ultra-wide screens
+      */}
+      <div className="flex items-center justify-between px-4 lg:px-12 py-4 max-w-7xl mx-auto">
+        
+        <div className="flex items-center gap-4 lg:gap-8">
+          {/* Like Button with Hover Effect */}
+          <button 
+            onClick={handleLike} 
+            className="flex items-center lg:gap-2 group outline-none transition-all"
           >
-            <Heart
+            <motion.div
+              className={cn(
+                "p-2 rounded-full transition-colors duration-200",
+                localIsLiked ? "bg-red-50" : "group-hover:bg-gray-100"
+              )}
+              animate={{ scale: localIsLiked ? [1, 1.4, 1] : 1 }}
+            >
+              <Heart
+                className={cn(
+                  "w-6 h-6 transition-colors duration-200",
+                  localIsLiked ? "fill-red-500 text-red-500" : "text-gray-600 group-hover:text-red-400"
+                )}
+              />
+            </motion.div>
+            <span className={cn(
+              "text-xs font-black transition-colors",
+              localIsLiked ? "text-red-500" : "text-gray-600 group-hover:text-gray-900"
+            )}>
+              {localLikesCount}
+            </span>
+          </button>
+
+          {/* Comment Button with Hover Effect */}
+          <button
+            onClick={handleCommentClick}
+            className="flex items-center lg:gap-2 group outline-none"
+          >
+            <div className="p-2 rounded-full group-hover:bg-blue-50 transition-colors">
+              <MessageCircle className="w-6 h-6 text-gray-600 group-hover:text-blue-500 transition-colors" />
+            </div>
+            <span className="text-xs font-bold text-gray-600 group-hover:text-gray-900">{initialComments}</span>
+          </button>
+
+          {/* Share Button with Hover Effect */}
+          <button
+            onClick={handleShare}
+            className="group outline-none"
+          >
+            <div className="p-2 rounded-full group-hover:bg-orange-50 transition-colors">
+              <Share2 className="w-6 h-6 text-gray-600 group-hover:text-orange-500 transition-colors" />
+            </div>
+          </button>
+        </div>
+
+        {/* Bookmark Button with Hover Effect */}
+        <button 
+          onClick={handleBookmark} 
+          className="group outline-none"
+        >
+          <motion.div 
+            className={cn(
+              "p-2 rounded-full transition-colors",
+              localIsBookmarked ? "bg-orange-50" : "group-hover:bg-gray-100"
+            )}
+            animate={{ scale: localIsBookmarked ? [1, 1.2, 1] : 1 }}
+          >
+            <Bookmark
               className={cn(
                 "w-6 h-6 transition-colors duration-200",
-                localIsLiked ? "fill-red-500 text-red-500" : "text-gray-700"
+                localIsBookmarked ? "fill-orange-500 text-orange-500" : "text-gray-600 group-hover:text-orange-400"
               )}
             />
           </motion.div>
-
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={localLikesCount}
-              initial={{ y: 5, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -5, opacity: 0 }}
-              transition={{ duration: 0.1 }}
-              className="text-xs font-black text-gray-700"
-            >
-              {localLikesCount}
-            </motion.span>
-          </AnimatePresence>
-        </button>
-
-        {/* Comment Button */}
-        <button
-          onClick={() => setIsCommentOpen(true)}
-          className="flex items-center gap-1.5 group"
-        >
-          <MessageCircle className="w-6 h-6 text-gray-700 group-hover:text-orange-500 transition-colors" />
-          <span className="text-xs font-bold text-gray-600">{initialComments}</span>
-        </button>
-
-        <CommentDrawer
-          isOpen={isCommentOpen}
-          onClose={setIsCommentOpen}
-          postId={postId}
-          user_image={user_image}
-        />
-
-        {/* Share Button */}
-        <button
-          onClick={handleShare}
-          className="group flex items-center gap-1.5 text-gray-700 hover:text-orange-500 transition-all active:scale-90"
-        >
-          <div className="p-2 group-hover:bg-orange-50 rounded-full transition-colors">
-            <Share2 className="w-6 h-6" />
-          </div>
         </button>
       </div>
 
-      {/* Bookmark Button */}
-      <button onClick={handleBookmark} className="p-2 -mr-2 outline-none group">
-        <motion.div animate={{ scale: localIsBookmarked ? [1, 1.2, 1] : 1 }}>
-          <Bookmark
-            className={cn(
-              "w-6 h-6 transition-colors duration-200",
-              localIsBookmarked ? "fill-orange-500 text-orange-500" : "text-gray-700 hover:text-orange-400"
-            )}
-          />
-        </motion.div>
-      </button>
+      {/* Auth Modal Triggered by Actions */}
+      <AuthPromptModal 
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        title={authModalConfig.title}
+        subtitle={authModalConfig.subtitle}
+        actionName={authModalConfig.action}
+      />
+
+      <CommentDrawer
+        isOpen={isCommentOpen}
+        onClose={setIsCommentOpen}
+        postId={postId}
+        user_image={user_image}
+      />
     </div>
   );
 };
+
+

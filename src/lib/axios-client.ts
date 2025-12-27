@@ -10,6 +10,9 @@ const options = {
   timeout: 10000,
 };
 
+// 1. Define public paths that shouldn't trigger a redirect
+const PUBLIC_PATHS = ['/', '/about', '/contact'];
+
 const API = axios.create(options);
 
 let isRefreshing = false;
@@ -58,6 +61,12 @@ API.interceptors.response.use(
 
     const { data, status } = error.response;
 
+    const isAuthRequest = originalRequest.url.includes('/auth/login') ||
+      originalRequest.url.includes('/auth/register');
+
+    if (status === 401 && isAuthRequest) {
+      return Promise.reject(error); // This lets your LoginPage handle the error
+    }
     // Handle 401 Unauthorized
     if (status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
@@ -79,10 +88,19 @@ API.interceptors.response.use(
 
       const refreshToken = tokenStorage.getRefreshToken();
 
+      // 2. Inside the 401 handler:
       if (!refreshToken) {
-        // No refresh token, clear storage and redirect
         tokenStorage.clearTokens();
-        window.location.href = '/auth/login';
+
+        // Only redirect if they aren't already on a public page
+        const isPublicPage = PUBLIC_PATHS.includes(window.location.pathname);
+        const isAuthPage = window.location.pathname.startsWith('/auth'); // Add this check
+
+        // 💥 UPDATE REDIRECT LOGIC 💥
+        if (!isPublicPage && !isAuthPage) {
+          window.location.href = '/auth/login';
+        }
+
         return Promise.reject(error);
       }
 

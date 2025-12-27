@@ -1,12 +1,13 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Heart, Share2, Bookmark, MapPin, ChartNoAxesCombined, Star } from 'lucide-react';
-// import { useAuthContext } from '@/context/auth-provider';
-import useAuthGuard from "@/hooks/use-auth-guard";
+// src/components/homepage/MarketPlace.tsx
+import React, { useState } from 'react';
+import { usePostsFeed } from "@/hooks/api/use-feed";
+import ProductPostCard from "../feed/ProductPostCard";
+import CategoryRibbon from "./CategoryRibbon";
+import { Loader2, AlertCircle, ShoppingBag, ChartNoAxesCombined, Star, MapPin } from "lucide-react";
+
+
+
+
 
 // Small utility types
 type Stat = {
@@ -15,28 +16,17 @@ type Stat = {
   icon?: React.ReactNode;
 };
 
-type Post = {
-  id: string;
-  author: {
-    name: string;
-    avatar?: string;
-    isVerified?: boolean;
-    username?: string;
-  };
-  timeAgo: string;
-  title?: string;
-  description?: string;
-  images: string[];
-  likes: number;
-  comments: number;
-  saves: number;
-  category?: string;
-  location?: string;
-  rating?: number;
-};
+
+// ---------- Feed (composed) ----------
+const sampleStats: Stat[] = [
+  { label: 'Businesses', value: '50K', icon: <ChartNoAxesCombined className="w-6 h-6" /> },
+  { label: 'Transactions', value: '10K', icon: <Star className="w-6 h-6" /> },
+  { label: 'State', value: '36', icon: <MapPin className="w-6 h-6" /> },
+];
 
 
-// ---------- Stats Row ----------
+
+      // ---------- Stats Row ----------
 export const StatsRow: React.FC<{ stats: Stat[] }> = ({ stats }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -54,234 +44,23 @@ export const StatsRow: React.FC<{ stats: Stat[] }> = ({ stats }) => {
   );
 };
 
-// ---------- Category Tabs ----------
-export const CategoryTabs: React.FC<{
-  categories: string[];
-  active?: string;
-  onSelect?: (cat: string) => void;
-}> = ({ categories, active, onSelect }) => {
-  return (
-    <div className="flex items-center justify-between">
-      <div className="flex gap-3 items-center overflow-x-auto py-2">
-        {categories.map((c) => {
-          const isActive = c === active;
-          return (
-            <button
-              key={c}
-              onClick={() => onSelect?.(c)}
-              className={`min-w-[140px] px-4 py-2 rounded-lg border ${isActive ? 'bg-[#FDEEE4] border-[#F2B9A3]' : 'bg-white border-[#F4C9B4]'
-                } text-sm font-medium shadow-sm`}
-            >
-              {c}
-            </button>
-          );
-        })}
-      </div>
 
-      <div>
-        <Button variant="outline" size="sm">
-          More Filters
-        </Button>
-      </div>
-    </div>
-  );
-};
+const MarketplaceFeed = () => {
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
-// ---------- Post Card ----------
-export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
-  // const { isAuthenticated } = useAuthContext();
-  const { requireAuth, popup } = useAuthGuard(false);
-  // placeholder
-  // const popup = null;
-  // const requireAuth = (callback: () => void) => {
-  //   console.log("require auth placeholder");
-  //   callback?.();
-  // };
+  // Fetching data - restrict: false allows public viewing
+  const { data, status, refetch } = usePostsFeed(undefined, false);
 
-  const handleBookmark = () => {
-    requireAuth(() => {
-      console.log("Bookmark action executed");
-    });
-  };
+  // 1. Flatten pages and 2. Filter ONLY for Product types immediately
+  const allProducts = React.useMemo(() => {
+    const posts = data?.pages?.flat() || [];
+    return posts.filter(post => post.type === 'PRODUCT');
+  }, [data]);
 
-  const handleLike = () => {
-    requireAuth(() => {
-      console.log("Like action executed");
-    });
-  };
-
-  const handleShare = () => {
-    requireAuth(() => {
-      console.log("Share action executed");
-    });
-  };
-
-  return (
-    <>
-      {popup}
-      <Card className="w-full rounded-xl shadow-md">
-        <CardHeader className="flex items-start gap-4 p-6">
-          <Avatar>
-            {post.author.avatar ? (
-              <AvatarImage src={post.author.avatar} alt={post.author.name} />
-            ) : (
-              <AvatarFallback>{post.author.name[0]}</AvatarFallback>
-            )}
-          </Avatar>
-
-          <div className="flex-1">
-            <div className="flex items-center gap-2 justify-between">
-              <div>
-                <Link
-                  to={`/profile/${post.author.username ?? post.author.name}`}
-                  className="font-semibold hover:underline"
-                >
-                  {post.author.name}
-                </Link>
-                <div className="text-xs text-gray-500 flex items-center gap-2">
-                  {post.author.isVerified && <Badge variant="outline">Verified</Badge>}
-                  <span>{post.timeAgo}</span>
-                </div>
-              </div>
-
-              <div className="text-sm text-gray-400">{post.category}</div>
-            </div>
-
-            {post.description && <p className="mt-3 text-sm text-gray-700">{post.description}</p>}
-          </div>
-        </CardHeader>
-
-        <CardContent className="p-6 pt-0">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-stretch">
-            {Array.from({ length: 3 }).map((_, i) => {
-              const src = post.images[i];
-              return (
-                <div
-                  key={i}
-                  className={`h-48 sm:h-40 rounded overflow-hidden border ${i === 0 ? 'sm:col-span-1' : ''}`}
-                >
-                  {src ? (
-                    <img
-                      src={src}
-                      alt={`${post.title ?? 'item'} ${i + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300">
-                      No image
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-
-        <CardFooter className="p-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button className="flex items-center gap-2 text-sm hover:text-red-500 transition">
-              <Heart 
-                onClick={handleLike}
-                className="w-5 h-5" />
-              <span>{post.likes}</span>
-            </button>
-
-            <button className="flex items-center gap-2 text-sm hover:text-green-600 transition">
-              <Share2 
-              onClick={handleShare}
-              className="w-5 h-5" />
-              <span>{post.comments}</span>
-            </button>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 text-sm hover:text-gray-900 transition">
-              <Bookmark 
-              onClick={handleBookmark}
-              className="w-5 h-5" />
-              <span>{post.saves}</span>
-            </button>
-
-            <Button size="sm">View Shop</Button>
-          </div>
-        </CardFooter>
-      </Card>
-    </>
-  );
-};
-
-// ---------- Feed (composed) ----------
-const sampleStats: Stat[] = [
-  { label: 'Businesses', value: '50K', icon: <ChartNoAxesCombined className="w-6 h-6" /> },
-  { label: 'Transactions', value: '10K', icon: <Star className="w-6 h-6" /> },
-  { label: 'State', value: '36', icon: <MapPin className="w-6 h-6" /> },
-];
-
-const sampleCategories = [
-  'Fashion & Beauty',
-  'Food & Drinks',
-  'Home and Garden',
-  'Health & Wellness',
-];
-
-const samplePosts: Post[] = [
-  {
-    id: "p1",
-    author: {
-      name: "Jane Cloe",
-      username: "@janebespoke_",
-      isVerified: true,
-      avatar: "https://randomuser.me/api/portraits/women/65.jpg"
-    },
-    timeAgo: "2h ago",
-    title: "Tailored Fashion",
-    description:
-      "This is how we make our money, the moment you send your measurement, you pick a professional tailor…",
-    images: [
-      "https://images.unsplash.com/photo-1523381210434-271e8be1f52b",
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab",
-      "https://images.unsplash.com/photo-1512436991641-6745cdb1723f"
-    ],
-    likes: 320000,
-    comments: 120,
-    saves: 240,
-    category: "Fashion & Beauty",
-    location: "Plot 55, Apapa Street Lagos",
-    rating: 4.5
-  },
-
-  {
-    id: "p2",
-    author: {
-      name: "Ken’s Fashion Hub",
-      username: "@kenshub",
-      isVerified: false,
-      avatar: "https://randomuser.me/api/portraits/men/52.jpg"
-    },
-    timeAgo: "1d ago",
-    description: "Fresh knitwear just landed! Exclusive hoodies and joggers.",
-    images: [
-      "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
-      "https://images.unsplash.com/photo-1516822003754-cca485356ecb",
-      "https://images.unsplash.com/photo-1503602642458-232111445657"
-    ],
-    likes: 48000,
-    comments: 500,
-    saves: 400,
-    category: "Fashion & Beauty",
-    location: "Lekki Phase 1, Lagos",
-    rating: 4.8
-  }
-];
-
-
-
-const MarketplaceFeed: React.FC = () => {
-  const [activeCategory, setActiveCategory] = React.useState(sampleCategories[0]);
-
-  const filteredPosts = samplePosts.filter(
-    (p) => p.category === activeCategory
-  );
+  // 3. Apply Category Filter
+  const filteredProducts = selectedCategory === "All"
+    ? allProducts
+    : allProducts.filter(post => post.category === selectedCategory);
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
@@ -289,35 +68,59 @@ const MarketplaceFeed: React.FC = () => {
       <div className="mb-8">
         <StatsRow stats={sampleStats} />
       </div>
-
-      <div className="mb-6 flex items-center gap-4">
-        <h4 className="text-sm font-medium">Popular Category</h4>
-      </div>
-
-      {/* Category Tabs */}
-      <div className="mb-8">
-        <CategoryTabs
-          categories={sampleCategories}
-          active={activeCategory}
-          onSelect={setActiveCategory}
+      <section className="bg-gray-50 min-h-screen">
+        <CategoryRibbon
+          activeCategory={selectedCategory}
+          onSelect={setSelectedCategory}
         />
-      </div>
 
-      {/* Posts */}
-      <div className="space-y-8">
-        {filteredPosts.map((p) => (
-          <PostCard key={p.id} post={p} />
-        ))}
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          {status === 'pending' && (
+            <div className="flex flex-col items-center py-20 text-gray-400">
+              <Loader2 className="w-10 h-10 animate-spin text-orange-500 mb-4" />
+              <p className="text-sm font-medium italic">Loading Nigerian Marketplace...</p>
+            </div>
+          )}
 
-        {filteredPosts.length === 0 && (
-          <div className="text-center text-gray-500 py-10">
-            No posts found for this category.
+          {status === 'error' && (
+            <div className="text-center py-10 bg-white rounded-3xl border border-red-100 p-8 shadow-sm">
+              <AlertCircle className="mx-auto text-red-500 mb-4" size={32} />
+              <p className="text-gray-900 font-bold">Could not load products</p>
+              <p className="text-gray-500 text-sm mb-6">Check your internet connection and try again.</p>
+              <button
+                onClick={() => refetch()}
+                className="bg-orange-500 text-white px-10 py-2 rounded-full font-bold hover:bg-orange-600 transition shadow-lg shadow-orange-200"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
+          {/* Product Grid */}
+          <div className="grid grid-cols-1 gap-8">
+            {filteredProducts.map((post) => (
+              <ProductPostCard key={post._id} post={post} />
+            ))}
           </div>
-        )}
-      </div>
+
+          {/* Empty State */}
+          {status === 'success' && filteredProducts.length === 0 && (
+            <div className="text-center py-20 bg-white rounded-[2.5rem] border-2 border-dashed border-gray-100">
+              <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ShoppingBag className="text-gray-300" size={28} />
+              </div>
+              <h3 className="text-gray-900 font-bold text-lg">No products found</h3>
+              <p className="text-gray-400 text-sm">
+                {selectedCategory === "All"
+                  ? "The marketplace is empty right now."
+                  : `No items available in the ${selectedCategory} category.`}
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 };
-
 
 export default MarketplaceFeed;

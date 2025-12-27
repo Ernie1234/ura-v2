@@ -98,7 +98,7 @@ console.log(isBusinessProfile);
       return isBusinessProfile ? <ProductsFeed targetId={targetId!} type="post"/> : null;
 
     case TABS.REVIEWS: 
-      return isBusinessProfile ? <ReviewsSection filters={{ businessId: targetId! }} /> : null;
+      return isBusinessProfile ? <ReviewsSection itemId={targetId!} itemModel="Business" /> : null;
 
     case TABS.FOLLOWERS:
       return (

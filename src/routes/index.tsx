@@ -7,6 +7,7 @@ import NotFound from '@/pages/public/NotFound';
 import AuthRoute from './auth.route';
 import BaseLayout from '@/layout/base.layout';
 import PublichLayout from '@/layout/public.layout';
+import AuthLayout from '@/layout/auth.layout';
 
 function AppRoutes() {
   return (
@@ -22,9 +23,12 @@ function AppRoutes() {
 
         <Route path="/" element={<AuthRoute />}>
           <Route element={<BaseLayout />}>
-            {authenticationRoutePaths.map((route) => (
-              <Route key={route.path} path={route.path} element={route.element} />
-            ))}
+            <Route element={<AuthLayout />}>
+              {authenticationRoutePaths.map((route) => (
+                <Route key={route.path} path={route.path} element={route.element} />
+              ))}
+            </Route>
+
           </Route>
         </Route>
 

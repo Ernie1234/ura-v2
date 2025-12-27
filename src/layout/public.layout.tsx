@@ -1,16 +1,24 @@
 import { NavBar } from '@/components/nav/NavBar';
 import Footer from '@/components/shared/Footer';
+import { AuthProvider } from '@/context/auth-provider';
+import { CartProvider } from '@/context/cart-provider';
 import { Outlet } from 'react-router-dom';
 
 const PublichLayout = () => {
   return (
-    <div>
-      <NavBar />
-      <div className="min-h-dvh">
-        <Outlet />
+      <AuthProvider>
+    
+    <CartProvider>
+      <div>
+        <NavBar />
+        <div className="min-h-dvh">
+          <Outlet />
+        </div>
+        <Footer />
       </div>
-      <Footer />
-    </div>
+    </CartProvider>
+    </AuthProvider>
+
   );
 };
 

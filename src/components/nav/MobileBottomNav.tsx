@@ -6,71 +6,73 @@ export default function MobileBottomNav({ onSearchClick }: { onSearchClick: () =
   const { pathname } = useLocation();
 
   const navItems = [
-    { 
-      name: 'Home', 
-      to: '/dashboard', 
+    {
+      name: 'Home',
+      to: '/dashboard',
       icon: Home,
-      // Only active on exact home
-      activePaths: ['/dashboard'] 
+      activePaths: ['/dashboard']
     },
-    { 
-      name: 'Search', 
-      onClick: onSearchClick, 
+    {
+      name: 'Search',
+      onClick: onSearchClick,
       icon: Search,
-      activePaths: ['/search', '/explore'] // Associated routes
+      activePaths: ['/search', '/explore']
     },
-    { 
-      name: 'Post', 
-      to: '/dashboard/post/create?type=post', 
+    {
+      name: 'Post',
+      to: '/dashboard/post/create?type=post',
       icon: PlusSquare,
-      // Active if creating post, product, or editing
-      activePaths: ['/dashboard/post', '/dashboard/inventory/new'] 
+      activePaths: ['/dashboard/post', '/dashboard/inventory/new']
     },
-    { 
-      name: 'Chats', 
-      to: '/dashboard/chats', 
+    {
+      name: 'Chats',
+      to: '/dashboard/chat',
       icon: MessageCircle,
-      activePaths: ['/dashboard/chats', '/dashboard/messages'] 
+      activePaths: ['/dashboard/chat', '/dashboard/messages']
     },
-    { 
-      name: 'More', 
-      to: '/dashboard/menu', 
+    {
+      name: 'More',
+      to: '/dashboard/menu',
       icon: MoreHorizontal,
-      // Associate completely different routes here
-      activePaths: ['/dashboard/menu', '/dashboard/settings', '/dashboard/profile'] 
+      activePaths: ['/dashboard/menu', '/dashboard/settings', '/dashboard/profile']
     },
   ];
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-1 py-2 z-50">
-      <ul className="flex justify-around items-center">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/40 backdrop-blur-2xl border-t border-white/40 px-2 py-3 z-50 pb-[env(safe-area-inset-bottom)]">
+      <ul className="flex justify-around items-end">
         {navItems.map((item) => {
           const Icon = item.icon;
-          
-          // CHECK: Is the current pathname included in or starting with any of the activePaths?
-          const isActive = item.activePaths.some(path => 
-            item.name === 'Home' 
-              ? pathname === path // Home stays strict
-              : pathname.startsWith(path) // Others use partial matching
-          );
-
-          const content = (
-            <div className={cn(
-              "flex flex-col items-center gap-1 transition-all duration-200",
-              isActive ? "text-[#E67E22]" : "text-gray-600"
-            )}>
-              <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
-              <span className="text-[11px] font-medium">{item.name}</span>
-            </div>
+          const isActive = item.activePaths.some(path =>
+            item.name === 'Home' ? pathname === path : pathname.startsWith(path)
           );
 
           return (
             <li key={item.name} className="flex-1">
-              {item.onClick ? (
-                <button onClick={item.onClick} className="w-full py-1">{content}</button>
-              ) : (
-                <Link to={item.to!} className="w-full py-1 block">{content}</Link>
-              )}
+              <Link
+                to={item.to || '#'}
+                onClick={item.onClick}
+                className="w-full flex flex-col items-center gap-1 group active:scale-95 transition-transform"
+              >
+                {/* ICON CONTAINER: 
+                    Added a subtle background ring to ensure icon visibility 
+                */}
+                <div className={cn(
+                  "p-2 rounded-2xl transition-all duration-300",
+                  isActive
+                    ? "bg-gray-950 text-white shadow-lg shadow-gray-200"
+                    : "bg-white/20 text-gray-900 group-hover:bg-white/40"
+                )}>
+                  <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                </div>
+
+                <span className={cn(
+                  "text-[10px] font-bold uppercase tracking-widest transition-colors",
+                  isActive ? "text-gray-950" : "text-gray-500"
+                )}>
+                  {item.name}
+                </span>
+              </Link>
             </li>
           );
         })}

@@ -134,11 +134,23 @@ export const ProductCard = ({
               <Info size={18} />
             </button>
             <button
-              onClick={() => (onAddToCart ? onAddToCart(product) : toast.success("Added to cart"))}
-              className="flex-1 bg-gray-900 hover:bg-orange-600 text-white h-10 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm hover:shadow-orange-200"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (onAddToCart) {
+                  onAddToCart(product);
+                }
+              }}
+              disabled={product.stock <= 0} // Disable if out of stock
+              className={cn(
+                "flex-1 bg-gray-900 hover:bg-orange-600 text-white h-10 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95",
+                product.stock <= 0 && "opacity-50 cursor-not-allowed bg-gray-400 hover:bg-gray-400"
+              )}
             >
               <ShoppingCart size={16} />
-              <span className="hidden sm:inline">Add to Cart</span>
+              <span className="hidden sm:inline">
+                {product.stock <= 0 ? "Out of Stock" : "Add to Cart"}
+              </span>
               <span className="sm:hidden">Add</span>
             </button>
           </div>
