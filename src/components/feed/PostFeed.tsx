@@ -97,13 +97,13 @@ export default function PostsFeed({ targetId, onRequireAuth, type="feed" }: Post
   return (
     <div className="relative flex flex-col gap-6">
       {/* Syncing State */}
-      {isRefetching && !isFetchingNextPage && (
+      {/* {isRefetching && !isFetchingNextPage && (
         <div className="flex justify-center sticky top-0 z-10">
           <div className="bg-gray-900 text-white px-3 py-1 rounded-full text-[10px] font-black flex items-center gap-2 shadow-lg">
             <RefreshCcw size={10} className="animate-spin" /> REFRESHING
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Post List */}
       <div className="grid gap-6">

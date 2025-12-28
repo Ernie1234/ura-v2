@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useToggleLike } from "@/hooks/api/use-feed";
 import { toast } from "sonner";
-import type { ProductPostType } from "@/types/feed.types";
+import type { ProductPostType, ProductType } from "@/types/feed.types";
 
 
 interface Product {
@@ -19,11 +19,11 @@ interface Product {
 }
 
 interface ProductCardProps {
-  product: ProductPostType;
+  product: ProductType;
   isAuthenticated: boolean;
   onRequireAuth?: () => void;
-  onViewDetails?: (product: ProductPostType) => void;
-  onAddToCart?: (product: Product) => void;
+  onViewDetails?: (product: ProductType) => void;
+  onAddToCart?: (product: ProductType) => void;
   className?: string;
 }
 

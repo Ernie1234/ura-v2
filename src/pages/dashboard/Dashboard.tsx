@@ -119,10 +119,16 @@ const Dashboard = () => {
         </div>
       }
     >
-      {/* Feed section spacing improved for the Urbanist font flow */}
-      <div className="space-y-8">
-        <ShareBox />
-        <AllFeed />
+      <div className="flex flex-col h-screen overflow-hidden">
+        {/* ShareBox stays at the top */}
+        <div className="flex-shrink-0 py-4 lg:p-4">
+          <ShareBox />
+        </div>
+
+        {/* AllFeed takes the remaining space and scrolls */}
+        <div className="flex-1 min-h-0">
+          <AllFeed />
+        </div>
       </div>
     </DashboardContainer>
   );

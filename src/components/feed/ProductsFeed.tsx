@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { ProductCard } from "./ProductCard";
 import { ProductDetailsModal } from "./ProductDetailsModal";
 import type { Product } from "@/types/product";
-import type { ProductPostType } from "@/types/feed.types";
+import type { ProductPostType, ProductType } from "@/types/feed.types";
 import { toast } from "sonner";
 import { useCartContext } from "@/context/cart-provider"; // Import the context hook
 
@@ -30,7 +30,7 @@ export default function ProductsFeed({ targetId, onRequireAuth, type = "feed", c
   const isPostType = type === 'post'
 
   // Centralized Add to Cart Handler
-  const handleAddToCart = async (product: ProductPostType) => {
+  const handleAddToCart = async (product: ProductType) => {
     if (!isAuthenticated) {
       return onRequireAuth?.();
     }
@@ -50,7 +50,7 @@ export default function ProductsFeed({ targetId, onRequireAuth, type = "feed", c
     isRefetching,
   } = useProductsFeed(targetId!, isPostType); // Passing 'false' for isPostType to get products
 
-  const [selectedProduct, setSelectedProduct] = useState<ProductPostType | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null);
 
   const [showScrollTop, setShowScrollTop] = useState(false);
   const { ref: bottomRef, inView: isBottomInView } = useInView();
@@ -99,7 +99,7 @@ export default function ProductsFeed({ targetId, onRequireAuth, type = "feed", c
 
 
   // TO THIS (Adding the explicit Type Cast):
-  const allProducts = data?.pages.flatMap((page) => page as ProductPostType[]) || [];
+  const allProducts = data?.pages.flatMap((page) => page as ProductType[]) || [];
   // We filter the existing data based on the category prop
   const filteredProducts = category && category !== 'All'
     ? allProducts.filter((product) => product.category === category)
@@ -135,7 +135,7 @@ if (filteredProducts.length === 0) {
       {/* PRODUCT GRID - Optimized for e-commerce */}
       {/* PRODUCT GRID */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
-        {filteredProducts.map((product: ProductPostType) => ( // Add explicit type here
+        {filteredProducts.map((product: ProductType) => ( // Add explicit type here
           <ProductCard
             key={product._id}
             product={product}
@@ -153,7 +153,7 @@ if (filteredProducts.length === 0) {
           onClose={() => setSelectedProduct(null)}
           isAuthenticated={isAuthenticated}
           onRequireAuth={onRequireAuth}
-          onAddToCart={(product: ProductPostType) => {
+          onAddToCart={(product: ProductType) => {
             handleAddToCart(product);
             setSelectedProduct(null);
           }}

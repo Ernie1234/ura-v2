@@ -7,6 +7,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { useAuthContext } from '@/context/auth-provider';
 import { uploadMediaToCloudinary } from '@/services/cloudinary.service';
 import EmojiPicker, { Theme } from 'emoji-picker-react';
+import { generateAvatarUrl } from '@/utils/avatar-generator';
 
 const MessageWindow = () => {
   const { conversationId } = useParams();
@@ -21,8 +22,8 @@ const MessageWindow = () => {
   const [messages, setMessages] = useState<any[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isPartnerOnline, setIsPartnerOnline] = useState(false);
   const [partnerLastSeen, setPartnerLastSeen] = useState<string | null>(null);
+
 
   const [pendingFile, setPendingFile] = useState<{ file: File; preview: string; type: 'image' | 'video' } | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -38,38 +39,34 @@ const MessageWindow = () => {
     ? `${details?.firstName} ${details?.lastName}`
     : details?.businessName || 'Chat';
   const partnerAvatar = details?.profilePicture || details?.businessLogo;
+  const partnerId = typeof details === 'object' ? details._id : details;
+
+  const [isOnline, setIsOnline] = useState(details?.isOnline || false);
 
   // --- EFFECT 1: STATUS SYNC ---
   useEffect(() => {
-    // 1. Initial State from the data already in the conversation object
-    if (details) {
-      setIsPartnerOnline(details.isOnline || false);
-      setPartnerLastSeen(details.lastSeen || null);
-    }
+    if (!partnerId) return;
 
-    const handleStatusChange = (data: { userId: string, status: string, lastSeen?: string }) => {
-      // Get the ID of the person we are currently chatting with
-      const partnerId = typeof other?.participantId === 'object'
-        ? other?.participantId?._id
-        : other?.participantId;
-
-      if (partnerId && data.userId === partnerId.toString()) {
-        setIsPartnerOnline(data.status === 'online');
-
-        // If they just went offline, the backend sends a new lastSeen.
-        // If they went online, we keep the old lastSeen in state but hide it via the UI logic.
-        if (data.status === 'offline') {
-          setPartnerLastSeen(data.lastSeen || new Date().toISOString());
-        }
+    // Listen for status changes
+    const handleStatus = (data: { userId: string; status: 'online' | 'offline' }) => {
+      if (data.userId === partnerId) {
+        setIsOnline(data.status === 'online');
       }
     };
 
-    socketService.on('user_status_changed', handleStatusChange);
+    // Use your specific socket service methods
+    socketService.onStatusChange(handleStatus);
+    
+    // IMMEDIATE CHECK: Force a check for this partner on mount
+    socketService.emit("check_online_status", partnerId);
 
     return () => {
-      socketService.off('user_status_changed', handleStatusChange);
+      socketService.off('user_status_changed', handleStatus);
     };
-  }, [other, details]);
+  }, [partnerId]);
+
+
+
   // This ensures the server knows you are online and who you are
   useEffect(() => {
     if (activeProfileId) {
@@ -222,42 +219,59 @@ const MessageWindow = () => {
       <header className="flex items-center justify-between p-4 border-b dark:border-slate-800 bg-white dark:bg-slate-900 z-10">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/dashboard/chat')} className="md:hidden p-2 text-slate-500"><ChevronLeft size={24} /></button>
-          <div className="relative w-10 h-10 rounded-full bg-slate-100 flex-shrink-0">
-            {partnerAvatar ? (
-              <img src={partnerAvatar} className="w-full h-full object-cover rounded-full" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center rounded-full bg-indigo-500 text-white font-bold text-sm">
-                {partnerName?.charAt(0)}
+          <div className="relative shrink-0">
+            <div className={`
+    p-[2px] rounded-full transition-all duration-500
+    ${isOnline ? 'bg-gradient-to-tr from-emerald-400 to-emerald-500' : 'bg-transparent'}
+  `}>
+              <div className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900 overflow-hidden bg-slate-100">
+                <img
+                  src={partnerAvatar || generateAvatarUrl(partnerName)}
+                  className="w-full h-full object-cover"
+                  alt=""
+                />
               </div>
-            )}
-            {isPartnerOnline && (
-              <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
+            </div>
+            {/* The small floating dot */}
+            {isOnline && (
+              <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
             )}
           </div>
+
           <div className="flex flex-col">
             <h3 className="font-bold text-sm dark:text-white leading-none">{partnerName}</h3>
-            <div className="flex items-center gap-1.5 mt-1">
-              {isPartnerOnline ? (
-                <>
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              {isOnline ? (
+                <div className="flex items-center gap-1.5">
+                  {/* Small, solid green dot without the distracting ping */}
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span>
+                  <span className="text-[11px] md:text-xs text-emerald-600 font-medium">
+                    Online
                   </span>
-                  <span className="text-[10px] text-green-600 font-semibold uppercase tracking-wider">Online Now</span>
-                </>
+                </div>
               ) : (
-                <span className="text-[10px] text-slate-400 font-medium">
-                  {partnerLastSeen
-                    ? `Active ${formatDistanceToNow(new Date(partnerLastSeen), { addSuffix: true })}`
-                    : 'Offline'}
-                </span>
+                <div className="flex items-center gap-1">
+                  {/* Subtle grey dot for offline */}
+                  <span className="h-2 w-2 rounded-full bg-slate-300"></span>
+                  <span className="text-[11px] md:text-xs text-slate-500 font-normal">
+                    {partnerLastSeen ? (
+                      // Custom formatter for a cleaner "last seen" string
+                      `Last seen ${formatDistanceToNow(new Date(partnerLastSeen), {
+                        addSuffix: true
+                      }).replace('about ', '')}`
+                    ) : (
+                      'Offline'
+                    )}
+                  </span>
+                </div>
               )}
             </div>
+
           </div>
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar bg-[#F5F1EE] dark:bg-slate-950">
+      <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-base scrollbar-large bg-[#F5F1EE] dark:bg-slate-950">
         {messages.map((msg, index) => {
           const msgSenderId = typeof msg.senderId === 'object' ? msg.senderId?._id : (msg.senderId || msg.sender?._id || msg.sender);
           const isMe = msgSenderId === activeProfileId;
@@ -288,32 +302,87 @@ const MessageWindow = () => {
         <div ref={scrollRef} />
       </div>
 
-      <footer className="relative p-4 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-800">
+      <footer className="relative p-2 md:p-4 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-800 shrink-0">
+        {/* PENDING FILE PREVIEW */}
         {pendingFile && (
-          <div className="absolute bottom-full left-0 right-0 p-3 bg-white dark:bg-slate-800 border-t flex gap-3 border-b">
-            <div className="relative w-20 h-20 rounded-lg overflow-hidden border bg-black">
-              {pendingFile.type === 'video' ? <video src={pendingFile.preview} className="w-full h-full object-cover" muted /> : <img src={pendingFile.preview} className="w-full h-full object-cover" />}
-              <button onClick={() => setPendingFile(null)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5"><X size={14} /></button>
+          <div className="absolute bottom-full left-0 right-0 p-3 bg-white dark:bg-slate-800 border-t flex gap-3 border-b z-20">
+            <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border bg-black shrink-0">
+              {pendingFile.type === 'video' ? (
+                <video src={pendingFile.preview} className="w-full h-full object-cover" muted />
+              ) : (
+                <img src={pendingFile.preview} className="w-full h-full object-cover" alt="preview" />
+              )}
+              <button
+                onClick={() => setPendingFile(null)}
+                className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5"
+              >
+                <X size={14} />
+              </button>
             </div>
-            <div className="flex-1 flex flex-col justify-center">
-              <p className="text-sm font-medium dark:text-white">Media attached</p>
-              <p className="text-xs text-gray-400">Add a message or press send</p>
+            <div className="flex-1 flex flex-col justify-center min-w-0">
+              <p className="text-sm font-medium dark:text-white truncate">Media attached</p>
+              <p className="text-xs text-gray-400 truncate">Add a message or press send</p>
             </div>
           </div>
         )}
+
+        {/* EMOJI PICKER - Responsive positioning */}
         {showEmojiPicker && (
-          <div className="absolute bottom-20 right-4 z-50 shadow-2xl">
-            <EmojiPicker theme={Theme.AUTO} onEmojiClick={(emojiData) => setInputText(prev => prev + emojiData.emoji)} />
+          <div className="absolute bottom-20 right-2 left-2 md:left-auto md:right-4 z-50 shadow-2xl flex justify-center md:block">
+            <div className="max-w-full overflow-hidden rounded-2xl border border-gray-200 dark:border-slate-700">
+              <EmojiPicker
+                width="100%"
+                height={350}
+                theme={Theme.AUTO}
+                onEmojiClick={(emojiData) => setInputText(prev => prev + emojiData.emoji)}
+              />
+            </div>
           </div>
         )}
+
         <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" accept="image/*,video/*" />
-        <form onSubmit={handleSendMessage} className="flex items-center gap-3 max-w-6xl mx-auto">
-          <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 text-[#4A3F35] dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors"><Plus size={24} /></button>
-          <div className="relative flex-1 flex items-center bg-[#F5F1EE] dark:bg-slate-800 rounded-2xl px-4 py-1">
-            <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} placeholder="Write a message..." className="flex-1 py-3 bg-transparent border-none text-sm outline-none text-[#4A3F35] dark:text-white" />
-            <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-2 transition-colors ${showEmojiPicker ? 'text-[#FF6B35]' : 'text-[#4A3F35] dark:text-gray-400'}`}><Smile size={22} /></button>
+
+        {/* FORM CONTAINER */}
+        <form
+          onSubmit={handleSendMessage}
+          className="flex items-center gap-2 md:gap-3 max-w-6xl mx-auto w-full"
+        >
+          {/* PLUS BUTTON */}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="p-2 text-[#4A3F35] dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors shrink-0"
+          >
+            <Plus className="w-5 h-5 md:w-6 md:h-6" />
+          </button>
+
+          {/* INPUT WRAPPER */}
+          <div className="relative flex-1 min-w-0 flex items-center bg-[#F5F1EE] dark:bg-slate-800 rounded-2xl px-3 md:px-4 py-0.5 md:py-1">
+            <input
+              type="text"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder="Message..."
+              className="flex-1 py-2.5 md:py-3 bg-transparent border-none text-base outline-none text-[#4A3F35] dark:text-white min-w-0"
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className={`p-1.5 md:p-2 shrink-0 transition-colors ${showEmojiPicker ? 'text-[#FF6B35]' : 'text-[#4A3F35] dark:text-gray-400'}`}
+            >
+              <Smile className="w-5 h-5 md:w-[22px] md:h-[22px]" />
+            </button>
           </div>
-          <button type="submit" disabled={!inputText.trim() && !pendingFile} className="p-3 bg-[#FF6B35] text-white rounded-2xl hover:bg-[#E85A24] disabled:opacity-50 transition-all shadow-md"><Send size={20} /></button>
+
+          {/* SEND BUTTON */}
+          <button
+            type="submit"
+            disabled={!inputText.trim() && !pendingFile}
+            className="p-2.5 md:p-3 bg-[#FF6B35] text-white rounded-xl md:rounded-2xl hover:bg-[#E85A24] disabled:opacity-50 transition-all shadow-md shrink-0 flex items-center justify-center"
+          >
+            <Send className="w-4 h-4 md:w-5 md:h-5 ml-0.5" />
+          </button>
         </form>
       </footer>
     </div>

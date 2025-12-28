@@ -70,7 +70,7 @@ useEffect(() => {
 };
 
   // 3. Status Handling
-  if (status === 'pending') {
+  if (status === 'pending' && !isRefetching) {
     return (
       <div className="flex flex-col items-center py-20 text-gray-400">
         <Loader2 className="w-8 h-8 animate-spin mb-2" />
@@ -125,15 +125,20 @@ useEffect(() => {
   }
 
   return (
-    <div className="relative grid gap-6 mx-auto pb-10">
+    <div 
+      id="main-feed-container"
+      className="relative h-[calc(100vh-180px)] overflow-y-auto overflow-x-hidden pb-10 scrollbar-base scrollbar-main lg:px-4 scroll-smooth"
+    >
+
+    <div className="grid gap-6 mx-auto max-w-full">
       {/* Updating Indicator */}
-      {isRefetching && !isFetchingNextPage && (
+      {/* {isRefetching && !isFetchingNextPage && (
         <div className="flex justify-center py-2 sticky top-0 z-10 animate-bounce">
           <div className="bg-orange-500 text-white px-4 py-1 rounded-full text-xs flex items-center gap-2 shadow-lg">
             <RefreshCcw size={12} className="animate-spin" /> Updating Feed...
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Feed List */}
       <div className="grid gap-6">
@@ -173,6 +178,7 @@ useEffect(() => {
       >
         <ArrowUp size={24} strokeWidth={3} />
       </button>
+    </div>
     </div>
   );
 }

@@ -94,6 +94,7 @@ export type ProfileResponse = {
 };
 
 export type RelatedData = {
+  business_id: string;
   businesses: Array<{
     _id: string;
     businessName: string;

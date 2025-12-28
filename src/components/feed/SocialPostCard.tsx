@@ -81,15 +81,15 @@ export default function SocialPostCard({ post, onRequireAuth }: CardProps<Social
 
   return (
     <div className="bg-white border-b border-gray-100 lg:rounded-[2rem] lg:border lg:mb-10 lg:shadow-xl overflow-hidden animate-fadeIn transition-transform duration-300">
-      
+
       {/* 1. TOP HEADER & CAPTION SECTION (Identical to ProductPostCard) */}
       <div className="p-4 lg:p-6 pb-2">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <img 
-              src={user_image} 
-              className="w-12 h-12 rounded-full object-cover border-2 border-orange-100 p-0.5" 
-              alt={post.displayName} 
+            <img
+              src={user_image}
+              className="w-12 h-12 rounded-full object-cover border-2 border-orange-100 p-0.5"
+              alt={post.displayName}
             />
             <div>
               <Link to={`/dashboard/profile/user/${post.authorId}`} className="flex items-center gap-1 group">
@@ -99,16 +99,20 @@ export default function SocialPostCard({ post, onRequireAuth }: CardProps<Social
                 {post.isVerified && <CheckCircle2 size={14} className="fill-blue-500 text-white" />}
               </Link>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                  @{post.username} • {formatTimeAgo(post.createdAt)}
+                <span className="text-[11px] font-bold text-gray-400 tracking-tight">
+                  @{post.username}
+                </span>
+                <span className="text-[12px] text-gray-300">•</span>
+                <span className="text-[10px] font-medium text-gray-400 lowercase italic">
+                  {formatTimeAgo(post.createdAt)}
                 </span>
               </div>
             </div>
           </div>
 
           <div onClickCapture={handleMenuIntercept}>
-            <PostMenu 
-              actions={menuActions} 
+            <PostMenu
+              actions={menuActions}
               triggerClassName={!isAuthenticated ? "pointer-events-none" : ""}
             />
           </div>

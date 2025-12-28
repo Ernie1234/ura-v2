@@ -4,16 +4,18 @@ import { X, Search, User, Briefcase, MessageCircle } from 'lucide-react';
 import { chatAPI } from '@/lib/chat-api';
 import { useFollowData } from '@/hooks/api/use-user-profile'; // Path to your existing hook
 import { useAuthContext } from '@/context/auth-provider';
+import { generateAvatarUrl } from '@/utils/avatar-generator';
 
 const NewChatSelector = () => {
   const navigate = useNavigate();
-  const { user } = useAuthContext();
+  const { user, related } = useAuthContext();
   const [searchTerm, setSearchTerm] = useState('');
 
   const { activeTab } = useOutletContext<{ activeTab: 'PERSONAL' | 'BUSINESS' }>();
   // 1. Fetch both lists using your existing hooks
   // activeProfileId is the ID of the current tab (User or Business)
-  const activeProfileId = user?._id; 
+  const activeProfileId = user?._id;
+  const senderId = activeTab == 'PERSONAL' ? user?._id : related?.business_id
 
   const { data: followers, isLoading: loadingFollowers } = useFollowData(activeProfileId!, 'followers');
   const { data: following, isLoading: loadingFollowing } = useFollowData(activeProfileId!, 'following');
@@ -35,7 +37,7 @@ const handleStartChat = async (person: any) => {
 
   // Prepare the payload to match your backend's req.body
   const payload = {
-    senderId: activeProfileId,
+    senderId: senderId!,
     senderModel: (activeTab === 'PERSONAL' ? 'User' : 'Business') as 'User' | 'Business',
     receiverId: person._id,
     receiverModel: (person.isBusiness ? 'Business' : 'User') as 'User' | 'Business'
@@ -93,7 +95,7 @@ const handleStartChat = async (person: any) => {
               >
                 <div className="relative">
                   <img 
-                    src={person.avatar || '/default-avatar.png'} 
+                    src={person.avatar || generateAvatarUrl(`${person.firstName} ${person.lastName}`)} 
                     className="w-12 h-12 rounded-full object-cover border border-gray-100 dark:border-slate-800" 
                     alt="" 
                   />

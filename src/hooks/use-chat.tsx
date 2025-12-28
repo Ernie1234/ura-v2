@@ -1,15 +1,19 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { chatAPI } from '@/lib/chat-api';
 import { socketService } from '@/services/socket.service';
+import { useParams } from 'react-router-dom';
 
-export const useChat = (activeProfileId: string) => {
+export const useChat = (activeProfileId: string | undefined) => {
+  const { conversationId } = useParams();
   const [conversations, setConversations] = useState<any[]>([]);
-  const [messages, setMessages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isError, setIsError] = useState(false); // Added this
-  // 1. Fetch all conversations for the active Tab (User or Business)
+  const [isError, setIsError] = useState(false);
+
   const fetchConversations = useCallback(async () => {
+    if (!activeProfileId) return;
+    
+    setIsLoading(true);
     setIsError(false);
     try {
       const { data } = await chatAPI.getConversations(activeProfileId);
@@ -17,51 +21,99 @@ export const useChat = (activeProfileId: string) => {
     } catch (error) {
       console.error("Error fetching conversations:", error);
       setIsError(true);
+    } finally {
+      setIsLoading(false);
     }
   }, [activeProfileId]);
 
-  // 2. Initial Setup: Connect Socket and Fetch List
-  useEffect(() => {
-    if (!activeProfileId) return;
+  // NEW: Optimistic Unread Clear
+  const markAsRead = useCallback(async (convId: string) => {
+    if (!activeProfileId || !convId) return;
 
-    // Connect and identify this connection as the current Profile
+    // 1. Update LOCAL state immediately (Optimistic UI)
+    setConversations(prev => prev.map(chat => {
+      if (chat._id === convId) {
+        return {
+          ...chat,
+          unreadCount: {
+            ...chat.unreadCount,
+            [activeProfileId]: 0 // Zero out unread for the current user
+          }
+        };
+      }
+      return chat;
+    }));
+
+    try {
+      // 2. Tell the backend to clear it in the DB
+      // Note: Your getMessages controller already handles clearing unread count
+      await chatAPI.getMessages(convId, activeProfileId);
+      
+      // 3. Optional: Notify other user via socket that you've seen the messages
+      socketService.emit('mark_seen', { conversationId: convId, profileId: activeProfileId });
+    } catch (error) {
+      console.error("Failed to mark messages as read:", error);
+    }
+  }, [activeProfileId]);
+
+  // EFFECT: Fetch conversations on mount or tab switch
+  useEffect(() => {
+    if (!activeProfileId) {
+      setConversations([]);
+      return;
+    }
+
     socketService.connect();
     socketService.setup(activeProfileId);
-
     fetchConversations();
 
-    // Listen for live message updates
-    socketService.on('message:received', (newMessage) => {
-      // Logic: If message belongs to current profile, refresh list to show preview/unread
-      // We'll handle pushing to the 'messages' array inside the MessageWindow component
+    const handleNewMessage = () => {
       fetchConversations();
+    };
+
+    socketService.on('message:received', handleNewMessage);
+    
+    // Listen for global 'seen' updates if you want counts to clear when 
+    // you have the app open on two devices
+    socketService.on('messages_seen', ({ conversationId: id, seenBy }) => {
+      if (seenBy === activeProfileId) {
+        setConversations(prev => prev.map(c => 
+          c._id === id ? { ...c, unreadCount: { ...c.unreadCount, [seenBy]: 0 } } : c
+        ));
+      }
     });
 
     return () => {
-      socketService.off('message:received');
+      socketService.off('message:received', handleNewMessage);
+      socketService.off('messages_seen');
     };
   }, [activeProfileId, fetchConversations]);
 
-  // 3. Search Filter Logic (Local filtering for performance)
+  // EFFECT: Auto-mark as read when URL conversationId changes
+  useEffect(() => {
+    if (conversationId) {
+      markAsRead(conversationId);
+    }
+  }, [conversationId, markAsRead]);
+
   const filteredConversations = useMemo(() => {
     return conversations.filter((chat) => {
       const otherParticipant = chat.participants.find(
-        (p: any) => p.participantId !== activeProfileId
+        (p: any) => (p.participantId?._id || p.participantId) !== activeProfileId
       );
+      const details = otherParticipant?.participantId;
       const name = otherParticipant?.participantModel === 'User'
-        ? `${otherParticipant.firstName} ${otherParticipant.lastName}`
-        : otherParticipant.businessName;
+        ? `${details?.firstName} ${details?.lastName}`
+        : details?.businessName;
 
       return name?.toLowerCase().includes(searchQuery.toLowerCase());
     });
   }, [conversations, searchQuery, activeProfileId]);
 
-return {
+  return {
     conversations: filteredConversations,
-    messages,
-    setMessages,
     isLoading,
-    isError, // Now returned to satisfy the Dashboard
+    isError,
     searchQuery,
     setSearchQuery,
     fetchConversations,

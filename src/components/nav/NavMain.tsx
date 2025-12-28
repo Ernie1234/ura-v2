@@ -27,13 +27,14 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuthContext } from '@/context/auth-provider';
 import { useCartContext } from '@/context/cart-provider';
 import { useNotificationContext } from '@/context/notification-provider';
+import { useGlobalChat } from '@/context/chat-provider';
 
 type NavItem = {
   title: string;
   url: string;
   icon: LucideIcon;
   showBadge?: boolean;
-  badgeValue?: number;
+  badgeValue?: any;
 };
 
 export function NavMain() {
@@ -43,17 +44,23 @@ export function NavMain() {
   const pathname = location.pathname;
 
   const { totalItems } = useCartContext();
+
+  const { totalUnreadCount } = useGlobalChat();
+  
+  const displayCount = totalUnreadCount > 99 ? '99+' : totalUnreadCount;
+
+  
   // 1. Shared Items
   const mainItems: NavItem[] = [
     { title: 'Feed', url: '/dashboard', icon: LayoutDashboard },
-    { title: 'Chat', url: '/dashboard/chat', icon: MessageCircle, showBadge: true, badgeValue: 5 },
+    { title: 'Chat', url: '/dashboard/chat', icon: MessageCircle, showBadge: totalUnreadCount > 0, badgeValue: String(displayCount) },
     { title: 'Bookmarks', url: '/dashboard/bookmarks', icon: Bookmark }, // 🚨 Added Bookmarks here
     { 
     title: 'Notifications', 
     url: '/dashboard/notifications', 
     icon: Bell, 
     showBadge: unreadCount > 0, 
-    badgeValue: unreadCount 
+    badgeValue: String(unreadCount )
   },
     // { title: 'Wallet', url: '/dashboard/wallet', icon: Wallet },
 

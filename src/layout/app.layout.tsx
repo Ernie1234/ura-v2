@@ -13,50 +13,19 @@ import { toast } from 'sonner';
 import { CartProvider } from '@/context/cart-provider';
 import { NotificationProvider } from '@/context/notification-provider';
 import { SocketSync } from '@/context/socket-sync';
+import { ChatProvider } from '@/context/chat-provider';
 
 const AppLayoutContent = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { user, isAuthenticated } = useAuthContext();
-
-  useEffect(() => {
-    // Only initialize socket if user is logged in
-    if (isAuthenticated && user) {
-      const profileId = user._id || user._id || (user as any).userId;
-
-      // 1. Establish Connection
-      socketService.connect();
-
-      // 2. Identity Setup (backend uses this to join rooms)
-      socketService.setup(profileId.toString());
-
-      // 3. Listen for Live Notifications (matching backend event name)
-      socketService.on('notification_received', (data) => {
-        // data usually contains { message, type, sender, etc. }
-        toast.info(data.message || "You have a new notification");
-      });
-
-      // 4. Listen for Real-time Messages (if your backend emits message:received)
-      socketService.on('message:received', (newMessage) => {
-        // Only toast if we aren't currently looking at that specific chat
-        toast(`New message from ${newMessage.sender?.firstName || 'User'}`);
-      });
-
-      // Cleanup on logout/unmount
-      return () => {
-        socketService.disconnect();
-      };
-    }
-  }, [isAuthenticated, user]);
-
   return (
     <>
     <SocketSync />
       <NotificationProvider>
+        <ChatProvider>
+
         <CartProvider>
           <SidebarProvider>
-            {/* FIX: 'fixed' background ensures the glassy vibe 
-              works on EVERY page, not just the home page.
-          */}
+
             <div className="fixed inset-0 -z-10 bg-[#FAFAFB] bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px]" />
 
             <div className="flex min-h-screen w-full">
@@ -86,6 +55,8 @@ const AppLayoutContent = () => {
             <SearchContainer isSearchOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
           </SidebarProvider>
         </CartProvider>
+        </ChatProvider>
+
       </NotificationProvider>
     </>
   );

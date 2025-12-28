@@ -144,10 +144,11 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  
+
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "cv02", "cv03", "cv04"; /* Improves Urbanist legibility */
+    font-feature-settings: "cv02", "cv03", "cv04";
+    /* Improves Urbanist legibility */
   }
 }
 
@@ -157,30 +158,59 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
   .no-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
-  
-  /* Fix: Scrollbar thumb was invisible; now uses your Secondary Key Color #d1d5db / #e5e7eb */
+
+  /* 1. THE SHARED BASE (Apply this to the container) */
+  .scrollbar-base::-webkit-scrollbar {
+    display: block;
+    /* Ensure it's not hidden */
+  }
+
+  /* The Track (Background of the scrollbar) */
+  .scrollbar-base::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* The Thumb (The draggable part) */
   .scrollbar-base::-webkit-scrollbar-thumb {
-    background-color: transparent;
-    border-radius: 100px;
-    border: 3px solid transparent; /* Acts as padding */
-    background-clip: content-box;
-    transition: all 0.4s ease-in-out;
+    background-color: #e5e7eb;
+    /* Visible by default (light gray) */
+    border-radius: 20px;
+    background-clip: padding-box;
+    border: 3px solid transparent;
+    /* Creates spacing around the thumb */
+    min-height: 100px;
   }
 
-  .scrollbar-main::-webkit-scrollbar { width: 10px; }
-  .scrollbar-slim::-webkit-scrollbar { width: 5px; height: 5px; }
-
-  /* Visible on hover for that "Mac-style" interaction */
+  /* Interaction Styles */
   .scrollbar-base:hover::-webkit-scrollbar-thumb {
-    background-color: #d1d5db; /* Matches your Secondary Key palette */
+    background-color: #d1d5db;
+    /* Darker gray on hover */
   }
 
-  /* Your Brand Orange on Active/Drag */
   .scrollbar-base::-webkit-scrollbar-thumb:active {
-    background-color: #f97316 !important; 
+    background-color: #f97316 !important;
+    /* Orange when dragging */
+  }
+
+  /* 2. THE SIZE UTILITIES */
+  .scrollbar-main::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .scrollbar-large::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+    /* Noticeable but not "clunky" */
+  }
+
+  .scrollbar-slim::-webkit-scrollbar {
+    width: 5px;
   }
 }

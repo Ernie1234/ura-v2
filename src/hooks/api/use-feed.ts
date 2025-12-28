@@ -125,12 +125,13 @@ export const useToggleWishlist = (productId: string) => {
  * HOOK: useToggleLike
  * Handles instant liking of Posts or Products and syncs globally.
  */
-export const useToggleLike = (targetId: string, targetType: 'post' | 'product') => {
+export const useToggleLike = (targetId: string, targetType: 'post' | 'product', userId?: string) => {
   const queryClient = useQueryClient();
 
-  // The primary list this mutation belongs to
-  const queryKey = targetType === 'post' ? ["posts-feed"] : ["products-feed"];
-
+  // 1. MATCH THE KEY EXACTLY: ['posts-feed', 'me'] or ['posts-feed', 'some-id']
+  const queryKey = targetType === 'post'
+    ? ['posts-feed', userId || 'me']
+    : ['products-feed', userId || 'me'];
   return useMutation({
     mutationFn: () => toggleLikeApi(targetId, targetType),
 
@@ -143,7 +144,7 @@ export const useToggleLike = (targetId: string, targetType: 'post' | 'product') 
 
       // 3. Optimistically update the cache
       queryClient.setQueryData(queryKey, (old: any) => {
-        if (!old) return old;
+        if (!old || !old.pages) return old;
         return {
           ...old,
           pages: old.pages.map((page: any) => {
@@ -180,6 +181,12 @@ export const useToggleLike = (targetId: string, targetType: 'post' | 'product') 
       queryClient.setQueryData(queryKey, context?.previousData);
       toast.error("Failed to update like");
     },
+
+    // onSettled: () => {
+    //   // 2. USE INVALIDATE INSTEAD OF REFETCH
+    //   // This refreshes the data in the background WITHOUT showing a loading spinner
+    //   queryClient.invalidateQueries({ queryKey });
+    // }
 
     onSuccess: () => {
       // 4. GLOBAL SYNC: Tell React Query to refresh ALL feeds in the background.

@@ -54,17 +54,26 @@ export const CommentDrawer = ({ postId, user_image, isOpen, onClose }: any) => {
     enabled: !!isOpen && !!postId,
   });
 
-  // 2. Post Comment Mutation
-  const { mutate: submitComment, isPending } = useMutation({
-    mutationFn: async (newComment: any) => {
-      return API.post('/post/comment', newComment);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['comments', postId] });
-      setCommentText('');
-      setReplyingTo(null);
-    },
-  });
+// 2. Post Comment Mutation
+const { mutate: submitComment, isPending } = useMutation({
+  mutationFn: async (newComment: any) => {
+    return API.post('/post/comment', newComment);
+  },
+  onSuccess: () => {
+    // 1. Refresh the comments inside this drawer
+    queryClient.invalidateQueries({ queryKey: ['comments', postId] });
+    
+    // 2. Refresh the main feeds so the comment count updates on the PostCard
+    queryClient.invalidateQueries({ queryKey: ['posts-feed'] });
+    queryClient.invalidateQueries({ queryKey: ['products-feed'] });
+    
+    // 3. Optional: If you want to be extra precise and avoid a full feed flash:
+    // queryClient.invalidateQueries({ queryKey: ['posts-feed', 'me'] });
+
+    setCommentText('');
+    setReplyingTo(null);
+  },
+});
 
   // 3. Toggle Like Mutation
   const { mutate: toggleLike } = useMutation({

@@ -5,7 +5,7 @@ import type { CardProps, ProductPostType } from "@/types/feed.types";
 import { MediaCarousel } from "./MediaCarousel";
 import { PostActions } from "./PostAction";
 import { generateAvatarUrl } from "@/utils/avatar-generator";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useCartContext } from "@/context/cart-provider";
 import { ProductDetailsModal } from "./ProductDetailsModal";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ import { AuthPromptModal } from "../shared/AuthPromptModel";
 import { PostMenu } from "./PostMenu"; // Import your menu component
 import { Flag, UserPlus, Link2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { formatTimeAgo } from "@/utils/date-format";
 
 
 export default function ProductPostCard({ post, onRequireAuth }: CardProps<ProductPostType>) {
@@ -20,13 +21,16 @@ export default function ProductPostCard({ post, onRequireAuth }: CardProps<Produ
   const cart = useCartContext();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showDetails, setShowDetails] = useState(false); // Modal state
-  const product = post.productDetails || post.product;
+  const product = post.product;
   const price = product?.price || 0;
   const stock = product?.stock || 0;
   const category = product?.category || "General"; // Fallback if category is missing
   // 1. SINGLE STATE FOR AUTH POPUP
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authConfig, setAuthConfig] = useState({ title: "", subtitle: "", action: "" });
+
+  const location = useLocation();
+  const isPublicPath = location.pathname === '/';
 
   // 2. CENTRALIZED AUTH CHECKER
   const ensureAuth = (type: 'buy' | 'like' | 'comment' | 'bookmark' | 'menu') => {
@@ -73,7 +77,7 @@ export default function ProductPostCard({ post, onRequireAuth }: CardProps<Produ
 
   const handleBuy = () => {
     if (ensureAuth('buy')) {
-      cart?.addItem(post.productDetails?._id || post._id, 1);
+      cart?.addItem( post._id, 1);
     }
   };
 
@@ -117,9 +121,28 @@ export default function ProductPostCard({ post, onRequireAuth }: CardProps<Produ
               </Link>
               <div className="flex items-center gap-2">
                 <div className="flex">
-                  {[1, 2, 3, 4, 5].map(s => <Star key={s} size={10} className="fill-yellow-500 text-yellow-500" />)}
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      size={10}
+                      className={cn(
+                        "transition-all",
+                        star <= Math.round(post.rating || 0)
+                          ? "fill-yellow-500 text-yellow-500"
+                          : "fill-gray-200 text-gray-200"
+                      )}
+                    />
+                  ))}
                 </div>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Featured Vendor</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                    {isPublicPath ? "Featured Vendor" : (post?.rating > 0 ? `${post.rating} Shop Rating` : "New Vendor")}
+                  </span>
+                  <span className="text-[12px] text-gray-300">•</span>
+                  <span className="text-[10px] font-medium text-gray-400 lowercase italic">
+                    {formatTimeAgo(post.createdAt)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -145,7 +168,7 @@ export default function ProductPostCard({ post, onRequireAuth }: CardProps<Produ
       <div className="px-0 lg:px-4">
         {/* Inside ProductPostCard.tsx */}
         <div className="lg:rounded-2xl overflow-hidden relative shadow-inner isolate"> {/* "isolate" is the magic CSS property here */}
-          <MediaCarousel media={product.media} />
+          <MediaCarousel media={product?.media!} />
 
           <div className="absolute top-4 left-4 z-[35] bg-orange-600/95 backdrop-blur-md text-white px-3 py-1.5 rounded-full text-[10px] font-black uppercase flex items-center gap-1 shadow-lg border border-white/10">
             <ShoppingBag size={12} />
@@ -224,7 +247,7 @@ export default function ProductPostCard({ post, onRequireAuth }: CardProps<Produ
         onClose={() => setShowDetails(false)}
         product={{
           ...product,
-          media: product.media,
+          media: product?.media,
           displayAvatar: user_image,
           displayName: post.displayName
         }}
