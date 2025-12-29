@@ -27,7 +27,7 @@ export const useBookmarks = (options: BookmarkQueryOptions = {}) => {
 export const useBookmarkedItems = (type: 'Post' | 'Business') => {
   return useQuery({
     // The key changes based on type: ['bookmarks', 'Post'] or ['bookmarks', 'Business']
-    queryKey: ['bookmarks', type],
+    queryKey: ['posts-feed', type],
     queryFn: () => fetchBookmarksLoad(type),
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes to prevent redundant loads
     refetchOnWindowFocus: false,

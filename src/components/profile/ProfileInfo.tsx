@@ -8,7 +8,7 @@ import {
   Star,
   Loader2
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { UserType, BusinessType } from "@/types/api.types";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -16,6 +16,8 @@ import { useBookmark, useProfileActions } from "@/hooks/api/use-user-profile";
 import { UnfollowDialog } from "./UnfollowDialog";
 import { useToggleBookmark } from "@/hooks/api/use-feed";
 import { BusinessContactInfo } from "./BusinessContactInfo";
+import { chatAPI } from "@/lib/chat-api";
+import { useAuthContext } from "@/context/auth-provider";
 
 type Props = {
   user: UserType;
@@ -26,6 +28,9 @@ type Props = {
 
 const ProfileInfo: React.FC<Props> = ({ user, business, related, isMe }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user: Me } = useAuthContext();
+
   const isBusinessRoute = location.pathname.includes("/business/");
   const [showUnfollowDialog, setShowUnfollowDialog] = useState(false);
   const isSaved = related?.isBookmarked;
@@ -99,6 +104,26 @@ const ProfileInfo: React.FC<Props> = ({ user, business, related, isMe }) => {
       console.log("Error sharing", err);
     }
   };
+  const handleStartChat = async () => {
+    if (!targetId) return;
+
+    // Prepare the payload to match your backend's req.body
+    const payload = {
+      senderId: Me?._id!,
+      senderModel: 'User',
+      receiverId: targetId,
+      receiverModel: (isBusinessRoute ? 'Business' : 'User') as 'User' | 'Business'
+    } as any;
+
+    try {
+      const { data } = await chatAPI.accessConversation(payload);
+      navigate(`/dashboard/chat/${data.data._id}`);
+    } catch (err) {
+      console.error("Error starting chat:", err);
+    }
+  };
+
+
 
   const handleFollow = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -110,13 +135,12 @@ const ProfileInfo: React.FC<Props> = ({ user, business, related, isMe }) => {
       follow();
     }
   };
-
   // Button Styles
   const btnBase = "flex items-center justify-center transition-all duration-200";
   const btnAction = "flex-col py-4 px-1 h-auto text-[11px] gap-2 rounded-[22px] font-bold border";
 
   const title = isBusinessRoute && business ? business.businessName : `${user.firstName} ${user.lastName}`;
-  const subTitle = isBusinessRoute && business ? business.category : `@${user.username}`;
+  const subTitle = isBusinessRoute && business ? '' : `@${user.username}`;
   const bio = isBusinessRoute && business ? business.about : (user as any).bio;
 
   return (
@@ -133,7 +157,7 @@ const ProfileInfo: React.FC<Props> = ({ user, business, related, isMe }) => {
                 {[1, 2, 3, 4, 5].map((star) => {
                   // Logic: If rating is 3.5, stars 1, 2, 3 are filled. 
                   // We'll use business.related.rating once available.
-                  const ratingValue = business?.rating || 0;
+                  const ratingValue = business?.averageRating || 0;
                   return (
                     <Star
                       key={star}
@@ -149,7 +173,7 @@ const ProfileInfo: React.FC<Props> = ({ user, business, related, isMe }) => {
                 })}
               </div>
               <span className="text-xs font-bold text-gray-500">
-                ({business?.related?.rating || "No ratings"})
+                ({business?.totalReviews || "No ratings"})
               </span>
             </div>
           )}
@@ -245,10 +269,10 @@ const ProfileInfo: React.FC<Props> = ({ user, business, related, isMe }) => {
               <span>{localIsFollowing ? "Following" : "Follow"}</span>
             </button>
             {/* 2. MESSAGE (Standard for everyone) */}
-            <Link to={`/dashboard/chats/${user._id}`} className={cn(btnBase, btnAction, "bg-white text-gray-700 border-gray-200")}>
+            <button onClick={handleStartChat} className={cn(btnBase, btnAction, "bg-white text-gray-700 border-gray-200")}>
               <MessageCircle size={20} className="text-orange-500" />
               <span>Message</span>
-            </Link>
+            </button>
 
             {/* 3. CONTEXTUAL ACTION: SAVE (Business) or SHARE (User) */}
             {isBusinessRoute ? (

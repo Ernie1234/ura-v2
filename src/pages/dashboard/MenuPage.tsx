@@ -11,6 +11,7 @@ import { useAuthContext } from '@/context/auth-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import LogoutDialog from '@/components/shared/LogoutDialog';
 import { useCartContext } from '@/context/cart-provider';
+import { useNotificationContext } from '@/context/notification-provider';
 
 const MenuPage = () => {
   const { user } = useAuthContext();
@@ -18,13 +19,14 @@ const MenuPage = () => {
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
   const { totalItems: cartItem} = useCartContext();
 
+    const { unreadCount } = useNotificationContext();
   // Grouped Navigation Items
   const sections = [
     {
       label: "General",
       items: [
         // { title: 'Chat', icon: MessageCircle, path: '/dashboard/chat', badge: 5 },
-        { title: 'Notifications', icon: Bell, path: '/dashboard/notifications', badge: 3 },
+        { title: 'Notifications', icon: Bell, path: '/dashboard/notifications', badge: unreadCount },
         { title: 'Bookmarks', icon: Bookmark, path: '/dashboard/bookmarks' },
         // { title: 'Wallet & Payments', icon: Wallet, path: '/dashboard/wallet' },
       ]
@@ -44,9 +46,9 @@ const MenuPage = () => {
   const businessSection = {
     label: "Business Tools",
     items: [
-      { title: 'List a Product', icon: PlusCircle, path: '/dashboard/create?type=product' },
-      { title: 'Store Orders', icon: Store, path: '/dashboard/store-management', badge: 12 },
-      { title: 'Business Loan', icon: BadgePercent, path: '/dashboard/loans' },
+      { title: 'List a Product', icon: PlusCircle, path: '/dashboard/post/create?type=product' },
+      { title: 'Store Orders', icon: Store, path: '/dashboard/store-management', badge: 0 },
+      // { title: 'Business Loan', icon: BadgePercent, path: '/dashboard/loans' },
     ]
   };
 

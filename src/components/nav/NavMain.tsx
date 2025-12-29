@@ -77,18 +77,18 @@ export function NavMain() {
     },
     { title: 'My Orders', url: '/dashboard/my-orders', icon: ShoppingBag },
     { title: 'Deals', url: '/dashboard/deal-offer', icon: Tag },
-    { title: 'Events', url: '/dashboard/events', icon: Calendar },
+    // { title: 'Events', url: '/dashboard/events', icon: Calendar },
   ];
 
   // 3. Business Management
   const businessItems: NavItem[] = [
     {
       title: 'List a Product',
-      url: '/dashboard/create?type=product',
+      url: '/dashboard/post/create?type=product',
       icon: PlusCircle
     },
     { title: 'Store Orders', url: '/dashboard/store-management', icon: Store, showBadge: true, badgeValue: 12 },
-    { title: 'Business Loan', url: '/dashboard/loans', icon: BadgePercent },
+    // { title: 'Business Loan', url: '/dashboard/loans', icon: BadgePercent },
     // Inside businessItems array in NavMain.tsx
 
   ];

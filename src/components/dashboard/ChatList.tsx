@@ -4,6 +4,7 @@ import { socketService } from '@/services/socket.service';
 import { Briefcase, User as UserIcon, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { generateAvatarUrl } from '@/utils/avatar-generator';
+import { Link } from 'react-router-dom';
 
 interface ChatListProps {
   chatList: any[];
@@ -20,9 +21,9 @@ const ChatList: React.FC<ChatListProps> = ({ chatList, activeProfileId }) => {
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 mb-2 shrink-0">
         <h3 className="font-bold text-[16px] tracking-tight text-slate-900">Messages</h3>
-        <button className="text-[11px] font-black uppercase tracking-[0.12em] text-[#f97316] hover:opacity-70 transition-all">
+        <Link to='/dashboard/chat' className="text-[11px] font-black uppercase tracking-[0.12em] text-[#f97316] hover:opacity-70 transition-all">
           View All
-        </button>
+        </Link>
       </div>
 
       {/* Scrollable Content Area */}
@@ -63,6 +64,7 @@ const ChatListItem = ({ chat, activeProfileId }: { chat: any, activeProfileId: s
 
   const avatar = isBusiness ? details?.businessLogo : details?.profilePicture;
   const name = isBusiness ? details?.businessName : details?.fullName;
+  const profileRoute = isBusiness ? `/dashboard/profile/business/${partnerId}` : `/dashboard/profile/user/${partnerId}`;
   const fallback = generateAvatarUrl(name || 'User');
 
   const [isOnline, setIsOnline] = useState(details?.isOnline || false);
@@ -92,62 +94,70 @@ const ChatListItem = ({ chat, activeProfileId }: { chat: any, activeProfileId: s
   }, [partnerId]);
 
   return (
-    <div className="group relative flex items-center gap-3.5 p-3 rounded-[24px] transition-all duration-300 hover:bg-white/80 hover:shadow-sm cursor-pointer active:scale-[0.98]">
-      {/* Avatar Wrapper */}
-      <div className="relative shrink-0">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/60 shadow-sm bg-slate-100 ring-1 ring-slate-200/50">
-          <img
-            src={avatar || fallback}
-            alt={name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        </div>
+    <Link
+      to={`/dashboard/chat/${chat?._id}`}
+    >
+      <div className="group relative flex items-center gap-3.5 p-3 rounded-[24px] transition-all duration-300 hover:bg-white/80 hover:shadow-sm cursor-pointer active:scale-[0.98]">
+        {/* Avatar Wrapper */}
 
-        {/* Status Dot with pulse animation */}
-        {isOnline && (
-          <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-emerald-500 border-[2.5px] border-white rounded-full shadow-sm ring-1 ring-emerald-100 animate-pulse" />
-        )}
+        <div className="relative shrink-0">
+          <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/60 shadow-sm bg-slate-100 ring-1 ring-slate-200/50">
+            <img
+              src={avatar || fallback}
+              alt={name}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          </div>
 
-        {/* Floating Model Badge */}
-        <div className="absolute -top-1 -right-1 bg-white/90 backdrop-blur-md rounded-full p-1 shadow-sm border border-slate-100">
-          {isBusiness ? (
-            <Briefcase size={9} className="text-[#f97316]" />
-          ) : (
-            <UserIcon size={9} className="text-blue-500" />
+          {/* Status Dot with pulse animation */}
+          {isOnline && (
+            <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-emerald-500 border-[2.5px] border-white rounded-full shadow-sm ring-1 ring-emerald-100 animate-pulse" />
           )}
-        </div>
-      </div>
 
-      {/* Text Context */}
-      <div className="flex-1 min-w-0">
-        <div className="flex justify-between items-center mb-0.5">
-          <h4 className="text-[14px] font-bold text-slate-800 truncate tracking-tight">
-            {name}
-          </h4>
-          <span className="text-[10px] font-medium text-slate-400 lowercase italic">
-            {chat.lastMessage?.createdAt
-              ? formatDistanceToNow(new Date(chat.lastMessage.createdAt), { addSuffix: false })
-              : ''}
-          </span>
+          {/* Floating Model Badge */}
+          <div className="absolute -top-1 -right-1 bg-white/90 backdrop-blur-md rounded-full p-1 shadow-sm border border-slate-100">
+            {isBusiness ? (
+              <Briefcase size={9} className="text-[#f97316]" />
+            ) : (
+              <UserIcon size={9} className="text-blue-500" />
+            )}
+          </div>
         </div>
 
-        <div className="flex justify-between items-center gap-2">
-          <p className={cn(
-            "text-[12.5px] truncate leading-tight transition-colors",
-            unreadCount > 0 ? "text-slate-950 font-semibold" : "text-slate-500 font-medium"
-          )}>
-            {chat.lastMessage?.content || "Tap to chat..."}
-          </p>
+        {/* Text Context */}
 
-          {/* Unread Counter */}
-          {unreadCount > 0 && (
-            <span className="h-5 min-w-[20px] px-1.5 flex items-center justify-center bg-[#f97316] text-white text-[10px] font-black rounded-full shadow-[0_4px_10px_rgba(249,115,22,0.3)]">
-              {unreadCount}
+        <div className="flex-1 min-w-0">
+          <div className="flex justify-between items-center mb-0.5">
+            <h4 className="text-[14px] font-bold text-slate-800 truncate tracking-tight">
+              {name}
+            </h4>
+            <span className="text-[10px] font-medium text-slate-400 lowercase italic">
+              {chat.lastMessage?.createdAt
+                ? formatDistanceToNow(new Date(chat.lastMessage.createdAt), { addSuffix: false })
+                : ''}
             </span>
-          )}
+          </div>
+
+          <div className="flex justify-between items-center gap-2">
+            <p className={cn(
+              "text-[12.5px] truncate leading-tight transition-colors",
+              unreadCount > 0 ? "text-slate-950 font-semibold" : "text-slate-500 font-medium"
+            )}>
+              {chat.lastMessage?.content || "Tap to chat..."}
+            </p>
+
+            {/* Unread Counter */}
+            {unreadCount > 0 && (
+              <span className="h-5 min-w-[20px] px-1.5 flex items-center justify-center bg-[#f97316] text-white text-[10px] font-black rounded-full shadow-[0_4px_10px_rgba(249,115,22,0.3)]">
+                {unreadCount}
+              </span>
+            )}
+          </div>
         </div>
+
       </div>
-    </div>
+    </Link>
+
   );
 };
 

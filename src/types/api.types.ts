@@ -1,4 +1,3 @@
-import type { FeedItem } from "./feed.types";
 
 export type loginType = { email: string; password: string };
 
@@ -76,6 +75,8 @@ export type BusinessType = {
     country: string;
     fullAddress: string;
   };
+  averageRating?: number;
+  totalReviews?: number;
   operatingHours: IOperatingHour[];
 };
 export interface IOperatingHour {
@@ -164,12 +165,6 @@ export interface Bookmark {
   avatar: string;
 }
 
-// src/types/api.types.ts
-
-export interface FeedResponse {
-  success: boolean;
-  posts: FeedItem[];
-}
 
 // types/api.types.ts
 export interface ICommentAuthor {

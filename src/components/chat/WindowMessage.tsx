@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
+import { useParams, useNavigate, useOutletContext, Link } from 'react-router-dom';
 import { ChevronLeft, Send, Plus, Smile, Check, CheckCheck, Clock, X } from 'lucide-react';
 import { chatAPI } from '@/lib/chat-api';
 import { socketService } from '@/services/socket.service';
@@ -33,13 +33,16 @@ const MessageWindow = () => {
     const pId = typeof p.participantId === 'object' ? p.participantId._id : p.participantId;
     return pId !== activeProfileId;
   });
-
+  const isBusiness = other?.participantModel === 'Business'
   const details = other?.participantId;
   const partnerName = other?.participantModel === 'User'
     ? `${details?.firstName} ${details?.lastName}`
     : details?.businessName || 'Chat';
   const partnerAvatar = details?.profilePicture || details?.businessLogo;
   const partnerId = typeof details === 'object' ? details._id : details;
+
+  const profileRoute = isBusiness ? `/dashboard/profile/business/${partnerId}` : `/dashboard/profile/user/${partnerId}`;
+
 
   const [isOnline, setIsOnline] = useState(details?.isOnline || false);
 
@@ -56,7 +59,7 @@ const MessageWindow = () => {
 
     // Use your specific socket service methods
     socketService.onStatusChange(handleStatus);
-    
+
     // IMMEDIATE CHECK: Force a check for this partner on mount
     socketService.emit("check_online_status", partnerId);
 
@@ -221,9 +224,9 @@ const MessageWindow = () => {
           <button onClick={() => navigate('/dashboard/chat')} className="md:hidden p-2 text-slate-500"><ChevronLeft size={24} /></button>
           <div className="relative shrink-0">
             <div className={`
-    p-[2px] rounded-full transition-all duration-500
-    ${isOnline ? 'bg-gradient-to-tr from-emerald-400 to-emerald-500' : 'bg-transparent'}
-  `}>
+                    p-[2px] rounded-full transition-all duration-500
+                    ${isOnline ? 'bg-gradient-to-tr from-emerald-400 to-emerald-500' : 'bg-transparent'}
+                  `}>
               <div className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900 overflow-hidden bg-slate-100">
                 <img
                   src={partnerAvatar || generateAvatarUrl(partnerName)}
@@ -238,36 +241,39 @@ const MessageWindow = () => {
             )}
           </div>
 
-          <div className="flex flex-col">
-            <h3 className="font-bold text-sm dark:text-white leading-none">{partnerName}</h3>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              {isOnline ? (
-                <div className="flex items-center gap-1.5">
-                  {/* Small, solid green dot without the distracting ping */}
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span>
-                  <span className="text-[11px] md:text-xs text-emerald-600 font-medium">
-                    Online
-                  </span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1">
-                  {/* Subtle grey dot for offline */}
-                  <span className="h-2 w-2 rounded-full bg-slate-300"></span>
-                  <span className="text-[11px] md:text-xs text-slate-500 font-normal">
-                    {partnerLastSeen ? (
-                      // Custom formatter for a cleaner "last seen" string
-                      `Last seen ${formatDistanceToNow(new Date(partnerLastSeen), {
-                        addSuffix: true
-                      }).replace('about ', '')}`
-                    ) : (
-                      'Offline'
-                    )}
-                  </span>
-                </div>
-              )}
-            </div>
+          <Link
+            to={profileRoute}>
+            <div className="flex flex-col">
+              <h3 className="font-bold text-sm dark:text-white leading-none">{partnerName}</h3>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                {isOnline ? (
+                  <div className="flex items-center gap-1.5">
+                    {/* Small, solid green dot without the distracting ping */}
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span>
+                    <span className="text-[11px] md:text-xs text-emerald-600 font-medium">
+                      Online
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    {/* Subtle grey dot for offline */}
+                    <span className="h-2 w-2 rounded-full bg-slate-300"></span>
+                    <span className="text-[11px] md:text-xs text-slate-500 font-normal">
+                      {partnerLastSeen ? (
+                        // Custom formatter for a cleaner "last seen" string
+                        `Last seen ${formatDistanceToNow(new Date(partnerLastSeen), {
+                          addSuffix: true
+                        }).replace('about ', '')}`
+                      ) : (
+                        'Offline'
+                      )}
+                    </span>
+                  </div>
+                )}
+              </div>
 
-          </div>
+            </div>
+          </Link>
         </div>
       </header>
 

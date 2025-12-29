@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { socketService } from '@/services/socket.service';
 import { useAuthContext } from './auth-provider';
-import API from '@/lib/axios-client'; 
+import API from '@/lib/axios-client';
 
 interface Notification {
     _id: string;
@@ -14,12 +14,13 @@ interface Notification {
 }
 
 interface NotificationContextType {
-    notifications: Notification[]; // Added this
+    notifications: Notification[];
     unreadCount: number;
     fetchNotifications: () => Promise<void>;
-    markAsRead: (id: string) => Promise<void>;
+    markAsRead: (idOrIds: string | string[]) => Promise<void>; // Updated to handle bulk
     markAllAsRead: () => Promise<void>;
     clearAll: () => Promise<void>;
+    deleteNotification: (idOrIds: string | string[]) => Promise<void>; // Updated to handle bulk
     resetCount: () => void;
 }
 
@@ -31,60 +32,91 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const { user, isAuthenticated } = useAuthContext();
 
     // 1. Fetch notifications list
-// Inside NotificationProvider.tsx
-
-const fetchNotifications = useCallback(async () => {
-    try {
-        const response = await API.get('/log/notifications');
-        
-        // Safety check: handle both { data: [...] } and directly [...] 
-        const rawData = response.data?.data || response.data || [];
-        
-        // Ensure rawData is actually an array before setting
-        const dataArray = Array.isArray(rawData) ? rawData : [];
-        
-        setNotifications(dataArray);
-        
-        const unread = dataArray.filter((n: Notification) => !n.isRead).length;
-        setUnreadCount(unread);
-    } catch (err) {
-        console.error("Failed to fetch notifications", err);
-        setNotifications([]); // Set to empty array on error to prevent crashes
-    }
-}, []);
-
-    // 2. Mark single as read
-    const markAsRead = async (id: string) => {
+    const fetchNotifications = useCallback(async () => {
         try {
-            await API.patch(`/log/notifications/${id}/read`);
-            setNotifications(prev => 
-                prev.map(n => n._id === id ? { ...n, isRead: true } : n)
-            );
-            setUnreadCount(prev => Math.max(0, prev - 1));
+            const response = await API.get('/log/notifications');
+            const dataArray = response.data?.data || response.data || [];
+            setNotifications(Array.isArray(dataArray) ? dataArray : []);
+            
+            const unread = dataArray.filter((n: Notification) => !n.isRead).length;
+            setUnreadCount(unread);
+        } catch (err) {
+            console.error("Failed to fetch notifications", err);
+            setNotifications([]);
+        }
+    }, []);
+
+    // 2. Mark Read (Single or Bulk)
+    const markAsRead = async (idOrIds: string | string[]) => {
+        const isBulk = Array.isArray(idOrIds);
+        
+        // Optimistic UI Update
+        setNotifications(prev => prev.map(n => {
+            if (isBulk) return idOrIds.includes(n._id) ? { ...n, isRead: true } : n;
+            return n._id === idOrIds ? { ...n, isRead: true } : n;
+        }));
+
+        try {
+            if (isBulk) {
+                // Bulk call sending array in body
+                await API.patch('/log/notifications/mark-read', { ids: idOrIds });
+            } else {
+                // Single call using URL param
+                await API.patch(`/log/notifications/mark-read/${idOrIds}`);
+            }
+            
+            // Recalculate count from updated local state
+            setUnreadCount(prev => Math.max(0, notifications.filter(n => !n.isRead).length));
         } catch (err) {
             console.error("Error marking read", err);
+            fetchNotifications(); // Rollback on error
         }
     };
 
     // 3. Mark all as read
     const markAllAsRead = async () => {
+        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+        setUnreadCount(0);
         try {
-            await API.post('/log/notifications/mark-all-read');
-            setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-            setUnreadCount(0);
+            await API.patch('/log/notifications/mark-read'); // No ID = Mark All
         } catch (err) {
             console.error("Error marking all read", err);
+            fetchNotifications();
         }
     };
 
-    // 4. Clear all notifications
+    // 4. Delete (Single or Bulk)
+    const deleteNotification = async (idOrIds: string | string[]) => {
+        const isBulk = Array.isArray(idOrIds);
+
+        // Optimistic UI Removal
+        setNotifications(prev => prev.filter(n => {
+            if (isBulk) return !idOrIds.includes(n._id);
+            return n._id !== idOrIds;
+        }));
+
+        try {
+            if (isBulk) {
+                // Axios delete with body requires 'data' key
+                await API.delete('/log/notifications', { data: { ids: idOrIds } });
+            } else {
+                await API.delete(`/log/notifications/${idOrIds}`);
+            }
+        } catch (err) {
+            console.error("Delete failed", err);
+            fetchNotifications();
+        }
+    };
+
+    // 5. Clear all notifications
     const clearAll = async () => {
+        setNotifications([]);
+        setUnreadCount(0);
         try {
             await API.delete('/log/notifications/clear-all');
-            setNotifications([]);
-            setUnreadCount(0);
         } catch (err) {
             console.error("Error clearing notifications", err);
+            fetchNotifications();
         }
     };
 
@@ -92,9 +124,7 @@ const fetchNotifications = useCallback(async () => {
         if (isAuthenticated && user) {
             fetchNotifications();
 
-            // Listen for real-time notifications
             socketService.on('notification_received', (newNotif) => {
-                // Add new notification to the top of the list
                 setNotifications(prev => [newNotif, ...prev]);
                 setUnreadCount(prev => prev + 1);
             });
@@ -108,14 +138,15 @@ const fetchNotifications = useCallback(async () => {
     const resetCount = () => setUnreadCount(0);
 
     return (
-        <NotificationContext.Provider value={{ 
-            notifications, 
-            unreadCount, 
+        <NotificationContext.Provider value={{
+            notifications,
+            unreadCount,
             fetchNotifications,
-            markAsRead, 
-            markAllAsRead, 
-            clearAll, 
-            resetCount 
+            markAsRead,
+            markAllAsRead,
+            clearAll,
+            resetCount,
+            deleteNotification
         }}>
             {children}
         </NotificationContext.Provider>

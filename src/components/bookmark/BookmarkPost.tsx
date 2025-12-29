@@ -19,7 +19,7 @@ export default function BookmarkedPosts() {
     }
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
             {posts.map((post: any) => (
                 /* Cards stay the same, the container now splits them into two columns on desktop */
                 post?.type === 'PRODUCT'
