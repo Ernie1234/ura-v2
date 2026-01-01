@@ -12,6 +12,7 @@ import { useChats } from '@/hooks/api/use-chat';
 import { useIsDesktop } from '@/hooks/use-is-desktop';
 import ChatList from '@/components/dashboard/ChatList';
 import { DashboardSkeleton } from '@/components/skeleton/DashboardSkeleton';
+import { useChat } from '@/hooks/use-chat';
 
 
 const CreateProduct = () => {
@@ -21,9 +22,12 @@ const CreateProduct = () => {
   const activeTab = searchParams.get('type') || 'post';
   const isBusiness = user?.isBusinessOwner;
 
-  const { chats, isLoading: isChatsLoading, isError: chatError } =
-    useChats(isDesktop ? { enabled: true } : { enabled: false });
-
+  const activeProfileId = user?._id;
+  const {
+    conversations,
+    isLoading: isChatsLoading,
+    isError: chatError // This maps the hook's isError to the name chatError
+  } = useChat(activeProfileId!);
   // 1. FIX: Scroll main container to top when page loads or tab changes
   useEffect(() => {
     const container = document.getElementById("main-feed-container");
@@ -38,10 +42,10 @@ const CreateProduct = () => {
     }
   }, [activeTab, isBusiness, setSearchParams]);
 
-    if (isLoading || isChatsLoading) {
-      return <DashboardSkeleton />;
-    }
-    
+  if (isLoading || isChatsLoading) {
+    return <DashboardSkeleton />;
+  }
+
   if (!user || !related) return <Navigate to="/auth/login" replace />;
 
 
@@ -70,9 +74,14 @@ const CreateProduct = () => {
       <SidebarWidget
         isDesktop={isDesktop}
         isError={chatError}
-        errorTitle="Failed to load chats"
+        errorTitle="Messages"
+        // Use subtle headers for the widgets
+        className="bg-white/40 backdrop-blur-xl border-white/20 rounded-[24px] overflow-hidden"
       >
-        <ChatList chatList={chats} isError={chatError} />
+        <ChatList
+          chatList={conversations}
+          activeProfileId={activeProfileId!}
+        />
       </SidebarWidget>
     </>
   );

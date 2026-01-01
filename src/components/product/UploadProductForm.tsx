@@ -8,12 +8,16 @@ import { Upload, Megaphone, Loader2, Archive, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { MediaPreview } from './shared/MediaPreview';
 import { useCreatePost } from '@/hooks/api/use-feed';
+import { useCategories } from '@/hooks/api/use-categories';
+import { Search, ChevronDown, Check } from 'lucide-react'; // Add these icons
+import { cn } from '@/lib/utils';
 
 const integratedSchema = z.object({
   name: z.string().min(3, "Product name is required"),
   price: z.string().min(1, "Price is required"),
   description: z.string().min(10, "Description is required"),
   stock: z.string().min(1, "Let us know how many stocks you have"),
+  category: z.string().min(1, "Please select a category"),
   size: z.string().optional(),
   caption: z.string().optional(),
 });
@@ -23,15 +27,26 @@ const UploadProductForm = () => {
   const [makePost, setMakePost] = useState(false);
   const [media, setMedia] = useState<any[]>([]);
 
+  const { categories, isLoading } = useCategories('product');
+
   // Tag States
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm({
+  // Inside your UploadProductForm component...
+  const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm({
     resolver: zodResolver(integratedSchema),
-    defaultValues: { caption: '' }
+    defaultValues: { caption: '', category: '' }
   });
 
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const selectedCategory = watch('category');
+
+  // Filter categories based on search input
+  const filteredCategories = categories?.filter((cat: string) =>
+    cat.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const newMedia = files.map(file => ({
@@ -49,13 +64,14 @@ const UploadProductForm = () => {
     // Construct the data to match backend: type PRODUCT
     const payload = {
       data: {
+        // ...data,
         type: 'PRODUCT',
         productName: data.name,
         price: Number(data.price),
         stock: Number(data.stock),
         description: data.description,
         size: data.size,
-        category: 'General', // Default or add a field for this
+        category: selectedCategory, // Default or add a field for this
         caption: data.caption,
         tags: tags,
         publishToFeed: makePost, // Flag to create the social post
@@ -82,9 +98,65 @@ const UploadProductForm = () => {
           <h3 className="font-black text-gray-900 uppercase tracking-wider text-sm">Product Details</h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <FormField label="Product Name" error={errors.name?.message as string}>
             <StyledInput {...register('name')} placeholder="e.g. Vintage Denim Jacket" />
+          </FormField>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* CATEGORY SEARCHABLE DROPDOWN */}
+          <FormField label="Category" error={errors.category?.message as string}>
+            <div className="relative">
+              <div
+                onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+                className={cn(
+                  "w-full p-4 bg-gray-50 border rounded-[20px] flex items-center justify-between cursor-pointer transition-all",
+                  isCategoryOpen ? "border-orange-500 ring-2 ring-orange-500/10" : "border-gray-200"
+                )}
+              >
+                <span className={cn("text-sm", selectedCategory ? "text-gray-900 font-bold" : "text-gray-400")}>
+                  {selectedCategory || "Select a category"}
+                </span>
+                <ChevronDown size={18} className={cn("transition-transform", isCategoryOpen && "rotate-180")} />
+              </div>
+
+              {isCategoryOpen && (
+                <div className="absolute z-50 mt-2 w-full bg-white border border-gray-100 rounded-[24px] shadow-2xl p-2 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="relative mb-2">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                    <input
+                      autoFocus
+                      placeholder="Search categories..."
+                      className="w-full pl-9 pr-4 py-3 bg-gray-50 rounded-xl text-xs outline-none border border-transparent focus:border-orange-200"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="max-h-60 overflow-y-auto custom-scrollbar">
+                    {filteredCategories.length > 0 ? (
+                      filteredCategories.map((cat: string) => (
+                        <div
+                          key={cat}
+                          onClick={() => {
+                            setValue('category', cat);
+                            setIsCategoryOpen(false);
+                            setSearchQuery('');
+                          }}
+                          className="flex items-center justify-between p-3 hover:bg-orange-50 rounded-xl cursor-pointer transition-colors group"
+                        >
+                          <span className="text-sm font-medium text-gray-700 group-hover:text-orange-600">{cat}</span>
+                          {selectedCategory === cat && <Check size={14} className="text-orange-500" />}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-center py-4 text-xs text-gray-400 font-bold uppercase tracking-widest">No categories found</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </FormField>
           <FormField label="Price (₦)" error={errors.price?.message as string}>
             <StyledInput {...register('price')} type="number" placeholder="5000" />

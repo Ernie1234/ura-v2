@@ -22,7 +22,7 @@ export default function CategoryRibbon({ activeCategory, onSelect }: {
             2. scrollbar-thin: (for Firefox) makes it slim
             3. scrollbar-custom: (our custom class defined below)
         */}
-        <div className="flex items-center gap-3 overflow-x-auto py-4 scrollbar-custom">
+        <div className="flex items-center gap-3 overflow-x-auto py-4 scrollbar-base scrollbar-main">
           <button
             onClick={() => onSelect("All")}
             className={cn(

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { generateAvatarUrl } from '@/utils/avatar-generator';
+import { Link } from 'react-router-dom';
 
 interface BookmarkListProps {
   bookmarks: any[];
@@ -68,10 +69,10 @@ const BookmarkList: React.FC<BookmarkListProps> = ({ bookmarks, isLoading, isErr
       {/* View All Footer */}
       {hasMore && (
         <div className="pt-3 shrink-0">
-          <button className="w-full py-3.5 rounded-[20px] border border-dashed border-slate-200 text-[11px] font-black uppercase tracking-widest text-slate-500 hover:bg-white/60 hover:text-[#f97316] hover:border-[#f97316]/40 transition-all flex items-center justify-center gap-2 group shadow-sm hover:shadow-md">
+          <Link to="/dashboard/bookmarks" className="w-full py-3.5 rounded-[20px] border border-dashed border-slate-200 text-[11px] font-black uppercase tracking-widest text-slate-500 hover:bg-white/60 hover:text-[#f97316] hover:border-[#f97316]/40 transition-all flex items-center justify-center gap-2 group shadow-sm hover:shadow-md">
             Manage all bookmarks
             <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
-          </button>
+          </Link>
         </div>
       )}
     </div>

@@ -10,6 +10,7 @@ import {
   Circle,
   ArrowRight
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface ActivityPanelProps {
   activities: any[];
@@ -100,10 +101,10 @@ const ActivityPanel: React.FC<ActivityPanelProps> = ({ activities, isError, onCl
       {/* 3. View All Footer */}
       {hasMoreThanSix && (
         <div className="pt-3 shrink-0">
-          <button className="w-full py-3.5 rounded-[20px] border border-dashed border-slate-200 text-[11px] font-black uppercase tracking-widest text-slate-500 hover:bg-white/60 hover:text-[#f97316] hover:border-[#f97316]/40 transition-all flex items-center justify-center gap-2 group shadow-sm hover:shadow-md">
+          <Link to="/dashboard/settings/activities" className="w-full py-3.5 rounded-[20px] border border-dashed border-slate-200 text-[11px] font-black uppercase tracking-widest text-slate-500 hover:bg-white/60 hover:text-[#f97316] hover:border-[#f97316]/40 transition-all flex items-center justify-center gap-2 group shadow-sm hover:shadow-md">
             View all activity
             <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
-          </button>
+          </Link>
         </div>
       )}
     </div>

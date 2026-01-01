@@ -19,7 +19,7 @@ const DashboardContainer = ({
   return (
     /* Removed the solid bg-FFF9F6 to let the layout's glassy vibe shine through */
     <div className="min-h-screen">
-      <div className="mx-auto max-w-[1440px] px-4 grid grid-cols-1 lg:grid-cols-4 lg:gap-8">
+      <div className="mx-auto max-w-[1440px] lg:px-4 grid grid-cols-1 lg:grid-cols-4 lg:gap-8">
         
         {/* LEFT COLUMN */}
         {leftColumn && (
