@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import LogoutDialog from '@/components/shared/LogoutDialog';
 import { useCartContext } from '@/context/cart-provider';
 import { useNotificationContext } from '@/context/notification-provider';
+import { generateAvatarUrl } from '@/utils/avatar-generator';
 
 const MenuPage = () => {
   const { user } = useAuthContext();
@@ -67,7 +68,7 @@ const MenuPage = () => {
         >
           <div className="flex items-center gap-4">
             <Avatar className="h-14 w-14 border-2 border-orange-100">
-              <AvatarImage src={user?.profilePicture} />
+              <AvatarImage src={user?.profilePicture  || generateAvatarUrl(`${user?.firstName} ${user?.lastName}`)} />
               <AvatarFallback className="bg-orange-500 text-white font-bold text-xl">
                 {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
               </AvatarFallback>

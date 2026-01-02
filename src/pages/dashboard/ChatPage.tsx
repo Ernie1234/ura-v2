@@ -23,15 +23,15 @@ const activeProfileId = activeTab === 'PERSONAL'
   const isDetailView = !!conversationId || location.pathname.includes('/new');
 
   return (
-    <div className="flex h-[calc(100vh-80px)] w-full overflow-hidden p-0 md:p-6 gap-6 font-sans">
+    <div className="flex h-[calc(100vh-80px)] w-full overflow-hidden p-0 lg:p-6 gap-6 font-sans">
       
       {/* 1. SIDEBAR CONTAINER: Glassy, Modern, Rounded */}
       <aside className={`
         ${isDetailView ? 'hidden' : 'flex'} 
-        md:flex w-full md:w-[400px] flex-col 
+        lg:flex w-full lg:w-[400px] flex-col 
         bg-white/60 backdrop-blur-xl 
         border border-white/80 shadow-2xl shadow-gray-200/50 
-        rounded-none md:rounded-[40px] 
+        rounded-none lg:rounded-[40px] 
         overflow-hidden transition-all duration-500
       `}>
         <ChatSidebar 
@@ -44,10 +44,10 @@ const activeProfileId = activeTab === 'PERSONAL'
       {/* 2. MAIN CONTENT AREA: Glassy, Clean, Independent Scroll */}
       <main className={`
         ${!isDetailView ? 'hidden' : 'flex'} 
-        md:flex flex-1 flex-col 
+        lg:flex flex-1 flex-col 
         bg-white/40 backdrop-blur-2xl 
         border border-white/60 shadow-2xl shadow-gray-200/40 
-        rounded-none md:rounded-[40px] 
+        rounded-none lg:rounded-[40px] 
         overflow-hidden relative
       `}>
         <Outlet context={{ chatData, activeTab, activeProfileId }} />

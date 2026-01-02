@@ -27,10 +27,10 @@ export const DashboardAvatar = () => {
         <DropdownMenuTrigger asChild>
           <button className="outline-none block rounded-full hover:ring-2 hover:ring-orange-100 transition-all">
             <Avatar className="h-9 w-9 border border-gray-200">
-              <AvatarImage src={user.profilePicture} alt={user.firstName} />
+              <AvatarImage src={user.profilePicture || generateAvatarUrl(`${user?.firstName} ${user?.lastName}`)} alt={user.firstName} />
               <AvatarFallback className="p-0">
                 <img 
-                  src={generateAvatarUrl(user.username)} 
+                  src={generateAvatarUrl(`${user?.firstName} ${user?.lastName}`)} 
                   alt="avatar" 
                 />
               </AvatarFallback>

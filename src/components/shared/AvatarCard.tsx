@@ -1,4 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { generateAvatarUrl } from '@/utils/avatar-generator';
 import { Link } from 'react-router-dom';
 
 interface AvatarCardProps {
@@ -23,7 +24,7 @@ export const AvatarCard = ({
   const content = (
     <div className="flex items-center gap-3 p-2 hover:bg-muted rounded-lg transition-colors">
       <Avatar className="h-10 w-10">
-        <AvatarImage src={image} alt={name || 'avatar'} />
+        <AvatarImage src={image || generateAvatarUrl(`${name}`)} alt={name || 'avatar'} />
         <AvatarFallback>{fallbackText}</AvatarFallback>
       </Avatar>
 
