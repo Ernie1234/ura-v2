@@ -60,7 +60,7 @@ const MarketplaceFeed = () => {
   // 3. Apply Category Filter
   const filteredProducts = selectedCategory === "All"
     ? allProducts
-    : allProducts.filter(post => post.category === selectedCategory);
+    : allProducts.filter(post => post?.product?.category === selectedCategory);
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">

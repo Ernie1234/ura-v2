@@ -8,6 +8,7 @@ import { useAuthContext } from '@/context/auth-provider';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { TagInput } from '../shared/TagInput';
 import { cn } from '@/lib/utils';
+import { generateAvatarUrl } from '@/utils/avatar-generator';
 
 const ShareBox = () => {
   const { user } = useAuthContext();
@@ -56,7 +57,7 @@ const ShareBox = () => {
         
         <div className="flex items-center gap-4">
           <Avatar className="h-11 w-11 shrink-0 border-2 border-white shadow-sm">
-            <AvatarImage src={user?.profilePicture} className="object-cover" />
+            <AvatarImage src={user?.profilePicture || generateAvatarUrl(`${user?.firstName} ${user?.lastName}`)} className="object-cover" />
             <AvatarFallback className="bg-[#FF6B35] text-white font-bold text-xs">
               {user?.firstName?.[0]}
             </AvatarFallback>
